@@ -1,0 +1,22 @@
+{
+  "name": "@moringa/nestia-sdk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Auto-generated Nestia SDK for Moringa E-Commerce API - Frontend uses ONLY this for API access",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "generate": "nestia config",
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "clean": "rm -rf src"
+  },
+  "dependencies": {
+    "@moringa/shared": "*",
+    "nestia": "^2.0.0"
+  },
+  "devDependencies": {
+    "@moringa/backend": "*",
+    "typescript": "^6.0.0"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@moringa/ui",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Moringa UI component wrappers - isolates third-party Qwik UI library imports",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "lint": "eslint src/**/*.ts*",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\""
+  },
+  "dependencies": {
+    "@builder.io/qwik": "^1.10.0",
+    "@builder.io/qwik-city": "^1.10.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
+    "tailwind-merge": "^2.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.0",
+    "prettier": "^3.8.1"
+  }
+}
