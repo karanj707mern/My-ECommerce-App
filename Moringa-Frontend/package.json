@@ -1,0 +1,63 @@
+{
+  "name": "moringa-frontend",
+  "private": true,
+  "description": "It is a Moringa Products selling Online Store Frontend built with Next.js and React. It provides a responsive user interface for browsing products, managing shopping carts, and placing orders.",
+  "version": "1.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Firefox versions",
+    "last 2 Safari versions",
+    "last 2 Edge versions",
+    "not dead"
+  ],
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "convert-backend-webp": "ts-node ../Moringa-Backend/scripts/convert-backend-uploads-to-webp.ts",
+    "convert-frontend-webp": "ts-node ../Moringa-Backend/scripts/convert-frontend-images-to-webp.ts",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx}\"",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix && prettier --write \"**/*.{js,jsx,ts,tsx}\"",
+    "start": "next start",
+    "test": "jest"
+  },
+  "engines": {
+    "node": "24.x"
+  },
+  "dependencies": {
+    "@vercel/speed-insights": "^2.0.0",
+    "autoprefixer": "^10.5.2",
+    "next": "16.3.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "socket.io-client": "^4.8.3",
+    "sonner": "^2.0.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.3.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
+    "postcss": "^8.5.19",
+    "prettier": "^3.9.5",
+    "tailwindcss": "^4.3.2",
+    "ts-jest": "^29.4.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "postcss": "^8.5.19"
+  }
+}

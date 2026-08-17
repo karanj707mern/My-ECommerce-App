@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New login alert</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #f4f6f8; font-family: Arial, Helvetica, sans-serif; }
+    .wrapper { width: 100%; padding: 24px 0; }
+    .container { max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .header { background: linear-gradient(135deg, #2d6a4f, #40916c); padding: 28px 24px; text-align: center; }
+    .header h1 { color: #ffffff; font-size: 22px; margin: 0; letter-spacing: 0.3px; }
+    .header p { color: #d8f3dc; margin: 8px 0 0; font-size: 13px; }
+    .body { padding: 24px; }
+    .greeting { font-size: 16px; color: #1b4332; margin: 0 0 16px; }
+    .message { font-size: 14px; color: #4a4a4a; line-height: 1.6; margin: 0 0 20px; }
+    .card-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+    .card { flex: 1 1 45%; background-color: #f8faf9; border: 1px solid #e2ece4; border-radius: 10px; padding: 14px; }
+    .card-label { font-size: 11px; text-transform: uppercase; color: #6b7c72; margin: 0 0 4px; letter-spacing: 0.5px; }
+    .card-value { font-size: 14px; color: #1b4332; margin: 0; font-weight: 600; }
+    .notice { background-color: #fff8e1; border-left: 4px solid #f4b41a; padding: 14px 16px; border-radius: 8px; margin-bottom: 20px; }
+    .notice p { margin: 0; font-size: 13px; color: #5c4b00; line-height: 1.5; }
+    .footer { padding: 16px 24px; background-color: #f4f6f8; text-align: center; }
+    .footer p { margin: 0; font-size: 12px; color: #7c8a82; }
+    .footer a { color: #2d6a4f; text-decoration: none; }
+    @media (max-width: 480px) {
+      .card { flex: 1 1 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header">
+        <h1>New login detected</h1>
+        <p>Moringa Store account security</p>
+      </div>
+      <div class="body">
+        <p class="greeting">Hello {{name}},</p>
+        <p class="message">
+          We noticed a new sign-in to your account. If this was you, you can safely ignore this email.
+          If you did not log in recently, please secure your account immediately.
+        </p>
+
+        <div class="card-grid">
+          <div class="card">
+            <p class="card-label">Browser</p>
+            <p class="card-value">{{browser}}</p>
+          </div>
+          <div class="card">
+            <p class="card-label">Operating System</p>
+            <p class="card-value">{{os}}</p>
+          </div>
+          <div class="card">
+            <p class="card-label">Device</p>
+            <p class="card-value">{{device}}</p>
+          </div>
+          <div class="card">
+            <p class="card-label">Location</p>
+            <p class="card-value">{{location}}</p>
+          </div>
+          <div class="card">
+            <p class="card-label">IP Address</p>
+            <p class="card-value">{{ip}}</p>
+          </div>
+        </div>
+
+        <div class="notice">
+          <p><strong>Didn't sign in?</strong> If you did not initiate this login, reset your password now and contact our support team.</p>
+        </div>
+      </div>
+      <div class="footer">
+        <p>You are receiving this email because you have an account with Moringa Store.</p>
+        <p>Need help? <a href="mailto:moringastoreonline@gmail.com">Contact support</a></p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,119 @@
+services:
+  - type: web
+    name: moringa-backend
+    runtime: docker
+    plan: starter
+    branch: main
+    rootDir: Moringa-Backend
+    dockerfilePath: Dockerfile
+
+    envVars:
+
+      - key: NODE_ENV
+        value: production
+
+      - key: PORT
+        value: "5000"
+
+
+      # Database
+
+      - key: DATABASE_URL
+        sync: false
+
+
+      # Frontend
+
+      - key: FRONTEND_URL
+        value: https://my-nest-project-pearl.vercel.app
+
+      - key: CORS_ORIGINS
+        value: https://my-nest-project-pearl.vercel.app
+
+      - key: SITE_URL
+        value: https://my-nest-project-pearl.vercel.app
+
+      # Managed Redis and RabbitMQ are set directly in Render environment
+
+      - key: REDIS_URL
+        sync: false
+
+      - key: RABBITMQ_URL
+        sync: false
+
+      # JWT
+
+      - key: JWT_SECRET
+        generateValue: true
+
+
+      # Google OAuth
+
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+
+
+      # SMTP / Brevo
+
+      - key: SMTP_HOST
+        value: smtp-relay.brevo.com
+
+      - key: SMTP_PORT
+        value: "587"
+
+      - key: SMTP_SECURE
+        value: "false"
+
+      - key: SMTP_USER
+        sync: false
+
+      - key: SMTP_PASS
+        sync: false
+
+      - key: EMAIL_FROM
+        value: "Moringa Store <your-sender-email@domain.com>"
+
+
+      # Razorpay
+
+      - key: RAZORPAY_KEY_ID
+        sync: false
+
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+
+      - key: RAZORPAY_CURRENCY
+        value: INR
+
+
+      # Notifications
+
+      - key: NOTIFICATION_RETRY_INTERVAL_MS
+        value: "60000"
+
+      - key: NOTIFICATION_MAX_ATTEMPTS
+        value: "3"
+
+
+      # Admin
+
+      - key: ADMIN_EMAIL_1
+        sync: false
+
+      - key: ADMIN_EMAIL_2
+        sync: false
+
+      - key: ADMIN_PASSWORD
+        generateValue: true
+
+
+      # WhatsApp
+
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false

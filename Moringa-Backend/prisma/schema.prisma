@@ -1,0 +1,531 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model EmailTemplate {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  subject   String
+  htmlBody  String
+  textBody  String?
+  variables Json?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id                           Int                      @id @default(autoincrement())
+  name                         String
+  email                        String                   @unique
+  password                     String
+  isEmailVerified              Boolean                  @default(false)
+  emailVerifyToken             String?
+  createdAt                    DateTime                 @default(now())
+  role                         Role                     @default(USER)
+  updatedAt                    DateTime                 @updatedAt
+  passwordResetToken           String?
+  passwordResetTokenExpiresAt  DateTime?
+  addressLine1                 String?
+  addressLine2                 String?
+  city                         String?
+  country                      String?
+  phoneNumber                  String?
+  postalCode                   String?
+  state                        String?
+  passwordResetLastRequestedAt DateTime?
+  authProvider                 AuthProvider             @default(LOCAL)
+  googleId                     String?                  @unique
+  emailVerifyTokenExpiresAt    DateTime?
+  emailVerifyLastSentAt        DateTime?
+  refreshToken                 String?
+  refreshTokenExpiresAt        DateTime?
+  avatar                       String?
+  auditLogs                    AdminAuditLog[]
+  notifications                Notification[]
+  notificationPreferences      NotificationPreference[]
+  orders                       Order[]
+  reviews                      Review[]
+  reviewComments               ReviewComment[]
+  Session                      Session[]
+  addresses                    UserAddress[]
+  wishlistItems                Wishlist[]
+  cartItems                    cartItem[]
+  recentlyViewed               RecentlyViewed[]
+}
+
+model UserAddress {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  label         String
+  recipientName String
+  phoneNumber   String
+  addressLine1  String
+  addressLine2  String?
+  city          String
+  state         String
+  postalCode    String
+  country       String
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isDefault])
+}
+
+model Product {
+  id             Int              @id @default(autoincrement())
+  name           String
+  price          Float
+  description    String
+  image          String
+  createdAt      DateTime         @default(now())
+  stock          Int
+  slug           String           @unique
+  sku            String           @unique
+  compareAtPrice Float?
+  brand          String?
+  tags           String[]         @default([])
+  seoTitle       String?
+  seoDescription String?
+  weightGrams    Int?
+  isActive       Boolean          @default(true)
+  updatedAt      DateTime         @updatedAt
+  isNewArrival   Boolean          @default(false)
+  reviews        Review[]
+  wishlistItems  Wishlist[]
+  abandonedCarts AbandonedCart[]
+  cartItems      cartItem[]
+  orderItems     orderItem[]
+  recentlyViewed RecentlyViewed[]
+}
+
+model Wishlist {
+  id                 Int      @id @default(autoincrement())
+  userId             Int?
+  productId          Int
+  guestWishlistToken String?
+  createdAt          DateTime @default(now())
+  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user               User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@unique([guestWishlistToken, productId])
+  @@index([userId])
+  @@index([guestWishlistToken])
+}
+
+model RecentlyViewed {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  viewedAt  DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, viewedAt])
+  @@map("recently_viewed")
+}
+
+model AbandonedCart {
+  id          Int       @id @default(autoincrement())
+  userId      Int?
+  guestToken  String?
+  productId   Int
+  quantity    Int       @default(1)
+  recovered   Boolean   @default(false)
+  recoveredAt DateTime?
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([guestToken, expiresAt])
+  @@map("abandoned_cart")
+}
+
+model Coupon {
+  id            Int                @id @default(autoincrement())
+  code          String             @unique
+  discountType  CouponDiscountType
+  discountValue Float
+  minOrderValue Float?
+  maxDiscount   Float?
+  usageLimit    Int?
+  usedCount     Int                @default(0)
+  isActive      Boolean            @default(true)
+  validFrom     DateTime
+  validUntil    DateTime
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  perUserLimit  Int?
+  usages        CouponUsage[]
+}
+
+model CouponUsage {
+  id       Int      @id @default(autoincrement())
+  couponId Int
+  userId   Int
+  orderId  Int
+  usedAt   DateTime @default(now())
+  coupon   Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+
+  @@unique([couponId, userId])
+  @@index([couponId])
+  @@index([userId])
+}
+
+model AdminAuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  action     String
+  entityType String
+  entityId   Int?
+  oldValue   String?
+  newValue   String?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model StoreSettings {
+  id                       Int      @id
+  shippingCharge           Float    @default(99)
+  taxRate                  Float    @default(0)
+  freeShippingThreshold    Float?
+  updatedAt                DateTime @updatedAt
+  codCharge                Float    @default(0)
+  expressShippingCharge    Float    @default(149)
+  handlingCharge           Float    @default(0)
+  sameDayShippingCharge    Float    @default(249)
+  shippingOptions          Json?
+  shippingZones            Json?
+  codEnabled               Boolean  @default(true)
+  maxCodOrderValue         Float?
+  allowInternationalCod    Boolean  @default(false)
+  autoCancelPendingMinutes Int      @default(30)
+}
+
+model cartItem {
+  id             Int     @id @default(autoincrement())
+  userId         Int?
+  productId      Int
+  quantity       Int     @default(1)
+  guestCartToken String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  product        Product @relation(fields: [productId], references: [id])
+  user           User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@unique([guestCartToken, productId])
+  @@index([guestCartToken])
+}
+
+model Order {
+  id                  Int             @id @default(autoincrement())
+  userId              Int
+  total               Float
+  createdAt           DateTime        @default(now())
+  status              OrderStatus     @default(PENDING)
+  addressLine1        String?
+  addressLine2        String?
+  city                String?
+  country             String?
+  courierName         String?
+  deliveredAt         DateTime?
+  estimatedDeliveryAt DateTime?
+  outForDeliveryAt    DateTime?
+  paidAt              DateTime?
+  phoneNumber         String?
+  postalCode          String?
+  razorpayOrderId     String?
+  razorpayPaymentId   String?
+  recipientName       String?
+  shippedAt           DateTime?
+  shippingAmount      Float           @default(0)
+  state               String?
+  subtotal            Float           @default(0)
+  taxAmount           Float           @default(0)
+  trackingNumber      String?
+  codAmount           Float           @default(0)
+  handlingAmount      Float           @default(0)
+  shippingType        String?
+  paymentMethod       String?         @default("online")
+  expiresAt           DateTime?
+  inventoryReserved   Boolean         @default(false)
+  couponCode          String?
+  refundMethod        String?
+  refundReference     String?
+  refundNotes         String?
+  adminNotes          String?
+  refundId            String?
+  refundedAt          DateTime?
+  notifications       Notification[]
+  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activities          OrderActivity[]
+  reviews             Review[]
+  items               orderItem[]
+  @@index([userId])
+  @@index([status])
+  @@index([razorpayOrderId])
+  @@index([createdAt])
+  @@unique([razorpayPaymentId])
+}
+
+model NotificationPreference {
+  id        Int                 @id @default(autoincrement())
+  userId    Int
+  type      NotificationType
+  channel   NotificationChannel
+  enabled   Boolean             @default(true)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, channel])
+  @@index([userId])
+}
+
+model Notification {
+  id                Int                 @id @default(autoincrement())
+  userId            Int?
+  orderId           Int?
+  type              NotificationType
+  channel           NotificationChannel
+  recipient         String
+  subject           String?
+  body              String
+  payload           Json?
+  status            NotificationStatus  @default(PENDING)
+  attempts          Int                 @default(0)
+  maxAttempts       Int                 @default(3)
+  lastError         String?
+  providerMessageId String?
+  scheduledAt       DateTime            @default(now())
+  sentAt            DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  order             Order?              @relation(fields: [orderId], references: [id])
+  user              User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, scheduledAt])
+  @@index([userId, createdAt])
+  @@index([orderId, createdAt])
+  @@index([userId, status])
+}
+
+model orderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  price     Float
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+  @@index([orderId])
+  @@index([productId])
+}
+
+model OrderActivity {
+  id        Int         @id @default(autoincrement())
+  orderId   Int
+  status    OrderStatus
+  title     String
+  detail    String?
+  createdAt DateTime    @default(now())
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id        Int             @id @default(autoincrement())
+  userId    Int
+  productId Int
+  orderId   Int?
+  rating    Int
+  title     String?
+  content   String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  adminNote String?
+  status    ReviewStatus    @default(PENDING)
+  order     Order?          @relation(fields: [orderId], references: [id])
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments  ReviewComment[]
+
+  @@unique([userId, productId])
+  @@index([productId, createdAt])
+  @@index([status])
+  @@index([userId])
+}
+
+model ReviewComment {
+  id        Int      @id @default(autoincrement())
+  reviewId  Int
+  userId    Int
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId, createdAt])
+}
+
+model BlogPost {
+  id          Int       @id @default(autoincrement())
+  title       String
+  slug        String    @unique
+  excerpt     String?
+  content     String
+  coverImage  String?
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Session {
+  id           String   @id
+  userId       Int
+  refreshToken String   @unique
+  userAgent    String?
+  ip           String?
+  country      String?
+  city         String?
+  device       String?
+  browser      String?
+  os           String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
+  lastUsedAt   DateTime @default(now())
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([userId, refreshToken])
+}
+
+model HeroImage {
+  id        Int      @id @default(autoincrement())
+  url       String
+  alt       String?
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+model NewArrival {
+  id           Int      @id @default(autoincrement())
+  url          String
+  alt          String?
+  sortOrder    Int      @default(0)
+  active       Boolean  @default(true)
+  comingSoon   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@map("new_arrival")
+}
+
+enum CouponDiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum NotificationType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  LOGIN_ALERT
+  ORDER_PLACED
+  PAYMENT_CONFIRMED
+  ORDER_STATUS_UPDATED
+  ORDER_CANCELLED
+  WELCOME
+  EMAIL_VERIFIED
+  PROFILE_UPDATED
+  ADDRESS_ADDED
+  ADDRESS_UPDATED
+  ADDRESS_DELETED
+  REVIEW_POSTED
+  COMMENT_POSTED
+  BLOG_POSTED
+  BLOG_UPDATED
+  BLOG_DELETED
+  SUPPORT_ISSUE_CREATED
+  SUPPORT_ISSUE_UPDATED
+  NEW_USER_REGISTERED
+  LOW_STOCK
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  OUT_FOR_DELIVERY
+}
+
+model GiftCard {
+  id              Int       @id @default(autoincrement())
+  code            String    @unique @db.VarChar(32)
+  initialAmount   Float
+  remainingAmount Float
+  currency        String    @default("INR")
+  isActive        Boolean   @default(true)
+  redeemedBy      Int?
+  redeemedAt      DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  lastUsedAt      DateTime?
+
+  @@index([code])
+  @@index([isActive])
+  @@index([redeemedBy])
+}

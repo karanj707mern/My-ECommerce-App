@@ -1,0 +1,63 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+build
+generated/prisma
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Coverage
+coverage
+.nyc_output
+
+# Temp files
+.temp
+.tmp
+
+# Local env files
+.env
+.env.*.local
+.env.development
+.env.production
+!.env.example
+
+# OS / editors
+.DS_Store
+.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports
+report.*.json
+tsconfig.build.tsbuildinfo
+
+
+# Database / dump files
+prisma/neon-backup-20260720.dump
+*.dump
+

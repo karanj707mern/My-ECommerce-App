@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+.git
+coverage
+dist
+node_modules
+prisma/*.dump
+npm-debug.log*
+Dockerfile.services
+supervisord.services.conf
+redis.conf
+docker-entrypoint.sh
