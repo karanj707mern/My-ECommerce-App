@@ -11,7 +11,10 @@ export class PinoInterceptor implements NestInterceptor {
   constructor(private readonly logger: PinoLogger) {}
 
   intercept(context: ExecutionContext, next: CallHandler) {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<{
+      method?: string;
+      url?: string;
+    }>();
     const method = request.method;
     const url = request.url;
     const now = Date.now();

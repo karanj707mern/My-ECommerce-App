@@ -1,16 +1,30 @@
-import { Controller, Get, Param, UseGuards, Req, Res, Post, Body, Patch, Delete, HttpCode, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  UseGuards,
+  Req,
+  Res,
+  Post,
+  Body,
+  Patch,
+  Delete,
+  HttpCode,
+  UseInterceptors,
+  UploadedFile,
+  Query,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '@/auth/jwt.guard';
 import { AuthThrottlerGuard } from '@/auth/guards/auth-throttler.guard';
 import { Throttle } from '@nestjs/throttler';
-import { AuthService } from './auth.service';
+import { OrderService } from './order.service';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiConsumes, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { PrismaService } from '@/prisma/prisma.service';
 import { StorageService } from '@/storage/storage.service';
-import { AuthCookiesService } from './services/auth-cookies.service';
 import type { File as MulterFile } from 'multer';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiConsumes } from '@nestjs/swagger';
 
 const allowedImageMimeTypes: Record<string, string> = {
   'image/jpeg': '.jpg',
@@ -27,7 +41,6 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly storageService: StorageService,
     private readonly prisma: PrismaService,
-    private readonly authCookiesService: AuthCookiesService,
   ) {}
 
   @UseGuards(AuthThrottlerGuard)
@@ -35,20 +48,16 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: 'Login user with email and password' })
   @ApiResponse({ status: 200, description: 'Login successful' })
-  async login(@Body() dto: { email: string; password: string; captchaId?: string; captchaInput?: string }, @Res() res: Response) {
-    const result = await this.authService.login(dto);
-    this.authCookiesService.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return res.json({ message: result.message, user: result.user });
+  async login(@Body() dto: { email: string; password: string; captchaId?: string; captchaInput?: string }) {
+    return this.authService.login(dto);
   }
 
   @UseGuards(AuthThrottlerGuard)
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
-  async register(@Body() dto: { name: string; email: string; password: string; captchaId?: string; captchaInput?: string }, @Res() res: Response) {
-    const result = await this.authService.register(dto);
-    this.authCookiesService.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return res.status(201).json({ message: result.message, user: result.user });
+  async register(@Body() dto: { name: string; email: string; password: string; captchaId?: string; captchaInput?: string }) {
+    return this.authService.register(dto);
   }
 
   @Post('logout')
@@ -57,7 +66,8 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
   async logout(@Req() req: { user?: { id: number }; cookies?: { refreshToken?: string } }, @Res() res: Response) {
     const result = await this.authService.logout(req.user?.id);
-    this.authCookiesService.clearAuthCookies(res);
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
     return res.json(result);
   }
 
@@ -71,7 +81,8 @@ export class AuthController {
       return res.status(401).json({ message: 'Refresh token not found' });
     }
     const result = await this.authService.refreshAccessToken(refreshToken);
-    this.authCookiesService.setAuthCookies(res, result.accessToken, result.refreshToken);
+    res.cookie('accessToken', result.accessToken, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 60 * 60 * 1000 });
+    res.cookie('refreshToken', result.refreshToken, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
     return res.json({ message: result.message });
   }
 

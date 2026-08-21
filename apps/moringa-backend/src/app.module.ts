@@ -5,7 +5,6 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ExecutionContext } from '@nestjs/common';
 import { ProductModule } from './product/product.module';
-import { PrismaModule } from './prisma/prisma.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { CartModule } from './cart/cart.module';
@@ -23,6 +22,9 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { HeroModule } from './hero/hero.module';
 import { NewArrivalModule } from './new-arrival/new-arrival.module';
 import { GiftCardModule } from './gift-card/gift-card.module';
+import { InfrastructureModule } from './infrastructure/infrastructure.module';
+import { PaymentModule } from './payment/payment.module';
+import { EncryptionModule } from './common/encryption/encryption.module';
 
 @Module({
   imports: [
@@ -30,25 +32,32 @@ import { GiftCardModule } from './gift-card/gift-card.module';
       isGlobal: true,
       envFilePath: ['.env', `.env.${process.env.NODE_ENV ?? 'development'}`],
     }),
-    ThrottlerModule.forRoot({
-      throttlers: [
-        {
-          limit: 100,
-          ttl: 60,
+    ThrottlerModule.forRoot([
+      {
+        throttlers: [
+          {
+            limit: 100,
+            ttl: 60,
+          },
+        ],
+        skipIf: (context: ExecutionContext) => {
+          const route = context.getHandler();
+          const controller = context.getClass ? context.getClass() : null;
+          const controllerName = controller?.name || '';
+          const handlerName = route?.name || '';
+          const isHealth = controllerName === 'HealthController';
+          const isAuth =
+            controllerName === 'AuthController' &&
+            (handlerName === 'login' ||
+              handlerName === 'register' ||
+              handlerName === 'refresh');
+          return isHealth || isAuth;
         },
-      ],
-      skipIf: (context: ExecutionContext) => {
-        const route = context.getHandler();
-        const controller = context.getClass ? context.getClass() : null;
-        const controllerName = controller?.name || '';
-        const handlerName = route?.name || '';
-        const isHealth = controllerName === 'HealthController';
-        return isHealth;
       },
-    }),
+    ]),
     ScheduleModule.forRoot(),
     PinoModule,
-    PrismaModule,
+    InfrastructureModule,
     AuthModule,
     UserModule,
     ProductModule,
@@ -66,6 +75,8 @@ import { GiftCardModule } from './gift-card/gift-card.module';
     HeroModule,
     NewArrivalModule,
     GiftCardModule,
+    PaymentModule,
+    EncryptionModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

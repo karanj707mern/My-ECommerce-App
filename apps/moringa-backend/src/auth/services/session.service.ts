@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class SessionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createSession(userId: number, refreshToken: string, deviceInfo?: { userAgent?: string; ip?: string }) {
+  async createSession(userId: number, refreshToken: string, deviceInfo?: { userAgent?: string; ip?: string }, jti?: string) {
     const hashedToken = Buffer.from(refreshToken).toString('base64');
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     await this.prisma.session.create({
       data: {
-        id: crypto.randomUUID(),
+        id: jti || crypto.randomUUID(),
         userId,
         refreshToken: hashedToken,
         userAgent: deviceInfo?.userAgent,

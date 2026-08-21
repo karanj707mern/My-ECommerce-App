@@ -2,7 +2,7 @@
   "name": "moringa-ecommerce-monorepo",
   "version": "1.0.0",
   "private": true,
-  "description": "Moringa E-Commerce Monorepo - Qwik City frontend + NestJS backend with Nestia",
+  "description": "Moringa E-Commerce Monorepo - Qwik City frontend + NestJS backend with Nestia and Fastify",
   "workspaces": [
     "apps/*",
     "libs/*"

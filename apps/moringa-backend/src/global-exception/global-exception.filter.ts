@@ -7,8 +7,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse();
-    const request = ctx.getRequest();
+    const response = ctx.getResponse<{
+      status?: (code: number) => { json: (payload: unknown) => void };
+    }>();
+    const request = ctx.getRequest<{
+      method?: string;
+      url?: string;
+    }>();
 
     const status =
       exception instanceof HttpException
@@ -26,12 +31,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         : (message as Record<string, unknown>)?.message || 'Internal server error';
 
     this.logger.error(
-      `${request.method} ${request.url} - ${status} - ${errorMessage}`,
+      `${request.method ?? ''} ${request.url ?? ''} - ${status} - ${String(errorMessage)}`,
       undefined,
       'GlobalExceptionFilter',
     );
 
-    response.status(status).json({
+    response.status?.(status).json?.({
       statusCode: status,
       message: errorMessage,
       timestamp: new Date().toISOString(),

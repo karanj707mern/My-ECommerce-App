@@ -11,6 +11,7 @@ import { AuthProvider, Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { randomBytes } from 'crypto';
+import { TokenRevocationService } from './services/token-revocation.service';
 
 export interface SafeUser {
   id: number;
@@ -52,6 +53,7 @@ export class AuthService {
     private readonly cache: RedisCacheService,
     private readonly sessionService: SessionService,
     private readonly deviceInfoService: DeviceInfoService,
+    private readonly tokenRevocationService: TokenRevocationService,
   ) {}
 
   private normalizeEmail(email: string) {
@@ -84,12 +86,28 @@ export class AuthService {
     email: string;
     role: string;
   }) {
-    const accessToken = await this.jwt.signAsync(payload);
-    const refreshToken = await this.jwt.signAsync(payload, { expiresIn: '7d' });
-    return { accessToken, refreshToken };
+    const jti = crypto.randomUUID();
+    const accessToken = await this.jwt.signAsync(
+      { ...payload, jti },
+      { expiresIn: '15m' },
+    );
+    const refreshToken = await this.jwt.signAsync(
+      { ...payload, jti },
+      { expiresIn: '7d' },
+    );
+    return { accessToken, refreshToken, jti };
   }
 
   async logout(userId: number): Promise<{ message: string }> {
+    const sessions = await this.prisma.session.findMany({
+      where: { userId },
+      select: { id: true },
+    });
+
+    for (const session of sessions) {
+      await this.tokenRevocationService.revoke(session.id);
+    }
+
     await this.prisma.session.deleteMany({
       where: { userId },
     });
@@ -300,8 +318,8 @@ export class AuthService {
       role: user.role,
     };
 
-    const { accessToken, refreshToken } = await this.generateTokens(payload);
-    await this.createSession(user.id, refreshToken, deviceInfo);
+    const { accessToken, refreshToken, jti } = await this.generateTokens(payload);
+    await this.createSession(user.id, refreshToken, deviceInfo, jti);
 
     return { message, accessToken, refreshToken, user: user as SafeUser };
   }
@@ -310,8 +328,9 @@ export class AuthService {
     userId: number,
     refreshToken: string,
     deviceInfo?: DeviceInfo,
+    jti?: string,
   ) {
-    await this.sessionService.createSession(userId, refreshToken, deviceInfo);
+    await this.sessionService.createSession(userId, refreshToken, deviceInfo, jti);
   }
 
   async getProfile(userId: number): Promise<{ message: string; user: SafeUser }> {
@@ -465,5 +484,127 @@ export class AuthService {
     });
 
     return { message: 'Password updated successfully' };
+  }
+
+  async login(dto: { email: string; password: string; captchaId?: string; captchaInput?: string }): Promise<{ message: string; accessToken: string; refreshToken: string; user: SafeUser }> {
+    const email = this.normalizeEmail(dto.email);
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user || user.authProvider === AuthProvider.GOOGLE) {
+      throw new Error('Invalid credentials');
+    }
+
+    const valid = await bcrypt.compare(dto.password, user.password);
+    if (!valid) {
+      throw new Error('Invalid credentials');
+    }
+
+    if (!user.isEmailVerified) {
+      throw new Error('Please verify your email before logging in');
+    }
+
+    const result = await this.buildAuthResponse(user.id, 'Login successful');
+    await this.notificationService.create({
+      userId: user.id,
+      type: 'LOGIN_ALERT',
+      channel: 'EMAIL',
+      recipient: user.email,
+      subject: 'New login detected',
+      body: 'Your account was just logged in. If this was not you, please secure your account.',
+      status: 'PENDING',
+      scheduledAt: new Date(),
+      maxAttempts: 3,
+    });
+
+    return result;
+  }
+
+  async register(dto: { name: string; email: string; password: string; captchaId?: string; captchaInput?: string }): Promise<{ message: string; accessToken: string; refreshToken: string; user: SafeUser }> {
+    const email = this.normalizeEmail(dto.email);
+    const existing = await this.prisma.user.findUnique({ where: { email } });
+
+    if (existing) {
+      throw new Error('Email already registered');
+    }
+
+    const password = await bcrypt.hash(dto.password, 10);
+    const { token, hashedToken } = this.generateVerificationToken();
+
+    const user = await this.prisma.user.create({
+      data: {
+        name: dto.name.trim(),
+        email,
+        password,
+        emailVerifyToken: hashedToken,
+        emailVerifyTokenExpiresAt: this.generateEmailVerificationExpiry(),
+        emailVerifyLastSentAt: new Date(),
+      },
+      select: this.getSafeUserSelect(),
+    });
+
+    await this.emailVerificationService.sendVerificationEmail(
+      email,
+      token,
+      user.name,
+      user.id,
+    );
+
+    const result = await this.buildAuthResponse(user.id, 'Registration successful');
+    return result;
+  }
+
+  async getSession(accessToken?: string, refreshToken?: string): Promise<{ authenticated: boolean; user: SafeUser | null }> {
+    if (!accessToken && !refreshToken) {
+      return { authenticated: false, user: null };
+    }
+
+    try {
+      const token = accessToken || refreshToken;
+      const payload = await this.jwt.verifyAsync(token, {
+        secret: this.configService.get<string>('app.jwtSecret'),
+      });
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.id },
+        select: this.getSafeUserSelect(),
+      });
+
+      return { authenticated: true, user: user as SafeUser };
+    } catch {
+      return { authenticated: false, user: null };
+    }
+  }
+
+  async refreshAccessToken(refreshToken: string): Promise<{ message: string; accessToken: string; refreshToken: string }> {
+    const session = await this.sessionService.findSessionByRefreshToken(0, refreshToken);
+
+    if (!session) {
+      throw new Error('Invalid refresh token');
+    }
+
+    const payload = await this.jwt.verifyAsync(refreshToken, {
+      secret: this.configService.get<string>('app.jwtSecret'),
+    });
+
+    const { accessToken, refreshToken: newRefreshToken } = await this.generateTokens({
+      id: payload.id,
+      email: payload.email,
+      role: payload.role,
+    });
+
+    await this.prisma.session.update({
+      where: { id: session.id },
+      data: {
+        refreshToken: Buffer.from(newRefreshToken).toString('base64'),
+        updatedAt: new Date(),
+        lastUsedAt: new Date(),
+      },
+    });
+
+    return {
+      message: 'Token refreshed',
+      accessToken,
+      refreshToken: newRefreshToken,
+    };
   }
 }

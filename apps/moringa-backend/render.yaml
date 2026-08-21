@@ -16,6 +16,12 @@ services:
           name: moringa-redis
           type: redis
           property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: RAZORPAY_WEBHOOK_SECRET
+        generateValue: true
 
 databases:
   - name: moringa-db

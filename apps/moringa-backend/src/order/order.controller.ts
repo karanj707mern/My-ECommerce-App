@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Req, UseGuards, Headers } from '@nestjs/common';
 import { JwtAuthGuard } from '@/auth/jwt.guard';
 import { OrderService } from './order.service';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -12,8 +12,8 @@ export class OrderController {
   @Post()
   @ApiOperation({ summary: 'Create order' })
   @ApiResponse({ status: 201, description: 'Order created' })
-  async create(@Req() req: { user: { id: number } }, @Body() dto: Record<string, unknown>) {
-    return this.orderService.create(req.user.id, dto);
+  async create(@Req() req: { user: { id: number } }, @Body() dto: Record<string, unknown>, @Headers('x-idempotency-key') idempotencyKey?: string) {
+    return this.orderService.createOrder(req.user.id, dto as never, idempotencyKey ?? `${req.user.id}:${Date.now()}`);
   }
 
   @UseGuards(JwtAuthGuard)

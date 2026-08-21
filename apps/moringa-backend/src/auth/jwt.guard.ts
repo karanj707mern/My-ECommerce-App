@@ -2,6 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@/prisma/prisma.service';
+import { TokenRevocationService } from './services/token-revocation.service';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -9,6 +10,7 @@ export class JwtAuthGuard implements CanActivate {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly tokenRevocationService: TokenRevocationService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -23,6 +25,11 @@ export class JwtAuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: this.configService.get<string>('app.jwtSecret'),
       });
+
+      const isRevoked = await this.tokenRevocationService.isRevoked(payload.jti ?? payload.sub);
+      if (isRevoked) {
+        throw new UnauthorizedException('Token has been revoked');
+      }
 
       const session = await this.prisma.session.findFirst({
         where: {
