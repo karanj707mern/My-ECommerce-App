@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient, Prisma } from '@/generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PinoLogger } from '@/common/logger/pino.service';
 
 export interface QueryLog {
@@ -13,7 +14,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   private readonly queryLogger: PinoLogger;
 
   constructor(logger: PinoLogger) {
+    const connectionString =
+      process.env.DATABASE_URL ?? 'postgresql://moringa:moringa@localhost:5432/moringa';
+
+    // Prisma 7 requires a driver adapter (the Rust query engine was removed).
     super({
+      adapter: new PrismaPg({ connectionString }),
       log: [
         { emit: 'event', level: 'query' },
         { emit: 'event', level: 'info' },
@@ -24,22 +30,25 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
     this.queryLogger = logger;
 
-    this.$on('query', (e: QueryLog) => {
+    type QueryEventHandler = (event: Prisma.QueryEvent) => void;
+    type LogEventHandler = (event: Prisma.LogEvent) => void;
+
+    (this.$on as unknown as (e: 'query', cb: QueryEventHandler) => void)('query', (e) => {
       this.queryLogger.debug(
         `Query: ${e.query} | Duration: ${e.duration}ms`,
         'Prisma',
       );
     });
 
-    this.$on('info', (e: { message: string }) => {
+    (this.$on as unknown as (e: 'info', cb: LogEventHandler) => void)('info', (e) => {
       this.queryLogger.log(e.message, 'Prisma');
     });
 
-    this.$on('warn', (e: { message: string }) => {
+    (this.$on as unknown as (e: 'warn', cb: LogEventHandler) => void)('warn', (e) => {
       this.queryLogger.warn(e.message, 'Prisma');
     });
 
-    this.$on('error', (e: { message: string }) => {
+    (this.$on as unknown as (e: 'error', cb: LogEventHandler) => void)('error', (e) => {
       this.queryLogger.error(e.message, undefined, 'Prisma');
     });
   }
@@ -53,33 +62,74 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     await this.$disconnect();
   }
 
-  enableSoftDeleteMiddleware() {
-    this.$use(async (params: Prisma.MiddlewareParams, next: Prisma.MiddlewareNext) => {
-      const { action, args } = params;
+  /**
+   * Automatic soft-delete filtering via the Prisma Client Extensions API.
+   * ($use middleware was removed in Prisma 6; $extends.query is the replacement.)
+   * The extended model delegates are copied onto this instance so every
+   * consumer of PrismaService transparently reads non-deleted rows only.
+   * The filter is applied ONLY to models whose schema declares `deletedAt`.
+   */
+  enableSoftDeleteMiddleware(): void {
+    const softDeleteModels = this.resolveSoftDeleteModels();
 
-      if (
-        action === 'findMany' ||
-        action === 'findFirst' ||
-        action === 'findUnique'
-      ) {
-        const where =
-          (args?.where as Record<string, unknown> | undefined) ?? {};
+    const xprisma = this.$extends({
+      query: {
+        $allModels: {
+          async $allOperations({ model, operation, args, query }) {
+            const softDeleteReadOps = ['findMany', 'findFirst', 'count', 'aggregate', 'groupBy'];
 
-        if (Object.keys(where).length === 0) {
-          params.args = {
-            ...args,
-            where: { ...where, deletedAt: null },
-          };
-        } else {
-          params.args = {
-            ...args,
-            where: { ...where, deletedAt: null },
-          };
+            if (
+              model &&
+              softDeleteModels.has(model) &&
+              softDeleteReadOps.includes(operation)
+            ) {
+              const currentArgs = (args ?? {}) as Record<string, unknown>;
+              const where = (currentArgs.where ?? {}) as Record<string, unknown>;
+
+              if (where.deletedAt === undefined) {
+                currentArgs.where = { ...where, deletedAt: null };
+                args = currentArgs;
+              }
+            }
+
+            return query(args);
+          },
+        },
+      },
+    });
+
+    Object.assign(this, xprisma);
+  }
+
+  /**
+   * Scan prisma/schema.prisma once and collect model names that declare a
+   * `deletedAt` column, so soft-delete filtering never touches models without
+   * the field (e.g. Session).
+   */
+  private resolveSoftDeleteModels(): Set<string> {
+    const models = new Set<string>();
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const fs = require('fs') as { readFileSync: (p: string, e: string) => string };
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const path = require('path') as { join: (...p: string[]) => string };
+
+      const schemaPath = path.join(process.cwd(), 'prisma', 'schema.prisma');
+      const schema = fs.readFileSync(schemaPath, 'utf8');
+      const modelBlocks = schema.split(/(?=^model\s)/m);
+
+      for (const block of modelBlocks) {
+        const nameMatch = block.match(/^model\s+(\w+)/m);
+        if (nameMatch && /deletedAt/i.test(block)) {
+          models.add(nameMatch[1]);
         }
       }
+    } catch {
+      // If the schema cannot be read, disable filtering rather than breaking queries.
+    }
 
-      return next(params);
-    });
+    return models;
   }
 
   async healthCheck(): Promise<boolean> {

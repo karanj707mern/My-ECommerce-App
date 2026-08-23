@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
 import * as amqp from 'amqplib';
 
 export interface RabbitMQConfig {
@@ -20,17 +20,33 @@ export interface MessagePayload {
 
 @Injectable()
 export class RabbitMQService implements OnModuleDestroy {
-  private readonly connection: amqp.Connection | null = null;
-  private readonly channel: amqp.Channel | null = null;
+  private connection: amqp.ChannelModel | null = null;
+  private channel: amqp.Channel | null = null;
   private readonly config: RabbitMQConfig;
   private reconnectTimeout: NodeJS.Timeout | null = null;
 
-  constructor(config: RabbitMQConfig) {
+  constructor(@Inject('RABBITMQ_CONFIG') config: RabbitMQConfig) {
     this.config = config;
+
+    // Do not attempt connection when RabbitMQ is not provisioned (e.g. local
+    // dev without the broker); publish/consume calls are guarded as well.
+    if (!config.url) {
+      return;
+    }
+
     this.connect();
   }
 
+  /** True when a broker URL was provided at construction time. */
+  get isConfigured(): boolean {
+    return Boolean(this.config.url);
+  }
+
   private async connect() {
+    if (!this.config.url) {
+      return;
+    }
+
     try {
       this.connection = await amqp.connect(this.config.url);
       this.channel = await this.connection.createChannel();
@@ -131,9 +147,6 @@ export class RabbitMQService implements OnModuleDestroy {
     }
 
     try {
-      if (this.channel) {
-        await this.channel.close();
-      }
       if (this.connection) {
         await this.connection.close();
       }

@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { PaymentWebhookController } from './payment-webhook.controller';
-import { OrderQueueService } from '@/infrastructure/bullmq.service';
+import { InfrastructureModule } from '@/infrastructure/infrastructure.module';
 
 @Module({
-  imports: [],
+  imports: [InfrastructureModule],
   controllers: [PaymentWebhookController],
-  providers: [OrderQueueService],
-  exports: [OrderQueueService],
+  providers: [],
 })
 export class PaymentModule {}

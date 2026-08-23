@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Request } from 'express';
+import type { FastifyRequest } from 'fastify';
 
 export interface DeviceInfo {
   userAgent?: string;
@@ -13,7 +13,7 @@ export interface DeviceInfo {
 
 @Injectable()
 export class DeviceInfoService {
-  extractDeviceInfo(req?: Request): DeviceInfo {
+  extractDeviceInfo(req?: FastifyRequest): DeviceInfo {
     if (!req) {
       return {};
     }
@@ -22,7 +22,7 @@ export class DeviceInfoService {
 
     return {
       userAgent,
-      ip: req.ip || req.connection.remoteAddress || undefined,
+      ip: req.ip || req.socket?.remoteAddress || undefined,
     };
   }
 }

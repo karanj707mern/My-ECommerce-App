@@ -1,7 +1,6 @@
-import { Controller, Get, Param, UseGuards, Req, Res, Post, Body, Patch, Delete, HttpCode, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
-import type { Request, Response } from 'express';
+import { Controller, Get, Param, UseGuards, Req, Res, Post, Body, Patch, Delete, HttpCode, BadRequestException, Query } from '@nestjs/common';
+import type { FastifyReply } from 'fastify';
+import type { FastifyRequest } from 'fastify';
 import { JwtAuthGuard } from '@/auth/jwt.guard';
 import { AuthThrottlerGuard } from '@/auth/guards/auth-throttler.guard';
 import { Throttle } from '@nestjs/throttler';
@@ -9,16 +8,7 @@ import { AuthService } from './auth.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { StorageService } from '@/storage/storage.service';
 import { AuthCookiesService } from './services/auth-cookies.service';
-import type { File as MulterFile } from 'multer';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiConsumes } from '@nestjs/swagger';
-
-const allowedImageMimeTypes: Record<string, string> = {
-  'image/jpeg': '.jpg',
-  'image/png': '.png',
-  'image/webp': '.webp',
-  'image/avif': '.avif',
-  'image/gif': '.gif',
-};
 
 @ApiTags('auth')
 @Controller('auth')
@@ -35,52 +25,52 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: 'Login user with email and password' })
   @ApiResponse({ status: 200, description: 'Login successful' })
-  async login(@Body() dto: { email: string; password: string; captchaId?: string; captchaInput?: string }, @Res() res: Response) {
+  async login(@Body() dto: { email: string; password: string; captchaId?: string; captchaInput?: string }, @Res() res: FastifyReply) {
     const result = await this.authService.login(dto);
     this.authCookiesService.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return res.json({ message: result.message, user: result.user });
+    return res.send({ message: result.message, user: result.user });
   }
 
   @UseGuards(AuthThrottlerGuard)
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
-  async register(@Body() dto: { name: string; email: string; password: string; captchaId?: string; captchaInput?: string }, @Res() res: Response) {
+  async register(@Body() dto: { name: string; email: string; password: string; captchaId?: string; captchaInput?: string }, @Res() res: FastifyReply) {
     const result = await this.authService.register(dto);
     this.authCookiesService.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return res.status(201).json({ message: result.message, user: result.user });
+    return res.status(201).send({ message: result.message, user: result.user });
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Logout user' })
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
-  async logout(@Req() req: { user?: { id: number }; cookies?: { refreshToken?: string } }, @Res() res: Response) {
-    const result = await this.authService.logout(req.user?.id);
+  async logout(@Req() req: { user?: { id: number }; cookies?: { refreshToken?: string } }, @Res() res: FastifyReply) {
+    const result = await this.authService.logout(req.user!.id);
     this.authCookiesService.clearAuthCookies(res);
-    return res.json(result);
+    return res.send(result);
   }
 
   @UseGuards(AuthThrottlerGuard)
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiResponse({ status: 200, description: 'Token refreshed' })
-  async refresh(@Req() req: { cookies?: { refreshToken?: string } }, @Res() res: Response) {
+  async refresh(@Req() req: { cookies?: { refreshToken?: string } }, @Res() res: FastifyReply) {
     const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
-      return res.status(401).json({ message: 'Refresh token not found' });
+      return res.status(401).send({ message: 'Refresh token not found' });
     }
     const result = await this.authService.refreshAccessToken(refreshToken);
     this.authCookiesService.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return res.json({ message: result.message });
+    return res.send({ message: result.message });
   }
 
   @Get('session')
   @ApiOperation({ summary: 'Get current session' })
   @ApiResponse({ status: 200, description: 'Session status' })
-  async session(@Req() req: { cookies?: { accessToken?: string; refreshToken?: string } }, @Res() res: Response) {
+  async session(@Req() req: { cookies?: { accessToken?: string; refreshToken?: string } }, @Res() res: FastifyReply) {
     const result = await this.authService.getSession(req.cookies?.accessToken, req.cookies?.refreshToken);
-    return res.json(result);
+    return res.send(result);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -153,7 +143,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Create user address' })
   @ApiResponse({ status: 201, description: 'Address created' })
   async createAddress(@Req() req: { user: { id: number } }, @Body() dto: Record<string, unknown>) {
-    return this.authService.createAddress(req.user.id, dto);
+    return this.authService.createAddress(req.user.id, dto as never);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -189,26 +179,24 @@ export class AuthController {
       },
     },
   })
-  @UseInterceptors(
-    FileInterceptor('avatar', {
-      storage: memoryStorage(),
-      fileFilter: (_req: Request, file: any, callback: any) => {
-        const mimeType = file.mimetype;
-        if (!(mimeType in allowedImageMimeTypes)) {
-          callback(new Error('Only JPG, PNG, WEBP, AVIF, and GIF images are allowed.'), false);
-          return;
-        }
-        callback(null, true);
-      },
-      limits: {
-        fileSize: 5 * 1024 * 1024,
-      },
-    }),
-  )
-  async uploadAvatar(@Req() req: { user: { id: number } }, @UploadedFile() file: MulterFile) {
-    if (!file) {
+  async uploadAvatar(@Req() req: FastifyRequest & { user: { id: number } }) {
+    const multipartFile = await req.file();
+
+    if (!multipartFile) {
       throw new Error('An avatar image is required.');
     }
+
+    const allowedImageMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
+    if (!allowedImageMimeTypes.includes(multipartFile.mimetype)) {
+      throw new BadRequestException('Only JPG, PNG, WEBP, AVIF, and GIF images are allowed.');
+    }
+
+    const buffer = await multipartFile.toBuffer();
+    const file = {
+      buffer,
+      originalname: multipartFile.filename,
+      mimetype: multipartFile.mimetype,
+    };
 
     const currentUser = await this.prisma.user.findUnique({
       where: { id: req.user.id },

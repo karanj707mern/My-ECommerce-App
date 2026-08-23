@@ -25,7 +25,7 @@ export class EncryptionService implements OnModuleDestroy {
 
   encrypt(plaintext: string): EncryptedValue {
     const iv = crypto.randomBytes(this.ivLength);
-    const cipher = crypto.createCipherGCM(this.algorithm, this.key, iv);
+    const cipher = crypto.createCipheriv(this.algorithm, this.key, iv);
     let encrypted = cipher.update(plaintext, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     const tag = cipher.getAuthTag();
@@ -38,7 +38,7 @@ export class EncryptionService implements OnModuleDestroy {
   }
 
   decrypt(data: EncryptedValue): string {
-    const decipher = crypto.createDecipherGCM(
+    const decipher = crypto.createDecipheriv(
       this.algorithm,
       this.key,
       Buffer.from(data.iv, 'hex'),
@@ -53,11 +53,12 @@ export class EncryptionService implements OnModuleDestroy {
     dto: T,
     fields: (keyof T)[],
   ): T {
-    const result = { ...dto };
+    const result: Record<string, unknown> = { ...dto };
     for (const field of fields) {
-      if (typeof result[field] === 'string' && result[field]) {
-        const encrypted = this.encrypt(result[field] as string);
-        result[field] = `${encrypted.iv}:${encrypted.tag}:${encrypted.encrypted}`;
+      const key = field as string;
+      if (typeof result[key] === 'string' && result[key]) {
+        const encrypted = this.encrypt(result[key] as string);
+        result[key] = `${encrypted.iv}:${encrypted.tag}:${encrypted.encrypted}`;
       }
     }
     return result as T;
@@ -67,12 +68,13 @@ export class EncryptionService implements OnModuleDestroy {
     dto: T,
     fields: (keyof T)[],
   ): T {
-    const result = { ...dto };
+    const result: Record<string, unknown> = { ...dto };
     for (const field of fields) {
-      const value = result[field] as string | undefined;
+      const key = field as string;
+      const value = result[key] as string | undefined;
       if (value && value.includes(':')) {
         const [iv, tag, encrypted] = value.split(':');
-        result[field] = this.decrypt({ encrypted, iv, tag });
+        result[key] = this.decrypt({ encrypted, iv, tag });
       }
     }
     return result as T;

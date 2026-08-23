@@ -1,22 +1,35 @@
 # Moringa E-Commerce Migration — Master Plan
 
 **Date**: 2026-08-21  
-**Status**: In Progress — Phase 0 complete, Phase 1 ready to start  
+**Status**: In Progress — Phase 1 COMPLETE (host + Docker verified end-to-end)  
 **Source**: `Moringa-Backend` (Express/NestJS) + `Moringa-Frontend` (Next.js/React)  
 **Target**: `apps/moringa-backend` (Fastify/NestJS) + `apps/moringa-frontend` (Qwik City)  
 **Constraint**: Feature-preserving migration. Same behavior, syntax/deps/adapter changes only.
 
 ---
 
-## Current State
+## Current State (updated 2026-08-23)
 
 | Layer | Status | Completion |
 |---|---|---|
-| Backend scaffold | Modules, infra stubs, auth basics | ~35% |
-| Frontend scaffold | Routes, API stubs, base components | ~5-8% |
-| Nestia SDK | Config exists, not generated | 0% |
-| Docker/CI | Partial (Dockerfile broken, no CI) | ~10% |
-| Tests | Skeleton stubs only | ~5% |
+| Backend scaffold | Boots on Fastify; health/login/profile/notifications/products verified live | ~55% |
+| Phase 1 extras done beyond plan | Notification module fully ported (service+queues+templates), audit interceptor/decorator, storage service, email templates, RequestContext wiring, AuthSharedModule guard pattern, Prisma upgraded to **7.9.1** (driver adapter `PrismaPg`, generated client at `src/generated/prisma`) | — |
+| Frontend scaffold | Routes/API stubs remain | ~5-8% |
+| Nestia SDK | Config fixed (`nestia` default-import); generation blocked on backend feature parity | ~10% |
+| Docker/CI | Backend image builds & runs healthy (`docker build -f apps/moringa-backend/Dockerfile .` from repo root; HEALTHCHECK green; auth flow verified in-container). Image 1.84GB — slim via per-workspace dep prune in Phase 7 | ~35% |
+| Tests | Skeleton stubs only (`@types/jest` wired via tsconfig types) | ~5% |
+
+### Phase 1 acceptance evidence
+- `npm install` clean; `nest build` exit 0; `tsc --noEmit` = 0 non-spec errors
+- Live: `GET /api/v1/health` → 200 · `POST /auth/register` → 201/409 · `POST /auth/login` → 201 + HttpOnly cookies (`path=/`) · cookie-auth `GET /auth/profile`, `/notification/unread-count` → 200 · public `/product` → 200
+- Zero `from 'express'` imports in backend `src/`
+- Infra: postgres16 + redis7 containers; RabbitMQ optional (services no-op when unconfigured)
+- **Docker**: root-context build (`docker build -f apps/moringa-backend/Dockerfile -t moringa-backend .`); image runs as non-root with HEALTHCHECK; container→pg (moringa-net) + container→host redis verified; login/profile/notifications all green in-container. Secrets via env only (`.env` dockerignored). Declared previously-phantom deps: `uuid`, `@types/uuid`, `nestia` (dev, for backend-application.ts)
+
+### Key implementation notes for future phases
+- Guards: Nest instantiates class-referenced enhancers per consuming module → use `AuthSharedModule` imports (NOT global-module exports)
+- Fastify plugins: register on a self-built instance passed to `new FastifyAdapter(server)` (plugins before routes; sidesteps vendored-fastify type clashes)
+- Soft-delete filtering is schema-scoped via client extensions (models with `deletedAt` only)
 
 ---
 

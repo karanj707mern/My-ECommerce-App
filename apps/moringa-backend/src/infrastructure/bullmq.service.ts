@@ -1,11 +1,12 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Queue, Worker, Job } from 'bullmq';
 import Redis from 'ioredis';
 
 export interface BullMQConfig {
   connection: {
     url: string;
-    maxRetriesPerRequest?: number;
+    // Must be null for BullMQ (it relies on blocking Redis commands)
+    maxRetriesPerRequest?: number | null;
   };
   defaultJobOptions?: {
     attempts?: number;
@@ -26,15 +27,26 @@ export interface OrderJobData {
   idempotencyKey: string;
 }
 
+export type OrderJobHandler = (
+  data: OrderJobData,
+  job: Job<OrderJobData>,
+) => Promise<void>;
+
 @Injectable()
 export class BullMQService implements OnModuleDestroy {
   private readonly queue: Queue<OrderJobData>;
   private readonly worker: Worker<OrderJobData>;
   private readonly connection: Redis;
+  /**
+   * Action → handler registry. Feature modules register handlers at init time
+   * (see OrderModule) so the infrastructure layer stays decoupled from
+   * business modules while jobs still dispatch to real implementations.
+   */
+  private readonly processors = new Map<string, OrderJobHandler>();
 
-  constructor(config: BullMQConfig) {
+  constructor(@Inject('BULLMQ_CONFIG') config: BullMQConfig) {
     this.connection = new Redis(config.connection.url, {
-      maxRetriesPerRequest: config.connection.maxRetriesPerRequest ?? 3,
+      maxRetriesPerRequest: config.connection.maxRetriesPerRequest ?? null,
     });
 
     this.queue = new Queue<OrderJobData>('order-events', {
@@ -53,33 +65,19 @@ export class BullMQService implements OnModuleDestroy {
     this.worker = new Worker<OrderJobData>(
       'order-events',
       async (job: Job<OrderJobData>) => {
-        const { orderId, userId, action, payload } = job.data;
+        const { action } = job.data;
+        const handler = this.processors.get(action);
 
-        try {
-          switch (action) {
-            case 'send_confirmation':
-              console.log(`Sending confirmation for order ${orderId}, user ${userId}`);
-              // Integration point: await this.notificationService.sendOrderConfirmation(payload);
-              break;
-            case 'update_inventory':
-              console.log(`Updating inventory for order ${orderId}`);
-              // Integration point: await this.inventoryService.updateStock(payload);
-              break;
-            case 'send_notification':
-              console.log(`Sending notification for order ${orderId}, user ${userId}`);
-              // Integration point: await this.notificationService.pushNotification(payload);
-              break;
-            case 'process_payment':
-              console.log(`Processing payment for order ${orderId}`);
-              // Integration point: await this.paymentService.processPayment(payload);
-              break;
-            default:
-              console.warn(`Unknown action: ${action}`);
-          }
-        } catch (error) {
-          console.error(`Error processing job ${job.id}:`, error);
-          throw error;
+        if (!handler) {
+          // Unknown/unwired actions are acknowledged with a warning so they do
+          // not retry forever and poison the queue.
+          console.warn(
+            `[BullMQ] no processor registered for action "${action}" — job ${job.id} skipped`,
+          );
+          return;
         }
+
+        await handler(job.data, job);
       },
       {
         connection: this.connection,
@@ -100,6 +98,14 @@ export class BullMQService implements OnModuleDestroy {
     this.worker.on('error', (err) => {
       console.error('BullMQ worker error:', err);
     });
+  }
+
+  /**
+   * Register the business handler for a job action (e.g. 'send_confirmation').
+   * Later registrations for the same action override earlier ones.
+   */
+  registerProcessor(action: string, handler: OrderJobHandler): void {
+    this.processors.set(action, handler);
   }
 
   async enqueue(data: OrderJobData): Promise<void> {

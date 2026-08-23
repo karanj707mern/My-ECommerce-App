@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { NestiaApplication } from "nestia";
+import nestia from 'nestia';
 
 /**
  * Backend Application Wrapper for Nestia SDK Generation
@@ -18,5 +18,5 @@ import { NestiaApplication } from "nestia";
   providers: [],
 })
 export class BackendApplication {
-  constructor(private readonly app: NestiaApplication) {}
+  constructor(private readonly app: nestia.NestiaApplication) {}
 }

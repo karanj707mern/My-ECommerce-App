@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from '@/auth/jwt.guard';
+import { RolesGuard } from '@/auth/rolesguard';
 import { AuthThrottlerGuard } from '@/auth/guards/auth-throttler.guard';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { RedisCacheService } from '@/cache/redis-cache.service';
@@ -17,12 +18,15 @@ import { AuthCookiesService } from './services/auth-cookies.service';
 import { TokenRevocationService } from './services/token-revocation.service';
 import { InfrastructureModule } from '@/infrastructure/infrastructure.module';
 import { EncryptionModule } from '@/common/encryption/encryption.module';
+import { NotificationModule } from '@/notification/notification.module';
+import { StorageService } from '@/storage/storage.service';
 
 @Module({
   imports: [
     PrismaModule,
     InfrastructureModule,
     EncryptionModule,
+    NotificationModule,
     ConfigModule,
     CaptchaModule,
     JwtModule.registerAsync({
@@ -40,6 +44,7 @@ import { EncryptionModule } from '@/common/encryption/encryption.module';
     AuthService,
     JwtStrategy,
     JwtAuthGuard,
+    RolesGuard,
     AuthThrottlerGuard,
     RedisCacheService,
     SessionService,
@@ -47,8 +52,9 @@ import { EncryptionModule } from '@/common/encryption/encryption.module';
     EmailVerificationService,
     AuthCookiesService,
     TokenRevocationService,
+    StorageService,
   ],
   controllers: [AuthController],
-  exports: [AuthService, JwtAuthGuard, AuthThrottlerGuard],
+  exports: [AuthService, JwtAuthGuard, RolesGuard, AuthThrottlerGuard],
 })
 export class AuthModule {}

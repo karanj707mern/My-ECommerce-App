@@ -2,8 +2,8 @@ import { IsNumber } from 'class-validator';
 
 export class GuestCartItemDto {
   @IsNumber()
-  productId: number;
+  productId!: number;
 
   @IsNumber()
-  quantity: number;
+  quantity!: number;
 }

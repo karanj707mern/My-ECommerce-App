@@ -1,32 +1,39 @@
 import { NestFactory } from '@nestjs/core';
-import { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { NestFastifyApplication, FastifyAdapter } from '@nestjs/platform-fastify';
+import fastify from 'fastify';
+import { join } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 import { AppModule } from './app.module';
 import { PinoLogger } from './common/logger/pino.service';
 import { GlobalExceptionFilter } from './global-exception/global-exception.filter';
+import { PinoInterceptor } from './common/logger/pino.interceptor';
 import { RequestContextService } from './common/request-context/request-context.service';
-import { RequestContextMiddleware } from './common/request-context/request-context.middleware';
 import { ConfigService } from '@nestjs/config';
-import helmet from '@fastify/helmet';
-import rateLimit from '@fastify/rate-limit';
-import compress from '@fastify/compress';
-import bodyLimit from '@fastify/body-limit';
-import { join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
+import { ValidationPipe } from '@nestjs/common';
 import { XssSanitizationPipe } from './common/pipes/xss-sanitization.pipe';
+import { RedisIoAdapter } from './order/redis.adapter';
+import helmet = require('@fastify/helmet');
+import rateLimit = require('@fastify/rate-limit');
+import compress = require('@fastify/compress');
+import cookie = require('@fastify/cookie');
+import multipart = require('@fastify/multipart');
 
-async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(AppModule, {
+async function bootstrap(): Promise<void> {
+  const maxBodySize = parseInt(process.env.MAX_BODY_SIZE ?? '1048576', 10);
+
+  /**
+   * Bring-your-own Fastify instance: all @fastify/* plugins are registered
+   * BEFORE Nest touches the server, so avvio boots them in order prior to
+   * route registration. This avoids post-boot plugin registration issues and
+   * the FastifyTypeProvider generic mismatches between plugin typings and the
+   * adapter's vendored fastify copy.
+   */
+  const server = fastify({
+    bodyLimit: maxBodySize,
     logger: false,
   });
 
-  const configService = app.get(ConfigService);
-  const port = parseInt(
-    process.env.PORT ?? String(configService.get<number>('app.port', 5000)),
-    10,
-  );
-
-  // Security headers via Helmet
-  await app.register(helmet, {
+  server.register(helmet, {
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
@@ -61,50 +68,61 @@ async function bootstrap() {
     hidePoweredBy: true,
   });
 
-  // Compression middleware
-  await app.register(compress, {
+  server.register(compress, {
     threshold: 1024,
     encodings: ['gzip', 'deflate'],
   });
 
-  // Rate limiting
-  await app.register(rateLimit, {
-    max: configService.get<number>('app.rateLimitMax', 100),
-    timeWindow: configService.get<string>('app.rateLimitWindow', '1 minute'),
+  server.register(rateLimit, {
+    max: parseInt(process.env.RATE_LIMIT_MAX ?? '100', 10),
+    timeWindow: process.env.RATE_LIMIT_WINDOW ?? '1 minute',
     keyGenerator: (request) => request.ip,
     allowList: ['127.0.0.1', '::1'],
     skipOnError: true,
   });
 
-  // Body size limit to prevent DoS attacks
-  await app.register(bodyLimit, {
-    maxSize: parseInt(process.env.MAX_BODY_SIZE ?? '1048576', 10),
+  server.register(cookie, {
+    secret: process.env.ENCRYPTION_KEY || undefined,
+    hook: 'onRequest',
   });
 
+  server.register(multipart, {
+    limits: {
+      fileSize: 5 * 1024 * 1024,
+      files: 1,
+    },
+    attachFieldsToBody: false,
+  });
+
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    // Root fastify v5 vs adapter's vendored copy differ nominally only in types.
+    new FastifyAdapter(server as never),
+    {
+      logger: ['error', 'warn', 'log'],
+    },
+  );
+
+  const configService = app.get(ConfigService);
   const customLogger = app.get(PinoLogger);
   app.useLogger(customLogger);
 
   app.setGlobalPrefix('api/v1');
-  app.useGlobalFilters(new GlobalExceptionFilter());
+  app.useGlobalFilters(new GlobalExceptionFilter(customLogger));
 
   const requestContextService = app.get(RequestContextService);
-  app.useGlobalInterceptors(
-    new (require('./common/logger/pino.interceptor').PinoInterceptor)(
-      customLogger,
-      requestContextService,
-    ),
-  );
+  app.useGlobalInterceptors(new PinoInterceptor(customLogger));
+
+  void requestContextService;
 
   app.useGlobalPipes(
-    new (require('@nestjs/common').ValidationPipe)({
+    new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
     }),
     new XssSanitizationPipe(),
   );
-
-  app.use(new RequestContextMiddleware().use.bind(new RequestContextMiddleware()));
 
   // Secure CORS - only allow configured origins
   const corsOrigins = configService.get<string[]>('app.corsOrigins', []);
@@ -114,7 +132,7 @@ async function bootstrap() {
         callback(null, true);
         return;
       }
-      callback(new Error('Origin not allowed by CORS policy') as never);
+      callback(new Error('Origin not allowed by CORS policy'), false);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -123,7 +141,7 @@ async function bootstrap() {
   });
 
   if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-    const { DocumentBuilder, SwaggerModule } = require('@nestjs/swagger');
+    const { DocumentBuilder, SwaggerModule } = await import('@nestjs/swagger');
     const swaggerConfig = new DocumentBuilder()
       .setTitle('Moringa Backend API')
       .setDescription('Production-grade e-commerce backend API')
@@ -146,13 +164,34 @@ async function bootstrap() {
     mkdirSync(uploadsDir, { recursive: true });
   }
 
+  const port = configService.get<number>('app.port', 5000);
+
+  // Socket.IO with optional Redis adapter for multi-instance fan-out
+  const wsAdapter = new RedisIoAdapter(
+    app,
+    process.env.REDIS_URL ?? '',
+    configService.get<string[]>('app.corsOrigins', []),
+  );
+  await wsAdapter.connectToRedis().catch((error) => {
+    customLogger.warn(
+      `WebSocket Redis adapter unavailable, continuing single-node: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+      'Bootstrap',
+    );
+  });
+  app.useWebSocketAdapter(wsAdapter);
+
+  app.enableShutdownHooks();
   await app.listen(port, '0.0.0.0');
+
   customLogger.log(
     `Application running on port ${port} (NODE_ENV=${process.env.NODE_ENV ?? 'development'})`,
     'Bootstrap',
   );
-
-  app.enableShutdownHooks();
 }
 
-void bootstrap();
+bootstrap().catch((error) => {
+  console.error('Fatal bootstrap error:', error);
+  process.exit(1);
+});

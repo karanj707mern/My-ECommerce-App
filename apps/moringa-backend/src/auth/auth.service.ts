@@ -1,4 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -7,7 +14,7 @@ import { SessionService } from './services/session.service';
 import { DeviceInfoService, DeviceInfo } from './services/device-info.service';
 import { EmailVerificationService } from './email-verification.service';
 import { NotificationService } from '@/notification/notification.service';
-import { AuthProvider, Prisma } from '@prisma/client';
+import { AuthProvider, Prisma } from '@/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { randomBytes } from 'crypto';
@@ -136,7 +143,7 @@ export class AuthService {
       !user?.emailVerifyTokenExpiresAt ||
       user.emailVerifyTokenExpiresAt.getTime() < Date.now()
     ) {
-      throw new Error('Invalid or expired token');
+      throw new UnauthorizedException('Invalid or expired token');
     }
 
     await this.prisma.user.update({
@@ -249,7 +256,7 @@ export class AuthService {
       !user?.passwordResetTokenExpiresAt ||
       user.passwordResetTokenExpiresAt.getTime() < Date.now()
     ) {
-      throw new Error('Invalid or expired token');
+      throw new UnauthorizedException('Invalid or expired token');
     }
 
     const password = await bcrypt.hash(dto.password, 10);
@@ -309,7 +316,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
 
     const payload = {
@@ -340,7 +347,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
 
     return { message: 'Profile loaded', user: user as SafeUser };
@@ -429,7 +436,7 @@ export class AuthService {
     });
 
     if (!address) {
-      throw new Error('Address not found');
+      throw new NotFoundException('Address not found');
     }
 
     await this.prisma.userAddress.update({
@@ -449,7 +456,7 @@ export class AuthService {
     });
 
     if (!address) {
-      throw new Error('Address not found');
+      throw new NotFoundException('Address not found');
     }
 
     await this.prisma.userAddress.delete({ where: { id } });
@@ -463,12 +470,12 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
 
     const valid = await bcrypt.compare(dto.currentPassword, user.password);
     if (!valid) {
-      throw new Error('Current password is incorrect');
+      throw new BadRequestException('Current password is incorrect');
     }
 
     const hashedNewPassword = await bcrypt.hash(dto.newPassword, 10);
@@ -491,16 +498,16 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { email } });
 
     if (!user || user.authProvider === AuthProvider.GOOGLE) {
-      throw new Error('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const valid = await bcrypt.compare(dto.password, user.password);
     if (!valid) {
-      throw new Error('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     if (!user.isEmailVerified) {
-      throw new Error('Please verify your email before logging in');
+      throw new ForbiddenException('Please verify your email before logging in');
     }
 
     const result = await this.buildAuthResponse(user.id, 'Login successful');
@@ -524,7 +531,7 @@ export class AuthService {
     const existing = await this.prisma.user.findUnique({ where: { email } });
 
     if (existing) {
-      throw new Error('Email already registered');
+      throw new ConflictException('Email already registered');
     }
 
     const password = await bcrypt.hash(dto.password, 10);
@@ -560,6 +567,9 @@ export class AuthService {
 
     try {
       const token = accessToken || refreshToken;
+      if (!token) {
+        return { authenticated: false, user: null };
+      }
       const payload = await this.jwt.verifyAsync(token, {
         secret: this.configService.get<string>('app.jwtSecret'),
       });
@@ -579,7 +589,7 @@ export class AuthService {
     const session = await this.sessionService.findSessionByRefreshToken(0, refreshToken);
 
     if (!session) {
-      throw new Error('Invalid refresh token');
+      throw new UnauthorizedException('Invalid refresh token');
     }
 
     const payload = await this.jwt.verifyAsync(refreshToken, {

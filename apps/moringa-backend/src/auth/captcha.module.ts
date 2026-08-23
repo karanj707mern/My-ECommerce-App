@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { CaptchaService } from './captcha.service';
+import { CaptchaService } from './services/captcha.service';
 
 @Module({
   providers: [CaptchaService],

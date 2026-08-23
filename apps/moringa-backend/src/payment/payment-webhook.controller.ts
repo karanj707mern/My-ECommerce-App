@@ -1,21 +1,22 @@
 import { Controller, Post, Headers, Req, Res, Get } from '@nestjs/common';
-import { Request, Response } from 'express';
-import { OrderQueueService } from '@/infrastructure/bullmq.service';
+import type { FastifyReply } from 'fastify';
+import type { FastifyRequest } from 'fastify';
+import { BullMQService } from '@/infrastructure/bullmq.service';
 
 @Controller('payment/webhook')
 export class PaymentWebhookController {
-  constructor(private readonly orderQueueService: OrderQueueService) {}
+  constructor(private readonly orderQueueService: BullMQService) {}
 
   @Post('razorpay')
   async handleRazorpayWebhook(
     @Headers('x-razorpay-signature') signature: string,
-    @Req() req: Request,
-    @Res() res: Response,
+    @Req() req: FastifyRequest,
+    @Res() res: FastifyReply,
   ) {
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
 
     if (!webhookSecret) {
-      return res.status(400).json({ error: 'Webhook secret not configured' });
+      return res.status(400).send({ error: 'Webhook secret not configured' });
     }
 
     const body = JSON.stringify(req.body);
@@ -25,14 +26,17 @@ export class PaymentWebhookController {
       .digest('hex');
 
     if (signature !== expectedSignature) {
-      return res.status(400).json({ error: 'Invalid signature' });
+      return res.status(400).send({ error: 'Invalid signature' });
     }
 
-    res.status(200).json({ status: 'ok' });
+    res.status(200).send({ status: 'ok' });
 
-    const event = req.body;
-    const orderId = event.payload?.order?.entity?.id;
-    const userId = event.payload?.order?.entity?.notes?.userId;
+    const event = req.body as Record<string, unknown> | undefined;
+    const orderEntity = (event?.payload as Record<string, unknown> | undefined)?.order as
+      | Record<string, unknown>
+      | undefined;
+    const orderId = orderEntity?.id;
+    const userId = (orderEntity?.notes as Record<string, unknown> | undefined)?.userId;
 
     if (orderId && userId) {
       await this.orderQueueService.enqueue({
@@ -40,13 +44,13 @@ export class PaymentWebhookController {
         userId: Number(userId),
         action: 'process_payment',
         payload: { event },
-        idempotencyKey: `razorpay:${orderId}:${event.event || 'unknown'}`,
+        idempotencyKey: `razorpay:${orderId}:${(event?.event as string) || 'unknown'}`,
       });
     }
   }
 
   @Get('razorpay')
-  async handleRazorpayWebhookGet(@Res() res: Response) {
-    return res.status(200).json({ status: 'ok' });
+  async handleRazorpayWebhookGet() {
+    return { status: 'ok' };
   }
 }

@@ -25,7 +25,8 @@ import { PinoModule } from '@/common/logger/pino.module';
       useFactory: (configService: ConfigService) => ({
         connection: {
           url: configService.get<string>('app.redisUrl', 'redis://localhost:6379'),
-          maxRetriesPerRequest: 3,
+          // BullMQ uses blocking commands; this MUST be null per BullMQ requirements
+          maxRetriesPerRequest: null,
         },
         defaultJobOptions: {
           attempts: 5,

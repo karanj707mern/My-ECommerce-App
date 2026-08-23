@@ -18,6 +18,7 @@ import { AdminModule } from './admin/admin.module';
 import { HealthModule } from './health/health.module';
 import { AuditModule } from './audit/audit.module';
 import { PinoModule } from './common/logger/pino.module';
+import { RequestContextModule } from './common/request-context/request-context.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { HeroModule } from './hero/hero.module';
 import { NewArrivalModule } from './new-arrival/new-arrival.module';
@@ -25,21 +26,37 @@ import { GiftCardModule } from './gift-card/gift-card.module';
 import { InfrastructureModule } from './infrastructure/infrastructure.module';
 import { PaymentModule } from './payment/payment.module';
 import { EncryptionModule } from './common/encryption/encryption.module';
+import { NotificationModule } from './notification/notification.module';
+import { GatewayModule } from './gateway/gateway.module';
+import {
+  appConfig,
+  emailConfig,
+  razorpayConfig,
+  redisConfig,
+  notificationsConfig,
+  rabbitmqConfig,
+  storageConfig,
+} from './config/app.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      load: [
+        appConfig,
+        emailConfig,
+        razorpayConfig,
+        redisConfig,
+        notificationsConfig,
+        rabbitmqConfig,
+        storageConfig,
+      ],
       envFilePath: ['.env', `.env.${process.env.NODE_ENV ?? 'development'}`],
     }),
     ThrottlerModule.forRoot([
       {
-        throttlers: [
-          {
-            limit: 100,
-            ttl: 60,
-          },
-        ],
+        limit: 100,
+        ttl: 60,
         skipIf: (context: ExecutionContext) => {
           const route = context.getHandler();
           const controller = context.getClass ? context.getClass() : null;
@@ -57,6 +74,8 @@ import { EncryptionModule } from './common/encryption/encryption.module';
     ]),
     ScheduleModule.forRoot(),
     PinoModule,
+    RequestContextModule,
+    GatewayModule,
     InfrastructureModule,
     AuthModule,
     UserModule,
@@ -77,6 +96,7 @@ import { EncryptionModule } from './common/encryption/encryption.module';
     GiftCardModule,
     PaymentModule,
     EncryptionModule,
+    NotificationModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

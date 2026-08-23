@@ -1,0 +1,27 @@
+# Keep the build context lean — dependencies come from npm ci inside the image
+node_modules
+**/node_modules
+dist
+**/dist
+build
+coverage
+.git
+.github
+.kilo
+uploads
+**/uploads
+*.log
+npm-debug.log*
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Legacy pre-migration apps are not part of any image
+Moringa-Backend
+Moringa-Frontend
+
+# Backend test artifacts are never shipped
+apps/moringa-backend/uploads
+apps/moringa-backend/test
+apps/moringa-backend/**/*.spec.ts

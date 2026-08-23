@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
-import { AuditController } from './audit.controller';
-import { AuditService } from './audit.service';
+import { AuthSharedModule } from '@/auth/auth-shared.module';
 import { PrismaModule } from '@/prisma/prisma.module';
+import { AuditLoggerService } from './audit-logger.service';
+import { AuditService } from './audit.service';
+import { AuditInterceptor } from './audit.interceptor';
+import { AuditController } from './audit.controller';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AuthSharedModule],
+  providers: [AuditLoggerService, AuditService, AuditInterceptor],
   controllers: [AuditController],
-  providers: [AuditService],
-  exports: [AuditService],
+  exports: [AuditLoggerService, AuditService, AuditInterceptor],
 })
 export class AuditModule {}

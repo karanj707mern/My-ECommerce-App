@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
 import Redis from 'ioredis';
 
 export interface RedisConfig {
@@ -14,7 +14,7 @@ export class RedisService implements OnModuleDestroy {
   private readonly client: Redis;
   private readonly pubSub: Redis;
 
-  constructor(config: RedisConfig) {
+  constructor(@Inject('REDIS_CONFIG') config: RedisConfig) {
     const {
       url,
       maxRetriesPerRequest = 3,

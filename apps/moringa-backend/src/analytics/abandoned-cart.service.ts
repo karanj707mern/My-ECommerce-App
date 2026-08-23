@@ -18,4 +18,17 @@ export class AbandonedCartService {
       });
     }
   }
+
+  /**
+   * Delete abandoned-cart records whose expiry has passed (legacy parity).
+   */
+  async cleanupExpired(): Promise<void> {
+    const now = new Date();
+
+    await this.prisma.abandonedCart.deleteMany({
+      where: {
+        expiresAt: { lte: now },
+      },
+    });
+  }
 }

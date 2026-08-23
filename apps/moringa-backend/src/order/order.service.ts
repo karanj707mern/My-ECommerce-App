@@ -20,6 +20,7 @@ export interface OrderResult {
   orderId: number;
   status: string;
   message: string;
+  total?: number;
 }
 
 @Injectable()
@@ -67,7 +68,7 @@ export class OrderService {
           select: { id: true, stock: true, price: true, name: true },
         });
 
-        if (products.length !== productIds) {
+        if (products.length !== productIds.length) {
           throw new BadRequestException('One or more products not found');
         }
 
@@ -137,6 +138,7 @@ export class OrderService {
           orderId: order.id,
           status: order.status,
           message: 'Order created successfully',
+          total: order.total,
         };
       });
 
@@ -144,6 +146,7 @@ export class OrderService {
         orderId: result.orderId,
         status: result.status,
         message: result.message,
+        total: result.total,
       };
 
       await this.redisService.getClient().setex(

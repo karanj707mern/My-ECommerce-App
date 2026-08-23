@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
+import { NotificationType, Prisma } from '@/generated/prisma/client';
 import { OrderJobData } from '@/infrastructure/bullmq.service';
 import { PrismaService } from '@/infrastructure/prisma.service';
 import { RabbitMQService } from '@/infrastructure/rabbitmq.service';
@@ -89,12 +90,12 @@ export class OrderProcessor {
       data: {
         userId,
         orderId,
-        type: this.mapNotificationType(notificationType),
+        type: this.mapNotificationType(notificationType) as NotificationType,
         channel: 'EMAIL',
         recipient: '', // Would be populated from user email
         subject: `Order Update: ${orderId}`,
         body: JSON.stringify(payload),
-        payload,
+        payload: payload as unknown as Prisma.InputJsonValue,
         status: 'PENDING',
         scheduledAt: new Date(),
         maxAttempts: 3,

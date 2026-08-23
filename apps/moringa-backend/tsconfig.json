@@ -4,7 +4,14 @@
     "module": "commonjs",
     "outDir": "./dist",
     "rootDir": "./src",
-    "tsBuildInfoFile": "./dist/tsconfig.app.tsbuildinfo"
+    "types": ["node", "jest"],
+    "tsBuildInfoFile": "./dist/tsconfig.app.tsbuildinfo",
+    "paths": {
+      "@/*": ["apps/moringa-backend/src/*"],
+      "@moringa/backend/*": ["libs/backend/*"],
+      "@moringa/frontend/*": ["libs/frontend/*"],
+      "@moringa/shared/*": ["libs/shared/*"]
+    }
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "test"]

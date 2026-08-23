@@ -2,11 +2,11 @@ import { IsString, IsEmail, MinLength, IsOptional, IsBoolean } from 'class-valid
 
 export class LoginDto {
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsString()
   @MinLength(6)
-  password: string;
+  password!: string;
 
   @IsOptional()
   @IsString()
@@ -19,14 +19,14 @@ export class LoginDto {
 
 export class RegisterDto {
   @IsString()
-  name: string;
+  name!: string;
 
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsString()
   @MinLength(6)
-  password: string;
+  password!: string;
 
   @IsOptional()
   @IsString()
@@ -39,26 +39,26 @@ export class RegisterDto {
 
 export class VerifyEmailDto {
   @IsString()
-  token: string;
+  token!: string;
 }
 
 export class ResendVerificationDto {
   @IsEmail()
-  email: string;
+  email!: string;
 }
 
 export class ForgotPasswordDto {
   @IsEmail()
-  email: string;
+  email!: string;
 }
 
 export class ResetPasswordDto {
   @IsString()
-  token: string;
+  token!: string;
 
   @IsString()
   @MinLength(6)
-  password: string;
+  password!: string;
 }
 
 export class UpdateProfileDto {
@@ -101,32 +101,32 @@ export class UpdateProfileDto {
 
 export class CreateUserAddressDto {
   @IsString()
-  label: string;
+  label!: string;
 
   @IsString()
-  recipientName: string;
+  recipientName!: string;
 
   @IsString()
-  phoneNumber: string;
+  phoneNumber!: string;
 
   @IsString()
-  addressLine1: string;
+  addressLine1!: string;
 
   @IsOptional()
   @IsString()
   addressLine2?: string;
 
   @IsString()
-  city: string;
+  city!: string;
 
   @IsString()
-  state: string;
+  state!: string;
 
   @IsString()
-  postalCode: string;
+  postalCode!: string;
 
   @IsString()
-  country: string;
+  country!: string;
 
   @IsOptional()
   @IsBoolean()
@@ -137,19 +137,19 @@ export class UpdateUserAddressDto extends CreateUserAddressDto {}
 
 export class GoogleAuthDto {
   @IsString()
-  credential: string;
+  credential!: string;
 }
 
 export class ChangePasswordDto {
   @IsString()
-  currentPassword: string;
+  currentPassword!: string;
 
   @IsString()
   @MinLength(6)
-  newPassword: string;
+  newPassword!: string;
 }
 
 export class DeleteAccountDto {
   @IsString()
-  password: string;
+  password!: string;
 }
