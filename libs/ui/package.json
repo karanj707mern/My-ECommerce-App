@@ -6,7 +6,7 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.lib.json --noEmit",
     "watch": "tsc --watch",
     "lint": "eslint src/**/*.ts*",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\""
@@ -19,7 +19,7 @@
     "tailwind-merge": "^2.2.0"
   },
   "devDependencies": {
-    "typescript": "^6.0.0",
-    "prettier": "^3.8.1"
+    "prettier": "^3.8.1",
+    "typescript": "^6.0.0"
   }
 }

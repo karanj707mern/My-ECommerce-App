@@ -33,6 +33,7 @@ async function bootstrap(): Promise<void> {
     logger: false,
   });
 
+
   server.register(helmet, {
     contentSecurityPolicy: {
       directives: {
@@ -100,6 +101,9 @@ async function bootstrap(): Promise<void> {
     new FastifyAdapter(server as never),
     {
       logger: ['error', 'warn', 'log'],
+      // Adapter registers its own JSON parser capturing untouched payload
+      // bytes at req.rawBody — required for Razorpay webhook HMAC checks.
+      rawBody: true,
     },
   );
 

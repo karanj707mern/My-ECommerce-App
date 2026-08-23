@@ -1,12 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { AbandonedCartService } from './abandoned-cart.service';
 
 @Injectable()
-export class CronService {
+export class CronService implements OnModuleInit {
   private readonly logger = new Logger(CronService.name);
 
   constructor(private readonly abandonedCartService: AbandonedCartService) {}
+
+  onModuleInit(): void {
+    this.logger.log('Scheduled jobs registered: abandoned-cart-cleanup (0 0 * * * Asia/Kolkata)');
+  }
 
   @Cron('0 0 * * *', {
     name: 'abandoned-cart-cleanup',

@@ -26,21 +26,5 @@
     ],
     "sharedGlobals": []
   },
-  "plugins": [
-    {
-      "plugin": "@nx/nest",
-      "options": {
-        "main": "apps/moringa-backend/src/main.ts",
-        "tsConfig": "apps/moringa-backend/tsconfig.app.json",
-        "test": "apps/moringa-backend/jest.config.ts"
-      }
-    },
-    {
-      "plugin": "qwik-nx",
-      "options": {
-        "main": "apps/moringa-frontend/src/entry.ssr.tsx",
-        "tsConfig": "apps/moringa-frontend/tsconfig.app.json"
-      }
-    }
-  ]
+  "plugins": []
 }

@@ -55,6 +55,6 @@ import { StorageService } from '@/storage/storage.service';
     StorageService,
   ],
   controllers: [AuthController],
-  exports: [AuthService, JwtAuthGuard, RolesGuard, AuthThrottlerGuard],
+  exports: [AuthService, EmailVerificationService, JwtAuthGuard, RolesGuard, AuthThrottlerGuard],
 })
 export class AuthModule {}

@@ -1,8 +1,11 @@
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 
+/**
+ * Inline theme bootstrap script. Runs before first paint to apply the
+ * persisted (or system-preferred) theme, preventing a flash of the wrong
+ * color scheme. The `dark` class on <html> drives all CSS variables.
+ */
 export const ThemeScript = component$(() => {
-  const theme = useSignal<'light' | 'dark'>('light');
-
   return (
     <script
       dangerouslySetInnerHTML={`

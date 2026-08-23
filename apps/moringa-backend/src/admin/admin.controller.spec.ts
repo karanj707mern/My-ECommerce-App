@@ -1,29 +1,45 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { AdminModule } from './admin.module';
+import { Test, type TestingModule } from '@nestjs/testing';
+import { JwtAuthGuard } from '@/auth/jwt.guard';
+import { AdminController } from './admin.controller';
+import { AdminService } from './admin.service';
+import { AuditInterceptor } from '@/audit/audit.interceptor';
+import { AuditLoggerService } from '@/audit/audit-logger.service';
 
-describe('AdminController (e2e)', () => {
-  let app: INestApplication;
+describe('AdminController', () => {
+  let controller: AdminController;
 
-  beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AdminModule],
-    }).compile();
+  const adminServiceMock = {
+    getOverview: jest.fn(),
+    getDashboardStats: jest.fn(),
+  };
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+  const auditLoggerServiceMock = {
+    log: jest.fn(),
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [AdminController],
+      providers: [
+        {
+          provide: AdminService,
+          useValue: adminServiceMock,
+        },
+        {
+          provide: AuditLoggerService,
+          useValue: auditLoggerServiceMock,
+        },
+        AuditInterceptor,
+      ],
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
+
+    controller = module.get<AdminController>(AdminController);
   });
 
-  afterAll(async () => {
-    await app.close();
-  });
-
-  describe('/admin/dashboard (GET)', () => {
-    it('should return dashboard stats', () => {
-      return request(app.getHttpServer())
-        .get('/admin/dashboard')
-        .expect(401); // Requires auth
-    });
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
   });
 });

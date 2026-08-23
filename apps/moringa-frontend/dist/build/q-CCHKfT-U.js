@@ -1,0 +1,1 @@
+import{f as o,z as t}from"./q-pxLMq3cE.js";import{c as a}from"./q-DOIGBiOF.js";const l=s=>{const r=o(s,["class"]);return t("div",{class:a("rounded-lg border border-gray-200 bg-white shadow-sm",s.class),...r},null,0,"l0_0")};export{l as s_NPkpISXMFJ4};

@@ -1,0 +1,1 @@
+import{F as n}from"./q-CkrcDiFQ.js";import{S as o}from"./q-DwxuOQeL.js";import{I as s,A as l,s as r}from"./q-pxLMq3cE.js";const m=()=>s("div",null,{class:"min-h-screen flex flex-col"},[l(o,null,3,"k5_0"),s("main",null,{class:"flex-1"},l(r,null,3,"k5_1"),1,null),l(n,null,3,"k5_2")],1,"k5_3");export{m as s_5xx28UpGsVM};

@@ -4,15 +4,29 @@ import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
 import { OrderProcessor } from './order.processor';
 import { OrderEventsService } from './order-events.service';
+import { OrderNotificationService } from './order-notification.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { InfrastructureModule } from '@/infrastructure/infrastructure.module';
 import { BullMQService } from '@/infrastructure/bullmq.service';
+import { CouponModule } from '@/coupon/coupon.module';
+import { NotificationModule } from '@/notification/notification.module';
 
 @Module({
-  imports: [AuthSharedModule, PrismaModule, InfrastructureModule],
+  imports: [
+    AuthSharedModule,
+    PrismaModule,
+    InfrastructureModule,
+    CouponModule,
+    NotificationModule,
+  ],
   controllers: [OrderController],
-  providers: [OrderService, OrderProcessor, OrderEventsService],
-  exports: [OrderService, OrderEventsService],
+  providers: [
+    OrderService,
+    OrderProcessor,
+    OrderEventsService,
+    OrderNotificationService,
+  ],
+  exports: [OrderService, OrderEventsService, OrderNotificationService],
 })
 export class OrderModule implements OnModuleInit {
   constructor(

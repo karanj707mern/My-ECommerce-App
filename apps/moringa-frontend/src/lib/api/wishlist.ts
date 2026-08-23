@@ -1,17 +1,25 @@
-import { apiRequest } from './http';
+import { apiRequest } from "./http";
 
-export function getWishlist() {
-  return apiRequest('/wishlist');
+const WISHLIST_TIMEOUT = 8000;
+
+export async function getWishlist() {
+  return apiRequest("/wishlist", { timeout: WISHLIST_TIMEOUT });
 }
 
-export function addToWishlist(productId: number) {
+export async function addToWishlist(productId: string | number) {
   return apiRequest(`/wishlist/${productId}`, {
-    method: 'POST',
+    method: "POST",
   });
 }
 
-export function removeFromWishlist(productId: number) {
+export async function removeFromWishlist(productId: string | number) {
   return apiRequest(`/wishlist/${productId}`, {
-    method: 'DELETE',
+    method: "DELETE",
+  });
+}
+
+export async function mergeGuestWishlist() {
+  return apiRequest("/wishlist/guest/merge", {
+    method: "POST",
   });
 }

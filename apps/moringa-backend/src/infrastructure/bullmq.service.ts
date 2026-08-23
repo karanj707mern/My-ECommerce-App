@@ -113,7 +113,9 @@ export class BullMQService implements OnModuleDestroy {
       'order-event',
       data,
       {
-        jobId: `order:${data.orderId}:${data.action}:${data.idempotencyKey}`,
+        // BullMQ forbids ':' in custom job ids; idempotency keys are built
+        // from colon-joined segments, so normalize to dashes.
+        jobId: `order-${data.orderId}-${data.action}-${data.idempotencyKey}`.replace(/:/g, '-'),
         removeOnComplete: true,
         removeOnFail: false,
       },

@@ -21,6 +21,7 @@ export interface MessagePayload {
 @Injectable()
 export class RabbitMQService implements OnModuleDestroy {
   private connection: amqp.ChannelModel | null = null;
+  private connected = false;
   private channel: amqp.Channel | null = null;
   private readonly config: RabbitMQConfig;
   private reconnectTimeout: NodeJS.Timeout | null = null;
@@ -76,6 +77,7 @@ export class RabbitMQService implements OnModuleDestroy {
         'analytics.*',
       );
 
+      this.connected = true;
       console.log('RabbitMQ connected and queues declared');
     } catch (error) {
       console.error('RabbitMQ connection failed:', error);
@@ -95,8 +97,11 @@ export class RabbitMQService implements OnModuleDestroy {
   }
 
   async publish(payload: MessagePayload): Promise<void> {
-    if (!this.channel) {
-      throw new Error('RabbitMQ channel not initialized');
+    // Graceful no-op when RabbitMQ is not provisioned (or the channel is down):
+    // event-driven fan-out is an enhancement, never a hard dependency. Callers
+    // (order events, notifications) must not crash on a missing broker.
+    if (!this.config.url || !this.channel || !this.connected) {
+      return;
     }
 
     const routingKey = payload.type.replace(/\./g, '_');
@@ -123,8 +128,9 @@ export class RabbitMQService implements OnModuleDestroy {
     queueName: string,
     onMessage: (payload: MessagePayload) => Promise<void>,
   ): Promise<void> {
-    if (!this.channel) {
-      throw new Error('RabbitMQ channel not initialized');
+    // No broker → no consumer; callers already degrade gracefully.
+    if (!this.config.url || !this.channel) {
+      return;
     }
 
     await this.channel.consume(queueName, async (msg) => {

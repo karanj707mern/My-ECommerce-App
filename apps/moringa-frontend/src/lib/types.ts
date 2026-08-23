@@ -1,25 +1,57 @@
+/**
+ * Shared view models ported from legacy `lib/types.ts`.
+ */
+
 export interface Product {
-  id: number;
+  id: string | number;
   name: string;
+  description?: string;
   price: number;
-  description: string;
+  compareAtPrice?: number | null;
   image: string;
   stock: number;
-  slug: string;
-  sku: string;
+  isActive?: boolean;
+  isNewArrival?: boolean;
+  slug?: string;
+  sku?: string;
+  brand?: string;
+  tags?: string[];
+  seoTitle?: string;
+  seoDescription?: string;
+  weightGrams?: number;
 }
 
-export interface CartItem {
-  id: number;
-  productId: number;
-  quantity: number;
-  product?: Product;
+export interface ReviewProduct {
+  id: string | number;
+  name: string;
+  image: string;
+}
+
+export interface ReviewUser {
+  name: string;
+}
+
+export interface Review {
+  id: string | number;
+  rating: number;
+  title?: string;
+  content: string;
+  product: ReviewProduct;
+  user: ReviewUser;
+}
+
+export interface Testimonial {
+  name: string;
+  role: string;
+  quote: string;
 }
 
 export interface User {
   id: number;
-  name: string;
-  email: string;
   role: string;
-  avatar?: string | null;
+}
+
+export interface CartItem {
+  id: string | number;
+  quantity: number;
 }

@@ -1,44 +1,49 @@
-import { IsNumber, Min, IsOptional, IsString, IsBoolean, IsNotEmpty } from 'class-validator';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsBoolean,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Matches,
+  Min,
+} from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
-  @IsNotEmpty()
   name!: string;
+
+  @IsString()
+  @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+  slug!: string;
+
+  @IsString()
+  sku!: string;
 
   @IsNumber()
   @Min(0)
   price!: number;
-
-  @IsString()
-  @IsNotEmpty()
-  description!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  image!: string;
-
-  @IsNumber()
-  @Min(0)
-  stock!: number;
-
-  @IsString()
-  @IsNotEmpty()
-  slug!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  sku!: string;
 
   @IsOptional()
   @IsNumber()
   @Min(0)
   compareAtPrice?: number;
 
+  @IsString()
+  description!: string;
+
+  @IsString()
+  image!: string;
+
   @IsOptional()
   @IsString()
   brand?: string;
 
   @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsString({ each: true })
   tags?: string[];
 
   @IsOptional()
@@ -50,7 +55,8 @@ export class CreateProductDto {
   seoDescription?: string;
 
   @IsOptional()
-  @IsNumber()
+  @IsInt()
+  @Min(0)
   weightGrams?: number;
 
   @IsOptional()
@@ -60,4 +66,8 @@ export class CreateProductDto {
   @IsOptional()
   @IsBoolean()
   isNewArrival?: boolean;
+
+  @IsNumber()
+  @Min(0)
+  stock!: number;
 }

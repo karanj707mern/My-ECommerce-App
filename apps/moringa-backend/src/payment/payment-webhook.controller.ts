@@ -1,52 +1,30 @@
 import { Controller, Post, Headers, Req, Res, Get } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
 import type { FastifyRequest } from 'fastify';
-import { BullMQService } from '@/infrastructure/bullmq.service';
+import { OrderService } from '@/order/order.service';
 
+/**
+ * Razorpay webhook endpoint. All verification (secret presence, HMAC
+ * comparison) and business handling live in OrderService.handleRazorpayWebhook;
+ * this controller only adapts the transport layer.
+ */
 @Controller('payment/webhook')
 export class PaymentWebhookController {
-  constructor(private readonly orderQueueService: BullMQService) {}
+  constructor(private readonly orderService: OrderService) {}
 
   @Post('razorpay')
   async handleRazorpayWebhook(
     @Headers('x-razorpay-signature') signature: string,
-    @Req() req: FastifyRequest,
+    @Req() req: FastifyRequest & { rawBody?: Buffer },
     @Res() res: FastifyReply,
   ) {
-    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    // Prefer the untouched payload bytes when available so the HMAC matches
+    // Razorpay's signature exactly; fall back to the parsed body otherwise.
+    const rawBody = req.rawBody ?? JSON.stringify(req.body ?? {});
 
-    if (!webhookSecret) {
-      return res.status(400).send({ error: 'Webhook secret not configured' });
-    }
+    const result = await this.orderService.handleRazorpayWebhook(rawBody, signature);
 
-    const body = JSON.stringify(req.body);
-    const expectedSignature = require('crypto')
-      .createHmac('sha256', webhookSecret)
-      .update(body)
-      .digest('hex');
-
-    if (signature !== expectedSignature) {
-      return res.status(400).send({ error: 'Invalid signature' });
-    }
-
-    res.status(200).send({ status: 'ok' });
-
-    const event = req.body as Record<string, unknown> | undefined;
-    const orderEntity = (event?.payload as Record<string, unknown> | undefined)?.order as
-      | Record<string, unknown>
-      | undefined;
-    const orderId = orderEntity?.id;
-    const userId = (orderEntity?.notes as Record<string, unknown> | undefined)?.userId;
-
-    if (orderId && userId) {
-      await this.orderQueueService.enqueue({
-        orderId: Number(orderId),
-        userId: Number(userId),
-        action: 'process_payment',
-        payload: { event },
-        idempotencyKey: `razorpay:${orderId}:${(event?.event as string) || 'unknown'}`,
-      });
-    }
+    return res.status(200).send(result ?? { status: 'ok' });
   }
 
   @Get('razorpay')

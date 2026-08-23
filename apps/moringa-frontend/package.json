@@ -7,6 +7,7 @@
     "build": "qwik build",
     "build:client": "qwik build",
     "build:server": "qwik build --server",
+    "build.client": "vite build",
     "dev": "qwik dev",
     "dev:ssr": "qwik dev --port 5173",
     "fmt": "prettier --write \"**/*.{js,jsx,ts,tsx,css,scss}\"",
@@ -22,13 +23,11 @@
     "@builder.io/qwik": "^1.20.0",
     "@builder.io/qwik-city": "^1.20.0",
     "@moringa/shared": "*",
-    "@vercel/speed-insights": "^2.0.0",
-    "socket.io-client": "^4.8.3",
-    "sonner": "^2.0.7"
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.0",
+    "@tailwindcss/vite": "^4.3.2",
+    "@types/node": "^24.0.0",
     "@types/jest": "^30.0.0",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
     "@typescript-eslint/parser": "^8.57.0",
