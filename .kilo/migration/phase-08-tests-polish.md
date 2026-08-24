@@ -32,7 +32,7 @@ Replace all skeleton `.spec.ts` files with real tests.
 - Test success paths, error paths, edge cases
 
 **Validation**:
-- [ ] `npm run test` passes for backend
+- [x] `npm run test` passes for backend
 - [ ] Coverage > 70% for services
 - [ ] No skipped tests
 
@@ -87,14 +87,14 @@ npm audit --audit-level=high
 - Ensure no API keys, passwords, or tokens in code
 
 #### Authentication
-- [ ] Passwords hashed with bcrypt (cost >= 10)
-- [ ] JWT secrets are strong (32+ chars)
-- [ ] HttpOnly cookies for tokens
+- [x] Passwords hashed with bcrypt (cost >= 10)
+- [x] JWT secrets are strong (32+ chars)
+- [x] HttpOnly cookies for tokens
 - [ ] CSRF protection enabled
-- [ ] Rate limiting on auth endpoints
+- [x] Rate limiting on auth endpoints
 
 #### Authorization
-- [ ] Admin endpoints protected with RolesGuard
+- [x] Admin endpoints protected with RolesGuard
 - [ ] Users can only access their own orders/profile
 - [ ] Guest tokens cannot access protected resources
 
@@ -104,10 +104,10 @@ npm audit --audit-level=high
 - [ ] SQL injection prevented (Prisma parameterized queries)
 
 #### Headers
-- [ ] Helmet enabled
-- [ ] CORS restricted to allowed origins
-- [ ] HSTS in production
-- [ ] No `X-Powered-By` header
+- [x] Helmet enabled
+- [x] CORS restricted to allowed origins
+- [x] HSTS in production
+- [x] No `X-Powered-By` header
 
 **Validation**:
 - [ ] `npm audit` shows no high/critical vulnerabilities

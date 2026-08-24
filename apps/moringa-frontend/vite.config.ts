@@ -6,6 +6,10 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig((): UserConfig => {
   return {
     plugins: [qwikCity(), qwikVite(), tailwindcss()],
+    build: {
+      outDir: "dist",
+      ssr: "src/entry.server.tsx",
+    },
     server: {
       headers: {
         "Cache-Control": "public, max-age=0",

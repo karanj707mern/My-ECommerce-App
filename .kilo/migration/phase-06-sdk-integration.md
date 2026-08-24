@@ -15,119 +15,41 @@
 
 **File**: `libs/nestia-sdk/nestia.config.ts`
 
-Ensure configuration matches backend:
-- Input: `apps/moringa-backend/src/**/*.controller.ts`
-- Output: `libs/nestia-sdk/src/`
-- Include Swagger metadata
-- Generate `ApiClient`, `ApiError`, `ApiResult` types
+Configuration updated for Nestia 2.x API (input glob → controllers, output → src, swagger output included).
 
-**File**: `libs/nestia-sdk/package.json`
-
-Ensure dependencies:
-```json
-{
-  "dependencies": {
-    "@nestjs/swagger": "^11.4.5",
-    "nestia": "^2.7.0"
-  }
-}
-```
-
-**Validation**:
-- [ ] `nx run nestia-sdk:generate` succeeds
-- [ ] Generated SDK exports `ApiClient` with all endpoints
-- [ ] Types match backend DTOs
-
----
+**Status**: ⚠️ BLOCKED — SDK generation produces empty output
 
 ### 6.2 Generate SDK
 
-Run the generation:
-```bash
-npx nx run nestia-sdk:generate
-```
+Running `npx nestia sdk` succeeds but generates empty `paths: {}` in swagger and no endpoint client code.
 
-Or directly:
-```bash
-cd libs/nestia-sdk && npx nestia generate
-```
+**Root cause**: Backend controllers use two patterns Nestia cannot analyze:
+1. `@Res() res: FastifyReply` passthrough with manual `res.send()` (no return type)
+2. Missing explicit `Promise<...>` return-type annotations on controller methods
 
-**Validation**:
-- [ ] `libs/nestia-sdk/src/api/` contains generated client
-- [ ] No TypeScript errors in generated code
-- [ ] All backend endpoints are represented
+Nestia requires controllers to declare typed responses directly (no `@Res()` passthrough) to generate the SDK. Refactoring ~22 controllers is a high-risk architectural change outside feature-preserving scope.
 
----
+**Status**: ⚠️ BLOCKED — requires backend controller rewrite
 
 ### 6.3 Refactor Frontend API Layer
 
-**Current**: `apps/moringa-frontend/src/lib/api/http.ts` uses raw `fetch`  
-**Target**: Consume generated Nestia SDK
+**Decision**: Keeping the existing `http.ts` fetch implementation. It is type-safe (generic `apiRequest<T>`), handles auth/CSRF/caching/timeouts, and works correctly. The Nestia SDK dependency is deferred.
 
-#### 6.3.1 Replace http.ts
-
-Remove raw `fetch` implementation. Use Nestia `ApiClient`:
-
-```typescript
-import { ApiClient } from '@moringa/nestia-sdk';
-import { getToken, getGuestToken } from './storage';
-
-export const apiClient = new ApiClient(process.env.API_PUBLIC_URL || 'http://localhost:5000/api/v1', {
-  headers: {
-    ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
-    ...(getGuestToken() ? { 'X-Guest-Token': getGuestToken() } : {}),
-  },
-});
-```
-
-#### 6.3.2 Replace Endpoint Modules
-
-Rewrite all `lib/api/*.ts` files to use generated SDK:
-
-| Old Pattern | New Pattern |
-|---|---|
-| `apiRequest('/auth/login', { method: 'POST', body })` | `apiClient.auth.login({ email, password })` |
-| `apiRequest('/order', { method: 'POST', body })` | `apiClient.order.create(userId, dto)` |
-| `apiRequest('/product')` | `apiClient.product.getProducts()` |
-
-Ensure:
-- Type safety: all responses typed from SDK
-- Error handling: `ApiError` from SDK
-- Authentication: Bearer token / cookie injection
-- Uploads: `FormData` wrapped in SDK multipart types
-
-**Files to modify**:
-- `apps/moringa-frontend/src/lib/api/http.ts`
-- `apps/moringa-frontend/src/lib/api/auth.ts`
-- `apps/moringa-frontend/src/lib/api/cart.ts`
-- `apps/moringa-frontend/src/lib/api/order.ts`
-- `apps/moringa-frontend/src/lib/api/product.ts`
-- `apps/moringa-frontend/src/lib/api/wishlist.ts`
-- `apps/moringa-frontend/src/lib/api/blog.ts`
-- `apps/moringa-frontend/src/lib/api/hero.ts`
-- `apps/moringa-frontend/src/lib/api/new-arrival.ts`
-- `apps/moringa-frontend/src/lib/api/gift-card.ts`
-- `apps/moringa-frontend/src/lib/api/settings.ts`
-- `apps/moringa-frontend/src/lib/api/admin.ts`
-- `apps/moringa-frontend/src/lib/api/review.ts`
-
-**Validation**:
-- [ ] All API calls use generated SDK
-- [ ] No raw `fetch` calls remain in `src/lib/api/`
-- [ ] TypeScript compiles without errors
-- [ ] All endpoints return correctly typed responses
+**Status**: ⚠️ DEFERRED — SDK not generatable from current controllers
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] Nestia SDK generates without errors
-- [ ] Frontend consumes SDK for all API calls
-- [ ] Type safety verified across frontend-backend boundary
-- [ ] No raw `fetch` in API layer
+- [x] Nestia config updated for 2.x API (`nestia.config.ts`)
+- [x] Generation command wired (`nx run nestia-sdk:generate`)
+- [ ] ~~Nestia SDK generates without errors~~ — blocked by controller architecture
+- [ ] ~~Frontend consumes SDK for all API calls~~ — deferred; existing fetch layer retained
+- [ ] ~~Type safety verified across frontend-backend boundary~~ — deferred
+- [ ] ~~No raw `fetch` in API layer~~ — retained: `http.ts` fetch is the supported path
 
 ---
 
-## Next Phase
+## Phase Outcome
 
-When all acceptance criteria are met, proceed to **`phase-07-infra-deploy.md`**.
+SDK generation attempted. Empty output confirmed: Nestia cannot analyze controllers using `@Res()` passthrough and untyped returns. The existing `lib/api/http.ts` fetch layer remains the supported frontend API client. Revisit if controllers are refactored to typed responses in a future phase.

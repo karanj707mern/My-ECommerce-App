@@ -1,15 +1,9 @@
-import { component$, Slot } from '@builder.io/qwik';
-import type { RequestHandler } from '@builder.io/qwik-city';
-
-export const onGet: RequestHandler = async () => {
-  throw new Error('Not implemented');
-};
+import { component$ } from "@builder.io/qwik";
+import type { DocumentHead } from "@builder.io/qwik-city";
+import ProductsManager from "../../../components/admin/ProductsManager";
 
 export default component$(() => {
-  return (
-    <div>
-      <h1>Admin Products</h1>
-      <Slot />
-    </div>
-  );
+  return <ProductsManager />;
 });
+
+export const head: DocumentHead = { title: "Admin · Products" };

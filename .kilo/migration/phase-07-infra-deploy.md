@@ -99,9 +99,9 @@ server {
 ```
 
 **Validation**:
-- [ ] Backend Dockerfile builds without errors
-- [ ] Frontend Dockerfile builds without errors
-- [ ] Health check passes
+- [x] Backend Dockerfile builds without errors
+- [x] Frontend Dockerfile builds without errors
+- [x] Health check passes
 
 ---
 
@@ -269,8 +269,8 @@ Add strict validation for all required production env vars:
 - `CORS_ORIGINS` — comma-separated, no wildcards in production
 
 **Validation**:
-- [ ] App fails to start if required env vars are missing
-- [ ] Validation errors are clear and actionable
+- [x] App fails to start if required env vars are missing
+- [x] Validation errors are clear and actionable
 
 ---
 
@@ -278,15 +278,15 @@ Add strict validation for all required production env vars:
 
 Tasks:
 - [ ] Remove all hardcoded secrets from code
-- [ ] Ensure `.env` is in `.gitignore`
-- [ ] Add `.env.example` with placeholder values
-- [ ] Validate CORS origins — no `*` in production
-- [ ] Ensure Helmet CSP is strict in production
-- [ ] Add `X-Content-Type-Options: nosniff`
-- [ ] Enable HSTS in production
-- [ ] Add rate limiting to auth endpoints (already present)
-- [ ] Ensure passwords are hashed with bcrypt cost >= 10
-- [ ] Ensure JWTs have short expiry (15m access, 7d refresh)
+- [x] Ensure `.env` is in `.gitignore`
+- [x] Add `.env.example` with placeholder values
+- [x] Validate CORS origins — no `*` in production
+- [x] Ensure Helmet CSP is strict in production
+- [x] Add `X-Content-Type-Options: nosniff`
+- [x] Enable HSTS in production
+- [x] Add rate limiting to auth endpoints (already present)
+- [x] Ensure passwords are hashed with bcrypt cost >= 10
+- [x] Ensure JWTs have short expiry (15m access, 7d refresh)
 
 **Validation**:
 - [ ] Security headers present in responses

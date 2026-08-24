@@ -1,1 +1,0 @@
-import{f as c,z as o}from"./q-pxLMq3cE.js";import{c as t}from"./q-DOIGBiOF.js";const l=r=>{const s=c(r,["class"]);return o("div",{class:t("p-6 border-b border-gray-100",r.class),...s},null,0,"l0_1")};export{l as s_x95ceBZ6CzU};

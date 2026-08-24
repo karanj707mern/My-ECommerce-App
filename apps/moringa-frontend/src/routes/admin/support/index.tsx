@@ -1,15 +1,9 @@
-import { component$, Slot } from '@builder.io/qwik';
-import type { RequestHandler } from '@builder.io/qwik-city';
-
-export const onGet: RequestHandler = async () => {
-  throw new Error('Not implemented');
-};
+import { component$ } from "@builder.io/qwik";
+import type { DocumentHead } from "@builder.io/qwik-city";
+import SupportManager from "../../../components/admin/SupportManager";
 
 export default component$(() => {
-  return (
-    <div>
-      <h1>Admin Support</h1>
-      <Slot />
-    </div>
-  );
+  return <SupportManager />;
 });
+
+export const head: DocumentHead = { title: "Admin · Support" };

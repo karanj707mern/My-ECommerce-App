@@ -20,7 +20,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["apps/moringa-backend/src/*"],
-      "@moringa/backend/*": ["libs/backend/*"],
+      "@moringa/backend/*": ["apps/moringa-backend/src/*"],
       "@moringa/frontend/*": ["libs/frontend/*"],
       "@moringa/shared/*": ["libs/shared/*"]
     }

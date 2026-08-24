@@ -5,13 +5,18 @@ module.exports = {
   testMatch: ['**/*.spec.ts'],
   moduleFileExtensions: ['js', 'json', 'ts'],
   transform: {
-    '^.+\\.(t|j)s$': 'ts-jest',
+    '^.+\\.(t|j)s$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.json',
+      },
+    ],
   },
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1',
-    '^@moringa/backend/(.*)$': '<rootDir>/$1',
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@moringa/backend/(.*)$': '<rootDir>/src/$1',
     '^@moringa/shared/(.*)$': '<rootDir>/../../libs/shared/src/$1',
   },
-  collectCoverageFrom: ['**/*.(t|s)'],
+  collectCoverageFrom: ['src/**/*.ts'],
   coverageDirectory: '../../coverage',
 };

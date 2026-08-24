@@ -7,6 +7,8 @@ import { AppModule } from './app.module';
 import { PinoLogger } from './common/logger/pino.service';
 import { GlobalExceptionFilter } from './global-exception/global-exception.filter';
 import { PinoInterceptor } from './common/logger/pino.interceptor';
+import { CookieInterceptor } from './common/http/cookie-interceptor';
+import { CookieStateMiddleware } from './common/http/cookie-middleware';
 import { RequestContextService } from './common/request-context/request-context.service';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
@@ -116,6 +118,9 @@ async function bootstrap(): Promise<void> {
 
   const requestContextService = app.get(RequestContextService);
   app.useGlobalInterceptors(new PinoInterceptor(customLogger));
+  app.useGlobalInterceptors(new CookieInterceptor());
+
+  const cookieStateMiddleware = new CookieStateMiddleware();
 
   void requestContextService;
 
@@ -167,6 +172,9 @@ async function bootstrap(): Promise<void> {
   if (!existsSync(uploadsDir)) {
     mkdirSync(uploadsDir, { recursive: true });
   }
+
+  // Attach request-scoped cookie state before route handlers run
+  app.use(cookieStateMiddleware);
 
   const port = configService.get<number>('app.port', 5000);
 

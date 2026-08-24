@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Lint backend
+        run: cd apps/moringa-backend && npx eslint "src/**/*.ts" --max-warnings=0
+      - name: Lint frontend
+        run: cd apps/moringa-frontend && npx eslint "src/**/*.ts*" --max-warnings=0
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Typecheck shared libs
+        run: npx nx run-many -t typecheck -p @moringa/ui @moringa/shared
+      - name: Typecheck frontend
+        run: npx nx run @moringa/frontend:typecheck
+      - name: Typecheck backend
+        run: cd apps/moringa-backend && npx tsc --noEmit -p tsconfig.json
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Build workspace libs
+        run: npx nx run-many -t build -p @moringa/ui @moringa/shared
+      - name: Build frontend
+        run: npx nx run @moringa/frontend:build
+      - name: Build backend
+        run: cd apps/moringa-backend && npx nest build
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high

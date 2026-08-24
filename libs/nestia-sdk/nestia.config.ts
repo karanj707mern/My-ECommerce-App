@@ -1,5 +1,4 @@
-import nestia from "nestia";
-import { AppModule } from "@moringa/backend";
+import { IConfiguration } from "nestia/lib/module";
 
 /**
  * Nestia SDK Configuration
@@ -10,8 +9,12 @@ import { AppModule } from "@moringa/backend";
  *
  * Run: nx run nestia-sdk:generate
  */
-export const sdk = nestia.NestiaApplication.create<AppModule>({
+const config: IConfiguration = {
+  input: ["apps/moringa-backend/src/**/*.controller.ts"],
   output: "src",
-});
+  swagger: {
+    output: "src/swagger.json",
+  },
+};
 
-export default sdk;
+export default config;

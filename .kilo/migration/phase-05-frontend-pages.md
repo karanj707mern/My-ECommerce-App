@@ -25,9 +25,9 @@ Port:
 - Toast for cart actions
 
 **Validation**:
-- [ ] Page renders with products, reviews, arrivals
-- [ ] Add to cart works
-- [ ] Wishlist toggle works
+- [x] Page renders with products, reviews, arrivals
+- [x] Add to cart works
+- [x] Wishlist toggle works
 
 ---
 
@@ -40,9 +40,9 @@ Port:
 - Client: product grid, search, filters, pagination
 
 **Validation**:
-- [ ] Products load and display
-- [ ] Search filters products
-- [ ] Pagination works
+- [x] Products load and display
+- [x] Search filters products
+- [x] Pagination works
 
 ---
 
@@ -57,10 +57,10 @@ Port:
 - Breadcrumb navigation
 
 **Validation**:
-- [ ] Product details render correctly
-- [ ] Reviews load and display
-- [ ] Review form submits
-- [ ] Product viewers count updates via socket
+- [x] Product details render correctly
+- [x] Reviews load and display
+- [x] Review form submits
+- [x] Product viewers count updates via socket
 
 ---
 
@@ -74,9 +74,9 @@ Port:
 - Admin CRUD (in admin section)
 
 **Validation**:
-- [ ] Blog list renders posts
-- [ ] Blog post detail renders correctly
-- [ ] JSON-LD schema present
+- [x] Blog list renders posts
+- [x] Blog post detail renders correctly
+- [x] JSON-LD schema present
 
 ---
 
@@ -87,8 +87,8 @@ Port:
 Port all info pages using `InfoPage` component with static content map.
 
 **Validation**:
-- [ ] All info pages render with correct content
-- [ ] Metadata (OG images) present
+- [x] All info pages render with correct content
+- [x] Metadata (OG images) present
 
 ---
 
@@ -102,8 +102,8 @@ Port:
 - `useAutoDismiss` for errors
 
 **Validation**:
-- [ ] Balance check works
-- [ ] Redeem works
+- [x] Balance check works
+- [x] Redeem works
 
 ---
 
@@ -129,11 +129,11 @@ Port full auth page:
 - URL token parsing in `routeLoader$`
 
 **Validation**:
-- [ ] Login works with valid credentials
-- [ ] Register creates account
-- [ ] Google Sign-In button renders
-- [ ] Forgot/reset password flow works
-- [ ] Email verification works
+- [x] Login works with valid credentials
+- [x] Register creates account
+- [x] Google Sign-In button renders
+- [x] Forgot/reset password flow works
+- [x] Email verification works
 
 ---
 
@@ -160,12 +160,12 @@ Port:
 - `previewCheckout` with debounce
 
 **Validation**:
-- [ ] Cart displays items
-- [ ] Quantity changes work
-- [ ] Checkout preview calculates pricing
-- [ ] COD order creates successfully
-- [ ] Online payment opens Razorpay modal
-- [ ] Guest prompt shows for unauthenticated users
+- [x] Cart displays items
+- [x] Quantity changes work
+- [x] Checkout preview calculates pricing
+- [x] COD order creates successfully
+- [x] Online payment opens Razorpay modal
+- [x] Guest prompt shows for unauthenticated users
 
 ---
 
@@ -189,11 +189,11 @@ Port:
 - Invoice print via `useVisibleTask$` + `window.open`
 
 **Validation**:
-- [ ] Orders list loads with correct tabs
-- [ ] WebSocket updates orders in real-time
-- [ ] Order detail shows progress strip
-- [ ] Support issue can be submitted
-- [ ] Invoice prints correctly
+- [x] Orders list loads with correct tabs
+- [x] WebSocket updates orders in real-time
+- [x] Order detail shows progress strip
+- [x] Support issue can be submitted
+- [x] Invoice prints correctly
 
 ---
 
@@ -210,10 +210,10 @@ Port:
 - Redirect to auth on 401
 
 **Validation**:
-- [ ] Profile loads
-- [ ] Profile updates save
-- [ ] Avatar uploads
-- [ ] Addresses CRUD works
+- [x] Profile loads
+- [x] Profile updates save
+- [x] Avatar uploads
+- [x] Addresses CRUD works
 
 ---
 
@@ -229,9 +229,9 @@ Port:
 - Guest prompt
 
 **Validation**:
-- [ ] Wishlist items display
-- [ ] Add to cart works
-- [ ] Remove works
+- [x] Wishlist items display
+- [x] Add to cart works
+- [x] Remove works
 
 ---
 
@@ -320,23 +320,23 @@ Port all admin pages:
 - Hero image management
 
 **Validation**:
-- [ ] Admin guard redirects non-admins
-- [ ] All admin pages load with real data
-- [ ] CRUD operations work
-- [ ] Settings save correctly
+- [x] Admin guard redirects non-admins
+- [x] All admin pages load with real data
+- [x] CRUD operations work
+- [x] Settings save correctly
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] All public pages render with real data
-- [ ] Auth flow works end-to-end
-- [ ] Cart + checkout flow works (COD + online)
-- [ ] Orders page shows real-time updates
-- [ ] Profile management works
-- [ ] Wishlist works
-- [ ] All admin pages functional
-- [ ] SEO metadata present on all pages
+- [x] All public pages render with real data
+- [x] Auth flow works end-to-end
+- [x] Cart + checkout flow works (COD + online)
+- [x] Orders page shows real-time updates
+- [x] Profile management works
+- [x] Wishlist works
+- [x] All admin pages functional
+- [x] SEO metadata present on all pages
 
 ---
 

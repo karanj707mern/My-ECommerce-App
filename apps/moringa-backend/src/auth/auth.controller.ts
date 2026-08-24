@@ -1,5 +1,4 @@
-import { Controller, Get, Param, UseGuards, Req, Res, Post, Body, Patch, Delete, HttpCode, BadRequestException, Query } from '@nestjs/common';
-import type { FastifyReply } from 'fastify';
+import { Controller, Get, Param, UseGuards, Req, Post, Body, Patch, Delete, HttpCode, BadRequestException, Query } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import { JwtAuthGuard } from '@/auth/jwt.guard';
 import { AuthThrottlerGuard } from '@/auth/guards/auth-throttler.guard';
@@ -8,6 +7,7 @@ import { AuthService } from './auth.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { StorageService } from '@/storage/storage.service';
 import { AuthCookiesService } from './services/auth-cookies.service';
+import { CookieState } from '@/common/http/cookie-state';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiConsumes } from '@nestjs/swagger';
 
 @ApiTags('auth')
@@ -18,51 +18,58 @@ export class AuthController {
     private readonly storageService: StorageService,
     private readonly prisma: PrismaService,
     private readonly authCookiesService: AuthCookiesService,
+    private readonly cookieState: CookieState,
   ) {}
 
   @UseGuards(AuthThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: 60 } })
   @Post('login')
+  @HttpCode(200)
   @ApiOperation({ summary: 'Login user with email and password' })
   @ApiResponse({ status: 200, description: 'Login successful' })
-  async login(@Body() dto: { email: string; password: string; captchaId?: string; captchaInput?: string }, @Res() res: FastifyReply) {
+  async login(@Req() req: FastifyRequest, @Body() dto: { email: string; password: string; captchaId?: string; captchaInput?: string }) {
     const result = await this.authService.login(dto);
-    this.authCookiesService.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return res.send({ message: result.message, user: result.user });
+    this.authCookiesService.queueAuthCookies(req, result.accessToken, result.refreshToken);
+    return { message: result.message, user: result.user };
   }
 
   @UseGuards(AuthThrottlerGuard)
   @Post('register')
+  @HttpCode(201)
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
-  async register(@Body() dto: { name: string; email: string; password: string; captchaId?: string; captchaInput?: string }, @Res() res: FastifyReply) {
+  async register(@Req() req: FastifyRequest, @Body() dto: { name: string; email: string; password: string; captchaId?: string; captchaInput?: string }) {
     const result = await this.authService.register(dto);
-    this.authCookiesService.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return res.status(201).send({ message: result.message, user: result.user });
+    this.authCookiesService.queueAuthCookies(req, result.accessToken, result.refreshToken);
+    return { message: result.message, user: result.user };
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
   @ApiOperation({ summary: 'Logout user' })
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
-  async logout(@Req() req: { user?: { id: number }; cookies?: { refreshToken?: string } }, @Res() res: FastifyReply) {
-    const result = await this.authService.logout(req.user!.id);
-    this.authCookiesService.clearAuthCookies(res);
-    return res.send(result);
+  async logout(@Req() req: FastifyRequest) {
+    const reqUser = req as unknown as { user?: { id: number } };
+    const result = await this.authService.logout(reqUser.user!.id);
+    this.authCookiesService.queueClearAuthCookies(req);
+    return result;
   }
 
   @UseGuards(AuthThrottlerGuard)
   @Post('refresh')
+  @HttpCode(200)
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiResponse({ status: 200, description: 'Token refreshed' })
-  async refresh(@Req() req: { cookies?: { refreshToken?: string } }, @Res() res: FastifyReply) {
-    const refreshToken = req.cookies?.refreshToken;
+  async refresh(@Req() req: FastifyRequest) {
+    const cookies = req.cookies as Record<string, string | undefined> | undefined;
+    const refreshToken = cookies?.refreshToken;
     if (!refreshToken) {
-      return res.status(401).send({ message: 'Refresh token not found' });
+      return { message: 'Refresh token not found' };
     }
     const result = await this.authService.refreshAccessToken(refreshToken);
-    this.authCookiesService.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return res.send({ message: result.message });
+    this.authCookiesService.queueAuthCookies(req, result.accessToken, result.refreshToken);
+    return { message: result.message };
   }
 
   @Get('session')

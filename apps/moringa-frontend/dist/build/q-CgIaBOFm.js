@@ -1,1 +1,0 @@
-import{T as s,t as r}from"./q-Dkukpuyr.js";import{x as w}from"./q-pxLMq3cE.js";const d=(t={})=>{if(typeof window>"u")return;const{severity:e="info",summary:o="",detail:n="",life:i=4e3}=t;window.dispatchEvent(new CustomEvent(s,{detail:{id:r.next++,severity:e,summary:o,detail:n,life:i}}))};export{w as _hW,d as s_vhLVHw95NoM};
