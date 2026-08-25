@@ -110,11 +110,11 @@ export const SupportManager = component$(() => {
                     </h3>
                     <p class="mt-1 text-xs text-[var(--text-muted)]">
                       {(order?.orderTitle as string) ?? ""} ·{" "}
-                      {((issue.user as Record<string, unknown>)?.name as string) ??
-                        ""}{" "}
+                      {((issue.user as Record<string, unknown>)
+                        ?.name as string) ?? ""}{" "}
                       ·{" "}
-                      {((issue.user as Record<string, unknown>)?.email as string) ??
-                        ""}
+                      {((issue.user as Record<string, unknown>)
+                        ?.email as string) ?? ""}
                     </p>
                   </div>
                   <div class="text-left sm:text-right">

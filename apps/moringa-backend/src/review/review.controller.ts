@@ -43,7 +43,7 @@ export class ReviewController {
   @Get('product/:productId/eligibility')
   getReviewEligibility(
     @Req() req: { user: { id: number } },
-    @Param('productId', ParseIntPipe) productId: number,
+    @Param('productId', ParseIntPipe) productId: number
   ) {
     return this.reviewService.getReviewEligibility(req.user.id, productId);
   }
@@ -56,7 +56,7 @@ export class ReviewController {
   createReview(
     @Req() req: { user: { id: number } },
     @Param('productId', ParseIntPipe) productId: number,
-    @Body() dto: CreateReviewDto,
+    @Body() dto: CreateReviewDto
   ) {
     return this.reviewService.createReview(req.user.id, productId, dto);
   }
@@ -69,7 +69,7 @@ export class ReviewController {
   createComment(
     @Req() req: { user: { id: number } },
     @Param('reviewId', ParseIntPipe) reviewId: number,
-    @Body() dto: CreateReviewCommentDto,
+    @Body() dto: CreateReviewCommentDto
   ) {
     return this.reviewService.createComment(req.user.id, reviewId, dto);
   }
@@ -78,19 +78,14 @@ export class ReviewController {
   @Roles('ADMIN')
   @Patch(':id/moderate')
   @AuditLog('MODERATE', 'Review')
-  moderateReview(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: ModerateReviewDto,
-  ) {
+  moderateReview(@Param('id', ParseIntPipe) id: number, @Body() dto: ModerateReviewDto) {
     return this.reviewService.moderateReview(id, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Get('pending')
-  getPendingReviews(
-    @Query() query: { page: number; limit: number },
-  ) {
+  getPendingReviews(@Query() query: { page: number; limit: number }) {
     return this.reviewService.getPendingReviews(query.page, query.limit);
   }
 }

@@ -186,34 +186,30 @@ export class AdminService {
     const codTotal = codCollected._sum.total ?? 0;
     const onlineTotal = onlineCollected._sum.total ?? 0;
 
-    const recentOrders: RecentOrder[] = recentOrdersRaw.map(
-      (order: AdminOrder) => {
-        const items = order.items;
-        const [firstItem, ...restItems] = items;
-        const orderTitle = restItems.length
-          ? `${firstItem?.product?.name || 'Moringa item'} + ${restItems.length} more item${restItems.length > 1 ? 's' : ''}`
-          : firstItem?.product?.name || 'Moringa order';
+    const recentOrders: RecentOrder[] = recentOrdersRaw.map((order: AdminOrder) => {
+      const items = order.items;
+      const [firstItem, ...restItems] = items;
+      const orderTitle = restItems.length
+        ? `${firstItem?.product?.name || 'Moringa item'} + ${restItems.length} more item${restItems.length > 1 ? 's' : ''}`
+        : firstItem?.product?.name || 'Moringa order';
 
-        return {
-          id: order.id,
-          orderNumber: `MOR-${String(10000000 + order.id)}`,
-          orderTitle,
-          status: order.status,
-          total: order.total,
-          createdAt: order.createdAt,
-          user: order.user,
-        };
-      },
-    );
+      return {
+        id: order.id,
+        orderNumber: `MOR-${String(10000000 + order.id)}`,
+        orderTitle,
+        status: order.status,
+        total: order.total,
+        createdAt: order.createdAt,
+        user: order.user,
+      };
+    });
 
     const recentIssues: RecentIssue[] = recentIssuesRaw
       .map((activity: AdminOrderActivity) => {
         const detail = activity.detail;
         if (!detail || !detail.startsWith('__ISSUE__')) return null;
         try {
-          const issueDetail = JSON.parse(
-            detail.slice('__ISSUE__'.length),
-          ) as IssueDetail;
+          const issueDetail = JSON.parse(detail.slice('__ISSUE__'.length)) as IssueDetail;
           const order = activity.order;
           const items = order.items;
           const [firstItem, ...restItems] = items;
@@ -238,9 +234,7 @@ export class AdminService {
           return null;
         }
       })
-      .filter(
-        (issue: RecentIssue | null): issue is RecentIssue => issue !== null,
-      );
+      .filter((issue: RecentIssue | null): issue is RecentIssue => issue !== null);
 
     return {
       productCount,

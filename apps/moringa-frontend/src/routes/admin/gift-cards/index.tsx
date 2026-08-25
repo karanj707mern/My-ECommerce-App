@@ -37,7 +37,13 @@ const AdminGiftCardsContent = component$(() => {
   });
 
   const toast = useToast();
-  useAutoDismiss(error, $(() => { error.value = ""; }), 5000);
+  useAutoDismiss(
+    error,
+    $(() => {
+      error.value = "";
+    }),
+    5000,
+  );
 
   useVisibleTask$(async () => {
     try {
@@ -142,7 +148,10 @@ const AdminGiftCardsContent = component$(() => {
     }
   });
 
-  const total = giftCards.value.reduce((sum, card) => sum + card.initialAmount, 0);
+  const total = giftCards.value.reduce(
+    (sum, card) => sum + card.initialAmount,
+    0,
+  );
   const remaining = giftCards.value.reduce(
     (sum, card) => sum + card.remainingAmount,
     0,
@@ -318,7 +327,10 @@ const AdminGiftCardsContent = component$(() => {
                   <div class="mt-3 flex flex-wrap gap-4 text-sm text-[var(--text-secondary)]">
                     <span>
                       Initial:{" "}
-                      {formatCurrency(giftCard.initialAmount, giftCard.currency)}
+                      {formatCurrency(
+                        giftCard.initialAmount,
+                        giftCard.currency,
+                      )}
                     </span>
                     <span>
                       Remaining:{" "}

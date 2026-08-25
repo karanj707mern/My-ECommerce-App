@@ -24,7 +24,7 @@ export class CronService implements OnModuleInit {
     } catch (error) {
       this.logger.error(
         'Abandoned cart cleanup failed',
-        error instanceof Error ? error.stack : String(error),
+        error instanceof Error ? error.stack : String(error)
       );
     }
   }

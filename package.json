@@ -9,11 +9,13 @@
   ],
   "scripts": {
     "dev": "nx run-many --target=dev --all --parallel",
+    "dev:stack": "bash -c 'pg_isready -h 127.0.0.1 -p 5432 >/dev/null 2>&1 || pg_ctl -D \"$HOME/.moringa/pgdata\" -o \"-p 5432 -c listen_addresses=127.0.0.1 -k $HOME/.moringa\" -l \"$HOME/.moringa/pg.log\" start; sleep 1; nx run-many --target=dev --projects=@moringa/frontend,@moringa/backend --parallel=2'",
+    "db:start": "pg_ctl -D $HOME/.moringa/pgdata -o '-p 5432 -c listen_addresses=127.0.0.1 -k $HOME/.moringa' -l $HOME/.moringa/pg.log start",
     "dev:frontend": "nx run @moringa/frontend:dev",
-    "dev:backend": "nx run moringa-backend:dev",
+    "dev:backend": "nx run @moringa/backend:dev",
     "build": "nx run-many --target=build --all",
     "build:frontend": "nx run @moringa/frontend:build",
-    "build:backend": "nx run moringa-backend:build",
+    "build:backend": "nx run @moringa/backend:build",
     "build:sdk": "nx run @moringa/sdk:typecheck",
     "test": "nx run-many --target=test --all",
     "lint": "nx run-many --target=lint --all",
@@ -22,8 +24,8 @@
     "affected:build": "nx affected --target=build",
     "affected:test": "nx affected --target=test",
     "affected:lint": "nx affected --target=lint",
-    "prepare": "ts-patch install -s",
-    "postinstall": "ts-patch install -s"
+    "prepare": "ts-patch install -s || echo '[prepare] ts-patch unavailable - skipping patch'",
+    "postinstall": "ts-patch install -s || echo '[postinstall] ts-patch unavailable - skipping patch'"
   },
   "devDependencies": {
     "@nestia/core": "^13.0.1",

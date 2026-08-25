@@ -39,7 +39,7 @@ export class NotificationController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   getUserNotifications(
     @Req() req: AuthedRequest,
-    @Query() query: { page?: number; limit?: number },
+    @Query() query: { page?: number; limit?: number }
   ) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
@@ -68,12 +68,9 @@ export class NotificationController {
   @ApiResponse({ status: 200, description: 'Notification marked as read' })
   markNotificationAsRead(
     @Req() req: AuthedRequest,
-    @Param('id', ParseIntPipe) notificationId: number,
+    @Param('id', ParseIntPipe) notificationId: number
   ) {
-    return this.notificationService.markNotificationAsRead(
-      notificationId,
-      req.user.id,
-    );
+    return this.notificationService.markNotificationAsRead(notificationId, req.user.id);
   }
 
   @Patch('read-all')
@@ -99,10 +96,7 @@ export class NotificationController {
   @ApiOperation({
     summary: 'Update a notification preference for the current user',
   })
-  updateNotificationPreference(
-    @Req() req: AuthedRequest,
-    @Body() dto: NotificationPreferenceDto,
-  ) {
+  updateNotificationPreference(@Req() req: AuthedRequest, @Body() dto: NotificationPreferenceDto) {
     return this.notificationService.updateNotificationPreference(req.user.id, dto);
   }
 
@@ -117,14 +111,15 @@ export class NotificationController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   findAdminNotifications(
-    @Query() query: {
+    @Query()
+    query: {
       orderId?: string;
       status?: NotificationStatus;
       channel?: NotificationChannel;
       type?: NotificationType;
       page?: number;
       limit?: number;
-    },
+    }
   ) {
     const orderId = query.orderId ? parseInt(query.orderId, 10) : undefined;
     if (query.orderId && isNaN(orderId!)) {

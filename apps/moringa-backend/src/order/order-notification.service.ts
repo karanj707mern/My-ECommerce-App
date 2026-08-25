@@ -68,15 +68,11 @@ export class OrderNotificationService {
   constructor(
     private readonly configService: ConfigService,
     private readonly notificationService: NotificationService,
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaService
   ) {
     this.currency = this.configService.get<string>('razorpay.currency', 'INR');
-    this.API_PUBLIC_URL = this.configService
-      .get<string>('app.backendUrl', '')
-      .replace(/\/$/, '');
-    this.FRONTEND_URL = this.configService
-      .get<string>('app.frontendUrl', '')
-      .replace(/\/$/, '');
+    this.API_PUBLIC_URL = this.configService.get<string>('app.backendUrl', '').replace(/\/$/, '');
+    this.FRONTEND_URL = this.configService.get<string>('app.frontendUrl', '').replace(/\/$/, '');
   }
 
   private formatCurrency(amount: number) {
@@ -103,8 +99,8 @@ export class OrderNotificationService {
       .map(
         (item) =>
           `<li>${sanitizeHtml(item.product.name)} x ${item.quantity} - ${this.formatCurrency(
-            item.price * item.quantity,
-          )}</li>`,
+            item.price * item.quantity
+          )}</li>`
       )
       .join('');
   }
@@ -263,7 +259,7 @@ export class OrderNotificationService {
     subject: string,
     html: string,
     text: string,
-    extraPayload: Record<string, unknown> = {},
+    extraPayload: Record<string, unknown> = {}
   ) {
     const payload = {
       orderId: order.id,
@@ -314,12 +310,8 @@ export class OrderNotificationService {
   }
 
   async sendOrderPlaced(order: OrderNotificationOrder) {
-    const sanitizedUserName = order.user?.name
-      ? sanitizeHtml(order.user.name)
-      : 'Customer';
-    const sanitizedOrderTitle = order.orderTitle
-      ? sanitizeHtml(order.orderTitle)
-      : 'your order';
+    const sanitizedUserName = order.user?.name ? sanitizeHtml(order.user.name) : 'Customer';
+    const sanitizedOrderTitle = order.orderTitle ? sanitizeHtml(order.orderTitle) : 'your order';
     const sanitizedOrderNumber = order.orderNumber
       ? sanitizeHtml(order.orderNumber)
       : order.id.toString();
@@ -363,18 +355,14 @@ export class OrderNotificationService {
       html,
       this.buildText(
         order,
-        `${order.orderTitle || 'your order'} is confirmed. Total ${this.formatCurrency(order.total)}.`,
-      ),
+        `${order.orderTitle || 'your order'} is confirmed. Total ${this.formatCurrency(order.total)}.`
+      )
     );
   }
 
   async sendPaymentConfirmed(order: OrderNotificationOrder) {
-    const sanitizedOrderTitle = order.orderTitle
-      ? sanitizeHtml(order.orderTitle)
-      : 'your order';
-    const sanitizedUserName = order.user?.name
-      ? sanitizeHtml(order.user.name)
-      : 'Customer';
+    const sanitizedOrderTitle = order.orderTitle ? sanitizeHtml(order.orderTitle) : 'your order';
+    const sanitizedUserName = order.user?.name ? sanitizeHtml(order.user.name) : 'Customer';
     const sanitizedOrderNumber = order.orderNumber
       ? sanitizeHtml(order.orderNumber)
       : order.id.toString();
@@ -402,53 +390,36 @@ export class OrderNotificationService {
       NotificationType.PAYMENT_CONFIRMED,
       subject,
       html,
-      this.buildText(
-        order,
-        `payment received for ${order.orderTitle || 'your order'}.`,
-      ),
+      this.buildText(order, `payment received for ${order.orderTitle || 'your order'}.`)
     );
   }
 
   async sendOrderStatusUpdated(
     order: OrderNotificationOrder,
     status: OrderStatus,
-    note?: string | null,
+    note?: string | null
   ) {
     const readableStatus = status.replace(/_/g, ' ').toLowerCase();
-    const sanitizedCourierName = order.courierName
-      ? sanitizeHtml(order.courierName)
-      : '';
-    const sanitizedTrackingNumber = order.trackingNumber
-      ? sanitizeHtml(order.trackingNumber)
-      : '';
-    const sanitizedOrderTitle = order.orderTitle
-      ? sanitizeHtml(order.orderTitle)
-      : 'Your order';
-    const sanitizedUserName = order.user?.name
-      ? sanitizeHtml(order.user.name)
-      : 'Customer';
+    const sanitizedCourierName = order.courierName ? sanitizeHtml(order.courierName) : '';
+    const sanitizedTrackingNumber = order.trackingNumber ? sanitizeHtml(order.trackingNumber) : '';
+    const sanitizedOrderTitle = order.orderTitle ? sanitizeHtml(order.orderTitle) : 'Your order';
+    const sanitizedUserName = order.user?.name ? sanitizeHtml(order.user.name) : 'Customer';
     const sanitizedOrderIdentifier =
       order.orderTitle || order.orderNumber
         ? sanitizeHtml(order.orderTitle || order.orderNumber || '')
         : order.id.toString();
     const sanitizedNote = note ? sanitizeHtml(note) : '';
-    const sanitizedAdminNotes = order.adminNotes
-      ? sanitizeHtml(order.adminNotes)
-      : '';
+    const sanitizedAdminNotes = order.adminNotes ? sanitizeHtml(order.adminNotes) : '';
 
     const trackingDetails = [
-      sanitizedCourierName
-        ? `<p><strong>Courier:</strong> ${sanitizedCourierName}</p>`
-        : '',
+      sanitizedCourierName ? `<p><strong>Courier:</strong> ${sanitizedCourierName}</p>` : '',
       sanitizedTrackingNumber
         ? `<p><strong>Tracking number:</strong> ${sanitizedTrackingNumber}</p>`
         : '',
       order.estimatedDeliveryAt
         ? `<p><strong>Estimated delivery:</strong> ${this.formatDate(order.estimatedDeliveryAt)}</p>`
         : '',
-      sanitizedAdminNotes
-        ? `<p><strong>Delivery note:</strong> ${sanitizedAdminNotes}</p>`
-        : '',
+      sanitizedAdminNotes ? `<p><strong>Delivery note:</strong> ${sanitizedAdminNotes}</p>` : '',
     ].join('');
     const subject = `${sanitizedOrderTitle} is now ${readableStatus}`;
     const html = this.buildEmailShell({
@@ -461,7 +432,7 @@ export class OrderNotificationService {
         <p style="color:#44403c;font-size:15px;line-height:1.7;margin:0;">Hello ${sanitizedUserName},</p>
         <p style="color:#44403c;font-size:15px;line-height:1.7;margin:12px 0 0;">Your order <strong>${sanitizedOrderIdentifier}</strong> moved to <strong>${status.replace(
           /_/g,
-          ' ',
+          ' '
         )}</strong>.</p>
         ${sanitizedNote ? `<p style="color:#44403c;font-size:15px;line-height:1.7;margin:12px 0 0;">${sanitizedNote}</p>` : ''}
         <div style="background:#fafaf9;border-radius:18px;margin-top:20px;padding:18px;">
@@ -471,9 +442,7 @@ export class OrderNotificationService {
       `,
       ctaLabel: 'Track order',
       ctaUrl: this.buildOrderUrl(
-        status === OrderStatus.DELIVERED
-          ? '/orders/delivered'
-          : '/orders/active',
+        status === OrderStatus.DELIVERED ? '/orders/delivered' : '/orders/active'
       ),
     });
 
@@ -482,20 +451,13 @@ export class OrderNotificationService {
       NotificationType.ORDER_STATUS_UPDATED,
       subject,
       html,
-      this.buildText(
-        order,
-        `${order.orderTitle || 'your order'} is now ${readableStatus}.`,
-      ),
+      this.buildText(order, `${order.orderTitle || 'your order'} is now ${readableStatus}.`)
     );
   }
 
   async sendOrderCancelled(order: OrderNotificationOrder, reason?: string | null) {
-    const sanitizedUserName = order.user?.name
-      ? sanitizeHtml(order.user.name)
-      : 'Customer';
-    const sanitizedOrderTitle = order.orderTitle
-      ? sanitizeHtml(order.orderTitle)
-      : 'Your order';
+    const sanitizedUserName = order.user?.name ? sanitizeHtml(order.user.name) : 'Customer';
+    const sanitizedOrderTitle = order.orderTitle ? sanitizeHtml(order.orderTitle) : 'Your order';
     const sanitizedReason = reason ? sanitizeHtml(reason) : '';
     const subject = `${order.orderTitle || 'Your order'} cancelled`;
     const html = this.buildEmailShell({
@@ -519,26 +481,14 @@ export class OrderNotificationService {
       NotificationType.ORDER_CANCELLED,
       subject,
       html,
-      this.buildText(
-        order,
-        `${order.orderTitle || 'your order'} was cancelled.`,
-      ),
+      this.buildText(order, `${order.orderTitle || 'your order'} was cancelled.`)
     );
   }
 
-  async sendSupportIssueSubmitted(
-    order: OrderNotificationOrder,
-    issue: OrderIssueNotification,
-  ) {
-    const sanitizedUserName = order.user?.name
-      ? sanitizeHtml(order.user.name)
-      : 'Customer';
-    const sanitizedOrderTitle = order.orderTitle
-      ? sanitizeHtml(order.orderTitle)
-      : 'your order';
-    const sanitizedIssueTitle = issue.title
-      ? sanitizeHtml(issue.title)
-      : 'Support request';
+  async sendSupportIssueSubmitted(order: OrderNotificationOrder, issue: OrderIssueNotification) {
+    const sanitizedUserName = order.user?.name ? sanitizeHtml(order.user.name) : 'Customer';
+    const sanitizedOrderTitle = order.orderTitle ? sanitizeHtml(order.orderTitle) : 'your order';
+    const sanitizedIssueTitle = issue.title ? sanitizeHtml(issue.title) : 'Support request';
     const sanitizedIssueType = issue.type
       ? sanitizeHtml(issue.type.replace(/_/g, ' ').toLowerCase())
       : 'support request';
@@ -572,37 +522,23 @@ export class OrderNotificationService {
       NotificationType.ORDER_STATUS_UPDATED,
       subject,
       html,
-      this.buildText(
-        order,
-        `support request received for ${order.orderTitle || 'your order'}.`,
-      ),
+      this.buildText(order, `support request received for ${order.orderTitle || 'your order'}.`),
       {
         issueId: issue.id,
         issueType: issue.type ?? null,
         issueStatus: issue.status ?? null,
-      },
+      }
     );
   }
 
-  async sendSupportIssueUpdated(
-    order: OrderNotificationOrder,
-    issue: OrderIssueNotification,
-  ) {
-    const sanitizedUserName = order.user?.name
-      ? sanitizeHtml(order.user.name)
-      : 'Customer';
-    const sanitizedOrderTitle = order.orderTitle
-      ? sanitizeHtml(order.orderTitle)
-      : 'your order';
+  async sendSupportIssueUpdated(order: OrderNotificationOrder, issue: OrderIssueNotification) {
+    const sanitizedUserName = order.user?.name ? sanitizeHtml(order.user.name) : 'Customer';
+    const sanitizedOrderTitle = order.orderTitle ? sanitizeHtml(order.orderTitle) : 'your order';
     const sanitizedStatus = issue.status
       ? sanitizeHtml(issue.status.replace(/_/g, ' ').toLowerCase())
       : 'updated';
-    const sanitizedIssueTitle = issue.title
-      ? sanitizeHtml(issue.title)
-      : 'Support request';
-    const sanitizedAdminResponse = issue.adminResponse
-      ? sanitizeHtml(issue.adminResponse)
-      : '';
+    const sanitizedIssueTitle = issue.title ? sanitizeHtml(issue.title) : 'Support request';
+    const sanitizedAdminResponse = issue.adminResponse ? sanitizeHtml(issue.adminResponse) : '';
     const sanitizedResolutionSummary = issue.resolutionSummary
       ? sanitizeHtml(issue.resolutionSummary)
       : '';
@@ -648,13 +584,13 @@ export class OrderNotificationService {
       html,
       this.buildText(
         order,
-        `support request ${issue.status || 'updated'} for ${order.orderTitle || 'your order'}.`,
+        `support request ${issue.status || 'updated'} for ${order.orderTitle || 'your order'}.`
       ),
       {
         issueId: issue.id,
         issueType: issue.type ?? null,
         issueStatus: issue.status ?? null,
-      },
+      }
     );
   }
 

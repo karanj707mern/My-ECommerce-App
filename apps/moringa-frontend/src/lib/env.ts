@@ -39,11 +39,39 @@ interface ViteEnv {
   readonly VITE_GOOGLE_CLIENT_ID: string | undefined;
 }
 
+/**
+ * Read the Vite-injected environment.
+ *
+ * CRITICAL SHAPE CONSTRAINT: every access MUST be a fully static member
+ * expression (`import.meta.env.KEY`). Wrapping `import.meta` in a cast or
+ * destructuring it makes the access dynamic, which Vite's SSR module runner
+ * refuses at runtime ("Dynamic access of import.meta.env is not supported")
+ * even though tsc and rollup both pass. Static chains are replaced textually
+ * by Vite in BOTH the client and SSR pipelines.
+ *
+ * Each line carries its own `@ts-expect-error`: under NodeNext/CJS analysis
+ * TS1470 fires per token, and if TypeScript ever relaxes the restriction the
+ * directives self-flag instead of rotting silently.
+ */
 function raw(): Partial<ViteEnv> {
-  // @ts-expect-error -- TS1470 under NodeNext/CJS analysis. Vite replaces
-  // `import.meta.env` textually before any bundle ships; see module docs.
-  const meta = import.meta as unknown as { env?: Partial<ViteEnv> };
-  return meta.env ?? {};
+  return {
+    // @ts-expect-error -- TS1470 under NodeNext/CJS analysis; see above.
+    MODE: import.meta.env.MODE,
+    // @ts-expect-error -- TS1470 under NodeNext/CJS analysis; see above.
+    DEV: import.meta.env.DEV,
+    // @ts-expect-error -- TS1470 under NodeNext/CJS analysis; see above.
+    PROD: import.meta.env.PROD,
+    // @ts-expect-error -- TS1470 under NodeNext/CJS analysis; see above.
+    SSR: import.meta.env.SSR,
+    // @ts-expect-error -- TS1470 under NodeNext/CJS analysis; see above.
+    VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+    // @ts-expect-error -- TS1470 under NodeNext/CJS analysis; see above.
+    VITE_SITE_URL: import.meta.env.VITE_SITE_URL,
+    // @ts-expect-error -- TS1470 under NodeNext/CJS analysis; see above.
+    VITE_CLOUDINARY_CLOUD_NAME: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
+    // @ts-expect-error -- TS1470 under NodeNext/CJS analysis; see above.
+    VITE_GOOGLE_CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+  };
 }
 
 function trim(value: string | undefined): string | undefined {

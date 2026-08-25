@@ -5,8 +5,7 @@ import { WishlistService } from './wishlist.service';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [
-    AuthSharedModule,PrismaModule],
+  imports: [AuthSharedModule, PrismaModule],
   controllers: [WishlistController],
   providers: [WishlistService],
   exports: [WishlistService],

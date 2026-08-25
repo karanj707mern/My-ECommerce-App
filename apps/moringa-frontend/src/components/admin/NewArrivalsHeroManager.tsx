@@ -1,4 +1,10 @@
-import { $, component$, useComputed$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
+import {
+  $,
+  component$,
+  useComputed$,
+  useSignal,
+  useVisibleTask$,
+} from "@builder.io/qwik";
 import {
   createHeroImage,
   deleteHeroImage,
@@ -96,11 +102,13 @@ export const NewArrivalsHeroManager = component$(() => {
     heroUploadPreview.value = file ? URL.createObjectURL(file) : null;
   });
 
-  const handleNewArrivalFileChange = $((_event: Event, el: HTMLInputElement) => {
-    const file = el.files?.[0] ?? null;
-    newArrivalUploadFile.value = file;
-    newArrivalUploadPreview.value = file ? URL.createObjectURL(file) : null;
-  });
+  const handleNewArrivalFileChange = $(
+    (_event: Event, el: HTMLInputElement) => {
+      const file = el.files?.[0] ?? null;
+      newArrivalUploadFile.value = file;
+      newArrivalUploadPreview.value = file ? URL.createObjectURL(file) : null;
+    },
+  );
 
   const handleCreateHero = $(async (event: SubmitEvent) => {
     event.preventDefault();
@@ -206,27 +214,35 @@ export const NewArrivalsHeroManager = component$(() => {
     }
   });
 
-  const handleUpdateHero = $(async (id: number, data: Record<string, unknown>) => {
-    saving.value = true;
-    try {
-      await updateHeroImage(id, data);
-      void toast.showToast({ severity: "success", detail: "Hero image updated" });
-      await loadHeroImages();
-    } catch {
-      void toast.showToast({
-        severity: "error",
-        detail: "Failed to update hero image",
-      });
-    } finally {
-      saving.value = false;
-    }
-  });
+  const handleUpdateHero = $(
+    async (id: number, data: Record<string, unknown>) => {
+      saving.value = true;
+      try {
+        await updateHeroImage(id, data);
+        void toast.showToast({
+          severity: "success",
+          detail: "Hero image updated",
+        });
+        await loadHeroImages();
+      } catch {
+        void toast.showToast({
+          severity: "error",
+          detail: "Failed to update hero image",
+        });
+      } finally {
+        saving.value = false;
+      }
+    },
+  );
 
   const handleDeleteHero = $(async (id: number) => {
     saving.value = true;
     try {
       await deleteHeroImage(id);
-      void toast.showToast({ severity: "success", detail: "Hero image removed" });
+      void toast.showToast({
+        severity: "success",
+        detail: "Hero image removed",
+      });
       await loadHeroImages();
     } catch {
       void toast.showToast({

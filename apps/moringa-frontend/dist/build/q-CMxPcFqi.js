@@ -1,0 +1,1 @@
+import{v as s}from"./q-93TgTwg6.js";import{x as n}from"./q-93TgTwg6.js";const a=()=>{const[e,o]=s();e.value=document.documentElement.classList.contains("dark"),o.value=!0};export{n as _hW,a as s_cLOuYT0bMAY};

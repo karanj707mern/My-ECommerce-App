@@ -21,7 +21,8 @@ export const head: DocumentHead = ({ resolveValue }) => {
   const image = resolveValue(useHeroImage);
   return buildHead({
     title: "Returns",
-    description: "Returns, cancellations, refunds, and issue resolution policy for Moringa Store Online orders.",
+    description:
+      "Returns, cancellations, refunds, and issue resolution policy for Moringa Store Online orders.",
     path: "/returns",
     image,
   });

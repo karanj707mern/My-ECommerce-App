@@ -98,11 +98,10 @@ export function getOrderDisplayTitle<T extends object>(order: T): string {
   const o = order as Record<string, unknown>;
   return (
     (o.orderTitle as string) ||
-    (((
+    ((
       (o.items as Record<string, unknown>[])?.[0]?.product as
-        | Record<string, unknown>
-        | undefined
-    )?.name as string)) ||
+        Record<string, unknown> | undefined
+    )?.name as string) ||
     `Order ${o.orderNumber || o.id}`
   );
 }

@@ -34,7 +34,6 @@ async function bootstrap(): Promise<void> {
     logger: false,
   });
 
-
   server.register(helmet, {
     contentSecurityPolicy: {
       directives: {
@@ -105,7 +104,7 @@ async function bootstrap(): Promise<void> {
       // Adapter registers its own JSON parser capturing untouched payload
       // bytes at req.rawBody — required for Razorpay webhook HMAC checks.
       rawBody: true,
-    },
+    }
   );
 
   const configService = app.get(ConfigService);
@@ -119,7 +118,6 @@ async function bootstrap(): Promise<void> {
   app.useGlobalInterceptors(new PinoInterceptor(customLogger));
   app.useGlobalInterceptors(new CookieInterceptor());
 
-
   void requestContextService;
 
   app.useGlobalPipes(
@@ -128,7 +126,7 @@ async function bootstrap(): Promise<void> {
       forbidNonWhitelisted: true,
       transform: true,
     }),
-    new XssSanitizationPipe(),
+    new XssSanitizationPipe()
   );
 
   // Secure CORS - only allow configured origins
@@ -156,26 +154,23 @@ async function bootstrap(): Promise<void> {
     ]);
 
     if (!swaggerModule) {
-      customLogger.warn(
-        'Swagger UI skipped: @nestjs/swagger did not load within 15s',
-        'Bootstrap',
-      );
+      customLogger.warn('Swagger UI skipped: @nestjs/swagger did not load within 15s', 'Bootstrap');
     } else {
-    const { DocumentBuilder, SwaggerModule } = swaggerModule;
-    const swaggerConfig = new DocumentBuilder()
-      .setTitle('Moringa Backend API')
-      .setDescription('Production-grade e-commerce backend API')
-      .setVersion('1.0')
-      .addBearerAuth()
-      .addCookieAuth('accessToken')
-      .addSecurityRequirements('Bearer', [])
-      .build();
+      const { DocumentBuilder, SwaggerModule } = swaggerModule;
+      const swaggerConfig = new DocumentBuilder()
+        .setTitle('Moringa Backend API')
+        .setDescription('Production-grade e-commerce backend API')
+        .setVersion('1.0')
+        .addBearerAuth()
+        .addCookieAuth('accessToken')
+        .addSecurityRequirements('Bearer', [])
+        .build();
 
-    const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('api/docs', app, swaggerDocument, {
-      customSiteTitle: 'Moringa API Docs',
-      customCss: '.swagger-ui .topbar { display: none }',
-    });
+      const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+      SwaggerModule.setup('api/docs', app, swaggerDocument, {
+        customSiteTitle: 'Moringa API Docs',
+        customCss: '.swagger-ui .topbar { display: none }',
+      });
     }
   }
 
@@ -191,14 +186,14 @@ async function bootstrap(): Promise<void> {
   const wsAdapter = new RedisIoAdapter(
     app,
     process.env.REDIS_URL ?? '',
-    configService.get<string[]>('app.corsOrigins', []),
+    configService.get<string[]>('app.corsOrigins', [])
   );
   await wsAdapter.connectToRedis().catch((error) => {
     customLogger.warn(
       `WebSocket Redis adapter unavailable, continuing single-node: ${
         error instanceof Error ? error.message : String(error)
       }`,
-      'Bootstrap',
+      'Bootstrap'
     );
   });
   app.useWebSocketAdapter(wsAdapter);
@@ -208,7 +203,7 @@ async function bootstrap(): Promise<void> {
 
   customLogger.log(
     `Application running on port ${port} (NODE_ENV=${process.env.NODE_ENV ?? 'development'})`,
-    'Bootstrap',
+    'Bootstrap'
   );
 }
 

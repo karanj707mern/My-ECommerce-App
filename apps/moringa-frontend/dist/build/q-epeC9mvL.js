@@ -1,0 +1,1 @@
+import{v as m,G as u}from"./q-93TgTwg6.js";import{x as l}from"./q-93TgTwg6.js";const c=({track:o,cleanup:t})=>{const[s,r,e]=m(),n=o(()=>u(e)?e.value:e);if(typeof window>"u"||!n)return;const i=setTimeout(()=>{r()},s);t(()=>clearTimeout(i))};export{l as _hW,c as s_0JWm83V2JPU};

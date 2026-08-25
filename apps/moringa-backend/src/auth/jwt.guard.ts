@@ -1,9 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -18,7 +13,7 @@ export class JwtAuthGuard implements CanActivate {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
-    private readonly tokenRevocationService: TokenRevocationService,
+    private readonly tokenRevocationService: TokenRevocationService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -37,8 +32,7 @@ export class JwtAuthGuard implements CanActivate {
     // Cookie-first: HttpOnly accessToken is the primary browser credential;
     // Bearer remains for non-browser clients (SDK scripts, integrations).
     const token =
-      request.cookies?.accessToken ||
-      request.headers?.authorization?.replace('Bearer ', '');
+      request.cookies?.accessToken || request.headers?.authorization?.replace('Bearer ', '');
 
     if (!token) {
       throw new UnauthorizedException('Missing token');

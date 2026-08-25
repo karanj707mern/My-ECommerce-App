@@ -22,21 +22,9 @@ import { AuditInterceptor } from '../audit/audit.interceptor';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductService } from './product.service';
 import { UpdateProductDto } from './dto/update-product.dto';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBody,
-  ApiConsumes,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiConsumes } from '@nestjs/swagger';
 
-const allowedImageMimeTypes = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/avif',
-  'image/gif',
-];
+const allowedImageMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
 
 @ApiTags('products')
 @UseInterceptors(AuditInterceptor)
@@ -69,9 +57,7 @@ export class ProductController {
     }
 
     if (!allowedImageMimeTypes.includes(file.mimetype)) {
-      throw new BadRequestException(
-        'Only JPG, PNG, WEBP, AVIF, and GIF images are allowed.',
-      );
+      throw new BadRequestException('Only JPG, PNG, WEBP, AVIF, and GIF images are allowed.');
     }
 
     const buffer = await file.toBuffer();
@@ -97,9 +83,7 @@ export class ProductController {
   @Get()
   @ApiOperation({ summary: 'Get all products' })
   @ApiResponse({ status: 200, description: 'Products retrieved' })
-  getProducts(
-    @Query() query: { skip?: number; take?: number },
-  ) {
+  getProducts(@Query() query: { skip?: number; take?: number }) {
     return this.productService.getProducts(false, query.skip, query.take);
   }
 
@@ -108,9 +92,7 @@ export class ProductController {
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Get all products including hidden (admin)' })
   @ApiResponse({ status: 200, description: 'All products retrieved' })
-  getAdminProducts(
-    @Query() query: { skip?: number; take?: number },
-  ) {
+  getAdminProducts(@Query() query: { skip?: number; take?: number }) {
     return this.productService.getProducts(true, query.skip, query.take);
   }
 
@@ -136,10 +118,7 @@ export class ProductController {
   @ApiResponse({ status: 200, description: 'Product updated' })
   @ApiResponse({ status: 404, description: 'Product not found' })
   @ApiBody({ type: UpdateProductDto })
-  updateProduct(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateProductDto,
-  ) {
+  updateProduct(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto) {
     return this.productService.updateProduct(id, dto);
   }
 

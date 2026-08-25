@@ -1,4 +1,10 @@
-import { $, useOnWindow, useSignal, useVisibleTask$, type Signal } from "@builder.io/qwik";
+import {
+  $,
+  useOnWindow,
+  useSignal,
+  useVisibleTask$,
+  type Signal,
+} from "@builder.io/qwik";
 import {
   AUTH_CHECKED_EVENT,
   USER_CHANGED_EVENT,

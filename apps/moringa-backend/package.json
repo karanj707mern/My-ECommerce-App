@@ -20,7 +20,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "format": "prettier --write \"src/**/*.ts\"",
-    "generate:sdk": "nestia sdk --project tsconfig.nestia.json && nestia swagger --project tsconfig.nestia.json"
+    "generate:sdk": "TTSC_TSGO_BINARY=\"$(pwd)/../../node_modules/typescript/bin/tsc\" nestia sdk --project tsconfig.nestia.json && TTSC_TSGO_BINARY=\"$(pwd)/../../node_modules/typescript/bin/tsc\" nestia swagger --project tsconfig.nestia.json"
   },
   "dependencies": {
     "@fastify/compress": "^9.0.0",

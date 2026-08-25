@@ -1,8 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  NotificationChannel,
-  NotificationType,
-} from '../generated/prisma/client';
+import { NotificationChannel, NotificationType } from '../generated/prisma/client';
 import { NotificationService } from '../notification/notification.service';
 import { sanitizeHtml } from '../common/utils/sanitize.util';
 
@@ -21,7 +18,7 @@ export class EmailVerificationService {
     email: string,
     token: string,
     name?: string,
-    userId?: number,
+    userId?: number
   ): Promise<string> {
     const verificationUrl = this.buildVerificationUrl(token);
 
@@ -31,7 +28,7 @@ export class EmailVerificationService {
       }
 
       this.logger.warn(
-        `SMTP transport is not configured. Verification link for ${email}: ${verificationUrl}`,
+        `SMTP transport is not configured. Verification link for ${email}: ${verificationUrl}`
       );
 
       return verificationUrl;
@@ -48,12 +45,12 @@ export class EmailVerificationService {
         {
           templateName: 'EMAIL_VERIFICATION',
           variables: { name: this.safeName(name), verificationUrl },
-        },
+        }
       );
     } catch (error) {
       this.logger.error(
         `Failed to queue verification email for ${email}`,
-        error instanceof Error ? error.stack : undefined,
+        error instanceof Error ? error.stack : undefined
       );
 
       if (this.isProduction) {
@@ -68,7 +65,7 @@ export class EmailVerificationService {
     email: string,
     token: string,
     name?: string,
-    userId?: number,
+    userId?: number
   ): Promise<string> {
     const resetUrl = this.buildPasswordResetUrl(token);
 
@@ -78,7 +75,7 @@ export class EmailVerificationService {
       }
 
       this.logger.warn(
-        `SMTP transport is not configured. Password reset link for ${email}: ${resetUrl}`,
+        `SMTP transport is not configured. Password reset link for ${email}: ${resetUrl}`
       );
 
       return resetUrl;
@@ -95,12 +92,12 @@ export class EmailVerificationService {
         {
           templateName: 'PASSWORD_RESET',
           variables: { name: this.safeName(name), resetUrl },
-        },
+        }
       );
     } catch (error) {
       this.logger.error(
         `Failed to queue password reset email for ${email}`,
-        error instanceof Error ? error.stack : undefined,
+        error instanceof Error ? error.stack : undefined
       );
 
       if (this.isProduction) {
@@ -127,12 +124,12 @@ export class EmailVerificationService {
         {
           templateName: 'REVIEW_POSTED',
           variables: { name: this.safeName(name) },
-        },
+        }
       );
     } catch (error) {
       this.logger.error(
         `Failed to send review posted email to ${email}`,
-        error instanceof Error ? error.stack : undefined,
+        error instanceof Error ? error.stack : undefined
       );
     }
   }
@@ -153,12 +150,12 @@ export class EmailVerificationService {
         {
           templateName: 'COMMENT_POSTED',
           variables: { name: this.safeName(name) },
-        },
+        }
       );
     } catch (error) {
       this.logger.error(
         `Failed to send comment posted email to ${email}`,
-        error instanceof Error ? error.stack : undefined,
+        error instanceof Error ? error.stack : undefined
       );
     }
   }
@@ -168,7 +165,7 @@ export class EmailVerificationService {
   }
 
   private safeName(name?: string): string {
-    return name ? sanitizeHtml(name) ?? 'User' : 'User';
+    return name ? (sanitizeHtml(name) ?? 'User') : 'User';
   }
 
   private buildVerificationUrl(token: string): string {

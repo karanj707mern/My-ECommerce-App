@@ -60,7 +60,10 @@ export const ReviewList = component$<ReviewListProps>(
                     {(review.title as string) || "Verified buyer review"}
                   </h3>
                   <p class="mt-2 text-sm text-[var(--text-muted)]">
-                    {String((review.user as Record<string, unknown> | undefined)?.name ?? "")}{" "}
+                    {String(
+                      (review.user as Record<string, unknown> | undefined)
+                        ?.name ?? "",
+                    )}{" "}
                     on {formatMediumDate(review.createdAt as string)}
                   </p>
                 </div>
@@ -86,8 +89,10 @@ export const ReviewList = component$<ReviewListProps>(
                         >
                           <p class="font-medium text-[var(--text-primary)]">
                             {String(
-                              (comment.user as Record<string, unknown> | undefined)
-                                ?.name ?? "",
+                              (
+                                comment.user as
+                                  Record<string, unknown> | undefined
+                              )?.name ?? "",
                             )}
                           </p>
                           <p class="mt-1 leading-6 text-[var(--text-secondary)]">

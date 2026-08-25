@@ -12,7 +12,10 @@ export class CartController {
   @Post()
   @ApiOperation({ summary: 'Add item to cart' })
   @ApiResponse({ status: 201, description: 'Item added to cart' })
-  async create(@Req() req: { user: { id: number } }, @Body() dto: { productId: number; quantity?: number }): Promise<unknown> {
+  async create(
+    @Req() req: { user: { id: number } },
+    @Body() dto: { productId: number; quantity?: number }
+  ): Promise<unknown> {
     return this.cartService.create(req.user.id, dto);
   }
 

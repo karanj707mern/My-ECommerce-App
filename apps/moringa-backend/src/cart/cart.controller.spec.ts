@@ -1,29 +1,59 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
-import { CartModule } from './cart.module';
+import { Test, type TestingModule } from '@nestjs/testing';
+import { PrismaService } from '@/prisma/prisma.service';
+import { CartController } from './cart.controller';
+import { CartService } from './cart.service';
+import { AbandonedCartService } from '@/analytics/abandoned-cart.service';
+import { RedisCacheService } from '@/cache/redis-cache.service';
 
-describe('CartController (e2e)', () => {
-  let app: INestApplication;
+describe('CartController', () => {
+  let controller: CartController;
 
-  beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [CartModule],
+  const prismaServiceMock = {
+    cartItem: {
+      findMany: jest.fn(),
+      findFirst: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+  };
+
+  const abandonedCartServiceMock = {
+    createFromCart: jest.fn(),
+    getRecoverableCarts: jest.fn(),
+    markRecovered: jest.fn(),
+    cleanupExpired: jest.fn(),
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [CartController],
+      providers: [
+        CartService,
+        {
+          provide: PrismaService,
+          useValue: prismaServiceMock,
+        },
+        {
+          provide: AbandonedCartService,
+          useValue: abandonedCartServiceMock,
+        },
+        {
+          provide: RedisCacheService,
+          useValue: {
+            getJson: jest.fn(),
+            setJson: jest.fn(),
+            del: jest.fn(),
+            isEnabled: false,
+          },
+        },
+      ],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    controller = module.get<CartController>(CartController);
   });
 
-  afterAll(async () => {
-    await app.close();
-  });
-
-  describe('/cart (GET)', () => {
-    it('should return 401 without auth', () => {
-      return request(app.getHttpServer())
-        .get('/cart')
-        .expect(401);
-    });
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
   });
 });

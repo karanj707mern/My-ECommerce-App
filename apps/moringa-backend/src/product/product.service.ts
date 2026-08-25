@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisCacheService } from '../cache/redis-cache.service';
@@ -15,14 +11,11 @@ export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: RedisCacheService,
-    private readonly storageService: StorageService,
+    private readonly storageService: StorageService
   ) {}
 
   private isUniqueConstraintError(error: unknown): boolean {
-    return (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === 'P2002'
-    );
+    return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
   }
 
   private normalizeTags(tags?: string[]) {
@@ -31,8 +24,8 @@ export class ProductService {
         (tags || [])
           .map((tag) => tag.trim())
           .filter(Boolean)
-          .map((tag) => tag.toLowerCase()),
-      ),
+          .map((tag) => tag.toLowerCase())
+      )
     );
   }
 
@@ -65,12 +58,9 @@ export class ProductService {
       image: data.image?.trim(),
       brand: data.brand === undefined ? undefined : data.brand.trim() || null,
       tags: data.tags ? this.normalizeTags(data.tags) : undefined,
-      seoTitle:
-        data.seoTitle === undefined ? undefined : data.seoTitle.trim() || null,
+      seoTitle: data.seoTitle === undefined ? undefined : data.seoTitle.trim() || null,
       seoDescription:
-        data.seoDescription === undefined
-          ? undefined
-          : data.seoDescription.trim() || null,
+        data.seoDescription === undefined ? undefined : data.seoDescription.trim() || null,
       weightGrams: data.weightGrams ?? undefined,
       compareAtPrice: data.compareAtPrice ?? undefined,
       isActive: data.isActive ?? undefined,
@@ -83,11 +73,7 @@ export class ProductService {
     originalname: string;
     mimetype: string;
   }): Promise<{ url: string }> {
-    const result = await this.storageService.uploadFile(
-      file,
-      'products',
-      'product',
-    );
+    const result = await this.storageService.uploadFile(file, 'products', 'product');
     return { url: result.url };
   }
 
@@ -112,8 +98,7 @@ export class ProductService {
     const cacheKey = includeInactive
       ? `products:all:${skip}:${cappedTake}`
       : `products:active:${skip}:${cappedTake}`;
-    const cached =
-      await this.cache.getJson<Record<string, unknown>[]>(cacheKey);
+    const cached = await this.cache.getJson<Record<string, unknown>[]>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -131,8 +116,7 @@ export class ProductService {
 
   async getNewArrivals(limit = 8) {
     const cacheKey = `products:new-arrivals:${limit}`;
-    const cached =
-      await this.cache.getJson<Record<string, unknown>[]>(cacheKey);
+    const cached = await this.cache.getJson<Record<string, unknown>[]>(cacheKey);
     if (cached) {
       return cached;
     }

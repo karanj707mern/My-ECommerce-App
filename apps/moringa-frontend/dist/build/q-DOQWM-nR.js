@@ -1,1 +1,0 @@
-import{v as o}from"./q-DbZgC2Xw.js";import{x as c}from"./q-DbZgC2Xw.js";import{b as s}from"./q-COssFNnZ.js";const n=async()=>{const[r,t,e]=o();try{const a=await s();t.value=a,r.value=""}catch(a){r.value=a instanceof Error&&a.message?a.message:"Could not load gift cards."}finally{e.value=!1}};export{c as _hW,n as s_edwJ7ta73Ig};

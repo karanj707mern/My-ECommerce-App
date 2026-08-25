@@ -21,7 +21,8 @@ export const head: DocumentHead = ({ resolveValue }) => {
   const image = resolveValue(useHeroImage);
   return buildHead({
     title: "About Us",
-    description: "Learn about Moringa Store Online, our wellness focus, and how we help customers shop with clarity and confidence.",
+    description:
+      "Learn about Moringa Store Online, our wellness focus, and how we help customers shop with clarity and confidence.",
     path: "/about-us",
     image,
   });

@@ -6,7 +6,12 @@ import * as crypto from 'crypto';
 export class SessionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createSession(userId: number, refreshToken: string, deviceInfo?: { userAgent?: string; ip?: string }, jti?: string) {
+  async createSession(
+    userId: number,
+    refreshToken: string,
+    deviceInfo?: { userAgent?: string; ip?: string },
+    jti?: string
+  ) {
     const hashedToken = Buffer.from(refreshToken).toString('base64');
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 

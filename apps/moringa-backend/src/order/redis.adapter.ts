@@ -22,16 +22,14 @@ export class RedisIoAdapter extends IoAdapter {
   constructor(
     app: INestApplicationContext,
     private readonly redisUrl: string,
-    private readonly allowedOrigins: string[],
+    private readonly allowedOrigins: string[]
   ) {
     super(app);
   }
 
   async connectToRedis(): Promise<void> {
     if (!this.redisUrl) {
-      this.logger.warn(
-        'REDIS_URL not configured. Socket.IO running without Redis adapter',
-      );
+      this.logger.warn('REDIS_URL not configured. Socket.IO running without Redis adapter');
       return;
     }
 
@@ -88,7 +86,7 @@ export class RedisIoAdapter extends IoAdapter {
       cors: {
         origin: (
           origin: string | undefined,
-          callback: (err: Error | null, allow: boolean) => void,
+          callback: (err: Error | null, allow: boolean) => void
         ) => {
           if (!origin) {
             callback(null, true);
@@ -133,9 +131,7 @@ export class RedisIoAdapter extends IoAdapter {
     }) as Server;
 
     if (this.adapterConstructor) {
-      server.adapter(
-        this.adapterConstructor as Parameters<typeof server.adapter>[0],
-      );
+      server.adapter(this.adapterConstructor as Parameters<typeof server.adapter>[0]);
 
       this.logger.log('Redis adapter attached to Socket.IO server');
     } else {

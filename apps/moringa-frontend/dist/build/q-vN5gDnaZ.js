@@ -1,0 +1,1 @@
+import{v as r}from"./q-93TgTwg6.js";import{x as v}from"./q-93TgTwg6.js";const n=({cleanup:o})=>{const[s]=r(),e=()=>{s.value=window.scrollY>400};e(),window.addEventListener("scroll",e,{passive:!0}),o(()=>window.removeEventListener("scroll",e))};export{v as _hW,n as s_zIKL2lRP5As};

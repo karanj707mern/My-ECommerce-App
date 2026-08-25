@@ -7,6 +7,7 @@ import {
   type DocumentHead,
 } from "@builder.io/qwik-city";
 import { api } from "../../lib/api/client";
+import { getProducts } from "../../lib/api/product";
 import {
   ApiError,
   createServerConnection,
@@ -66,27 +67,34 @@ function toProduct(raw: unknown): Product | null {
 /**
  * SERVER-ONLY catalog fetch.
  *
- * Runs during SSR (and at build time for static routes). The connection is
- * created per-request: cookies from the BROWSER's request are forwarded to
- * Fastify verbatim, giving authenticated/guest pricing without tokens ever
- * entering client JS. Failures degrade to typed states instead of throwing —
- * a catalog outage must still render the shell with recovery UI.
+ * Runs during SSR (and at build time for static routes). Two data planes
+ * cooperate here, exactly as the monorepo contract prescribes:
+ *
+ *   - SDK plane (`@moringa/sdk` + forwarded cookies): controllers the Nestia
+ *     generator covers — `hero` for the banner strip, `cart` for mutations.
+ *   - Legacy http.ts plane (`lib/api/product.ts`): `product.controller.ts` is
+ *     DELIBERATELY excluded from generation (see backend nestia.config.ts —
+ *     multipart uploads / deep Prisma intersections defeat static analysis)
+ *     until those endpoints are DTO-wrapped.
+ *
+ * The connection is created per-request: cookies from the BROWSER's request
+ * are forwarded to Fastify verbatim, giving authenticated/guest pricing
+ * without tokens ever entering client JS. Failures degrade to typed states
+ * instead of throwing — a catalog outage must still render the shell with
+ * recovery UI.
  */
 export const useCatalog = routeLoader$(async (event) => {
   // Per-request connection — NEVER module-scoped on the streaming server.
   const serverConnection = createServerConnection({ event });
 
-  const [heroResult, newArrivalsResult] = await Promise.allSettled([
+  const [heroResult, productsResult] = await Promise.allSettled([
     invokeSdk(() => api.functional.hero.findAll(serverConnection), {
       idempotent: true, // GET: safe to retry through transient 5xx/network blips
     }),
-    invokeSdk(
-      () => api.functional.new_arrivals.findAll(serverConnection),
-      { idempotent: true },
-    ),
+    getProducts(),
   ]);
 
-  const heroImage =
+  const heroValue =
     heroResult.status === "fulfilled" &&
     typeof heroResult.value === "object" &&
     heroResult.value !== null &&
@@ -95,34 +103,31 @@ export const useCatalog = routeLoader$(async (event) => {
       ? (heroResult.value as { url: string }).url
       : null;
 
-  if (newArrivalsResult.status === "rejected") {
-    const failure =
-      newArrivalsResult.reason instanceof ApiError ? newArrivalsResult.reason : null;
+  if (productsResult.status === "rejected") {
+    const reason = productsResult.reason;
+    const failure = reason instanceof ApiError ? reason : null;
     return {
       status: "error" as const,
       products: [] as Product[],
-      heroImage,
+      heroImage: heroValue,
       errorMessage:
         failure?.kind === "timeout"
           ? "The store is taking longer than usual to respond. Please retry."
-          : failure?.message ?? "Products could not be loaded right now.",
+          : (failure?.message ?? "Products could not be loaded right now."),
       errorStatus: failure?.status ?? 502,
     };
   }
 
-  const payload = newArrivalsResult.value;
-  const rows: unknown[] = Array.isArray(payload)
-    ? payload
-    : Array.isArray((payload as { items?: unknown[] })?.items)
-      ? ((payload as { items: unknown[] }).items)
-      : [];
+  const rows: unknown[] = Array.isArray(productsResult.value)
+    ? productsResult.value
+    : [];
 
   return {
     status: "success" as const,
     products: rows
       .map(toProduct)
       .filter((product): product is Product => product !== null),
-    heroImage,
+    heroImage: heroValue,
     errorMessage: null,
     errorStatus: null,
   };
@@ -150,7 +155,8 @@ export const useAddToCart = routeAction$(async (form, event) => {
   if (!Number.isInteger(productId) || productId <= 0) {
     return { ok: false as const, message: "Invalid product." };
   }
-  const safeQuantity = Number.isInteger(quantity) && quantity > 0 ? Math.min(quantity, 99) : 1;
+  const safeQuantity =
+    Number.isInteger(quantity) && quantity > 0 ? Math.min(quantity, 99) : 1;
 
   try {
     await invokeSdk(
@@ -202,7 +208,9 @@ export default component$(() => {
           role="alert"
           class="rounded-xl border border-red-200 bg-red-50 p-6 text-center dark:border-red-900/60 dark:bg-red-950/40"
         >
-          <p class="text-stone-800 dark:text-stone-100">{catalog.value.errorMessage}</p>
+          <p class="text-stone-800 dark:text-stone-100">
+            {catalog.value.errorMessage}
+          </p>
           <Link
             href="/products"
             class="mt-4 inline-block rounded-lg bg-emerald-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
@@ -236,7 +244,10 @@ export default component$(() => {
               <div class="flex flex-1 flex-col gap-3 p-4">
                 <div class="flex-1">
                   <h2 class="text-base font-semibold text-stone-900 dark:text-stone-50">
-                    <Link href={`/product/${product.slug ?? product.id}`} class="hover:underline">
+                    <Link
+                      href={`/product/${product.slug ?? product.id}`}
+                      class="hover:underline"
+                    >
                       {product.name}
                     </Link>
                   </h2>
@@ -263,12 +274,17 @@ export default component$(() => {
                     present it intercepts submission and resumes the handler
                     as an island instead of reloading. */}
                 <Form action={action} class="mt-auto">
-                  <input type="hidden" name="productId" value={String(product.id)} />
+                  <input
+                    type="hidden"
+                    name="productId"
+                    value={String(product.id)}
+                  />
                   <input type="hidden" name="quantity" value="1" />
                   <button
                     type="submit"
                     disabled={
-                      (typeof product.stock === "number" && product.stock <= 0) ||
+                      (typeof product.stock === "number" &&
+                        product.stock <= 0) ||
                       pendingProductId.value === product.id ||
                       action.isRunning
                     }

@@ -1,5 +1,10 @@
 import { $, component$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
-import { Link, routeLoader$, useNavigate, type DocumentHead } from "@builder.io/qwik-city";
+import {
+  Link,
+  routeLoader$,
+  useNavigate,
+  type DocumentHead,
+} from "@builder.io/qwik-city";
 import { getBlogPosts, getAllBlogPosts } from "../../../lib/api/blog";
 import { resolveImageUrl } from "../../../lib/config";
 import { useAutoDismiss } from "../../../hooks/useAutoDismiss";
@@ -36,7 +41,13 @@ export default component$(() => {
   const error = useSignal(initial.value.loadError);
   const loading = useSignal(false);
 
-  useAutoDismiss(error, $(() => { error.value = ""; }), 5000);
+  useAutoDismiss(
+    error,
+    $(() => {
+      error.value = "";
+    }),
+    5000,
+  );
 
   useVisibleTask$(async ({ track }) => {
     if (track(currentUser)?.role !== "ADMIN") return;
@@ -147,9 +158,7 @@ export default component$(() => {
                     ) : null}
                     <button
                       type="button"
-                      onClick$={() =>
-                        nav(`/blog/${post.slug as string}`)
-                      }
+                      onClick$={() => nav(`/blog/${post.slug as string}`)}
                       class="btn-secondary"
                     >
                       Read article

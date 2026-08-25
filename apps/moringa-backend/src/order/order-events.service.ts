@@ -37,7 +37,7 @@ export class OrderEventsService implements OnModuleDestroy {
   constructor(
     private readonly redisService: RedisService,
     private readonly bullMQService: BullMQService,
-    private readonly rabbitMQService: RabbitMQService,
+    private readonly rabbitMQService: RabbitMQService
   ) {}
 
   onModuleInit(): void {
@@ -78,7 +78,7 @@ export class OrderEventsService implements OnModuleDestroy {
         this.logger.warn(
           `RabbitMQ consumer registration skipped: ${
             error instanceof Error ? error.message : String(error)
-          }`,
+          }`
         );
       });
   }
@@ -125,7 +125,12 @@ export class OrderEventsService implements OnModuleDestroy {
     // Publish cross-service event via RabbitMQ
     await this.rabbitMQService.publish({
       type: 'order.created',
-      data: { ...message.payload, userId: event.userId, orderId: event.orderId, status: event.status },
+      data: {
+        ...message.payload,
+        userId: event.userId,
+        orderId: event.orderId,
+        status: event.status,
+      },
       timestamp: message.timestamp,
       idempotencyKey: `order:${event.orderId}:rabbit`,
     });
@@ -153,7 +158,12 @@ export class OrderEventsService implements OnModuleDestroy {
 
     await this.rabbitMQService.publish({
       type: 'order.updated',
-      data: { ...message.payload, userId: event.userId, orderId: event.orderId, status: event.status },
+      data: {
+        ...message.payload,
+        userId: event.userId,
+        orderId: event.orderId,
+        status: event.status,
+      },
       timestamp: message.timestamp,
       idempotencyKey: `order:${event.orderId}:updated`,
     });
@@ -181,7 +191,12 @@ export class OrderEventsService implements OnModuleDestroy {
 
     await this.rabbitMQService.publish({
       type: 'order.cancelled',
-      data: { ...message.payload, userId: event.userId, orderId: event.orderId, status: event.status },
+      data: {
+        ...message.payload,
+        userId: event.userId,
+        orderId: event.orderId,
+        status: event.status,
+      },
       timestamp: message.timestamp,
       idempotencyKey: `order:${event.orderId}:cancelled:rabbit`,
     });
@@ -191,10 +206,10 @@ export class OrderEventsService implements OnModuleDestroy {
 
   /**
    * Stream of order updates for the WebSocket gateway. Returns an RxJS
-   * Subscription so callers can unsubscribe on shutdown.
+   * Observable so callers can subscribe to it.
    */
   subscribeOrderUpdates() {
-    return this.updates$.subscribe();
+    return this.updates$;
   }
 
   /**
@@ -206,9 +221,7 @@ export class OrderEventsService implements OnModuleDestroy {
   }
 
   async getLastOrderEvent(userId: number): Promise<OrderEventMessage | null> {
-    const raw = await this.redisService
-      .getClient()
-      .get(`${this.LAST_USER_EVENT_PREFIX}${userId}`);
+    const raw = await this.redisService.getClient().get(`${this.LAST_USER_EVENT_PREFIX}${userId}`);
 
     if (!raw) return null;
 

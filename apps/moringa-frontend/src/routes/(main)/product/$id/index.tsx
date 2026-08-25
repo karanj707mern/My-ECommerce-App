@@ -13,7 +13,6 @@ import ReviewForm, {
 } from "../../../../components/product/ReviewForm";
 import ReviewList from "../../../../components/product/ReviewList";
 import { addCartItem, getCart } from "../../../../lib/api/cart";
-import { getProduct } from "../../../../lib/api/product";
 import {
   createReview,
   createReviewComment,
@@ -132,7 +131,13 @@ export default component$(() => {
 
   const viewers = useProductViewers(id);
 
-  useAutoDismiss(reviewError, $(() => { reviewError.value = ""; }), 5000);
+  useAutoDismiss(
+    reviewError,
+    $(() => {
+      reviewError.value = "";
+    }),
+    5000,
+  );
 
   const loadReviews = $(async (productId: string) => {
     try {
@@ -191,8 +196,10 @@ export default component$(() => {
     }
 
     getReviewEligibility(id)
-      .then((eligibility) =>
-        reviewEligibility.value = eligibility as typeof reviewEligibility.value,
+      .then(
+        (eligibility) =>
+          (reviewEligibility.value =
+            eligibility as typeof reviewEligibility.value),
       )
       .catch(() => {
         reviewEligibility.value = {
@@ -375,7 +382,12 @@ export default component$(() => {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: `${siteUrl}/` },
-      { "@type": "ListItem", position: 2, name: "Shop", item: `${siteUrl}/shop` },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Shop",
+        item: `${siteUrl}/shop`,
+      },
       {
         "@type": "ListItem",
         position: 3,
@@ -608,8 +620,6 @@ export const head: DocumentHead = ({ resolveValue }) => {
       { name: "twitter:description", content: description },
       ...(image ? [{ name: "twitter:image", content: image }] : []),
     ],
-    links: [
-      { rel: "canonical", href: `${siteUrl}/product/${product.id}` },
-    ],
+    links: [{ rel: "canonical", href: `${siteUrl}/product/${product.id}` }],
   };
 };

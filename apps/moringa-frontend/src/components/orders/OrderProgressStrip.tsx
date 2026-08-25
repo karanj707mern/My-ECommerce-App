@@ -66,10 +66,7 @@ export const OrderProgressStrip = component$<OrderProgressStripProps>(
               const isCompleted = index <= currentIndex;
               const isCurrent = index === currentIndex;
               return (
-                <div
-                  key={stage.key}
-                  class="flex flex-1 flex-col items-center"
-                >
+                <div key={stage.key} class="flex flex-1 flex-col items-center">
                   <div class="flex w-full items-center">
                     <div
                       class={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition ${

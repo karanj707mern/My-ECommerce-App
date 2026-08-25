@@ -6,7 +6,10 @@ import { RedisService } from '../infrastructure/redis.service';
 export class RedisCacheService implements OnModuleDestroy {
   private readonly client: ReturnType<RedisService['getClient']>;
 
-  constructor(private readonly prisma: PrismaService, private readonly redisService: RedisService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redisService: RedisService
+  ) {
     this.client = this.redisService.getClient();
   }
 

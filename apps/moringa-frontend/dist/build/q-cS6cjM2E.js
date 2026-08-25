@@ -1,0 +1,1 @@
+import{a as t}from"./q-Aj0YKPR-.js";function o(e){return t(`/review/product/${e}`)}function n(e){return t(`/review/product/${e}/eligibility`)}function u(e,i){return t(`/review/product/${e}`,{method:"POST",body:JSON.stringify(i)})}function c(e,i){return t(`/review/${e}/comments`,{method:"POST",body:JSON.stringify(i)})}export{u as a,o as b,c,n as g};

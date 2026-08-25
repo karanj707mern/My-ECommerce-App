@@ -65,9 +65,7 @@ import {
           const isHealth = controllerName === 'HealthController';
           const isAuth =
             controllerName === 'AuthController' &&
-            (handlerName === 'login' ||
-              handlerName === 'register' ||
-              handlerName === 'refresh');
+            (handlerName === 'login' || handlerName === 'register' || handlerName === 'refresh');
           return isHealth || isAuth;
         },
       },

@@ -5,8 +5,7 @@ import { SettingsService } from './settings.service';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [
-    AuthSharedModule,PrismaModule],
+  imports: [AuthSharedModule, PrismaModule],
   controllers: [SettingsController],
   providers: [SettingsService],
   exports: [SettingsService],

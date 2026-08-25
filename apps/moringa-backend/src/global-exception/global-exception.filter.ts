@@ -20,14 +20,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<FastifyRequest>();
 
     const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+      exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
 
     const rawResponse =
-      exception instanceof HttpException
-        ? exception.getResponse()
-        : 'Internal server error';
+      exception instanceof HttpException ? exception.getResponse() : 'Internal server error';
 
     let message: unknown = rawResponse;
     let errorName: string | undefined;
@@ -37,17 +33,15 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     } else {
       const structured = rawResponse as Record<string, unknown>;
       message = structured.message ?? rawResponse;
-      errorName =
-        typeof structured.error === 'string' ? structured.error : undefined;
+      errorName = typeof structured.error === 'string' ? structured.error : undefined;
     }
 
-    const logMessage =
-      typeof message === 'string' ? message : JSON.stringify(message);
+    const logMessage = typeof message === 'string' ? message : JSON.stringify(message);
 
     this.logger.error(
       `${request.method} ${request.url} - ${status} - ${logMessage}`,
       exception instanceof Error ? exception.stack : undefined,
-      'GlobalExceptionFilter',
+      'GlobalExceptionFilter'
     );
 
     // Errors raised after the reply has been handed to Fastify (e.g. inside a

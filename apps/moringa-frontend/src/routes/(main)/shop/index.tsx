@@ -1,4 +1,10 @@
-import { $, component$, useComputed$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
+import {
+  $,
+  component$,
+  useComputed$,
+  useSignal,
+  useVisibleTask$,
+} from "@builder.io/qwik";
 import { Link, routeLoader$, type DocumentHead } from "@builder.io/qwik-city";
 import { getProducts } from "../../../lib/api/product";
 import { getFirstActiveHeroImage } from "../../../lib/api/hero";
@@ -10,10 +16,7 @@ import {
 } from "../../../lib/api/wishlist";
 import { resolveImageUrl } from "../../../lib/config";
 import { formatRupees } from "../../../lib/formatters";
-import {
-  notifyCartChanged,
-  notifyWishlistChanged,
-} from "../../../lib/storage";
+import { notifyCartChanged, notifyWishlistChanged } from "../../../lib/storage";
 import { useToast } from "../../../hooks/useToast";
 import { useAutoDismiss } from "../../../hooks/useAutoDismiss";
 import { useAuthState } from "../../../hooks/useAuthState";
@@ -32,7 +35,9 @@ export const useShopData = routeLoader$(async () => {
     products = Array.isArray(data) ? (data as ShopProduct[]) : [];
   } catch (err) {
     loadError =
-      err instanceof Error && err.message ? err.message : "Could not load products.";
+      err instanceof Error && err.message
+        ? err.message
+        : "Could not load products.";
   }
 
   try {
@@ -61,7 +66,13 @@ export default component$(() => {
   const error = useSignal(shop.value.loadError);
   const addingToCartId = useSignal<string | number | null>(null);
 
-  useAutoDismiss(error, $(() => { error.value = ""; }), 5000);
+  useAutoDismiss(
+    error,
+    $(() => {
+      error.value = "";
+    }),
+    5000,
+  );
 
   const isAdmin = currentUser.value?.role === "ADMIN";
 
@@ -138,8 +149,7 @@ export default component$(() => {
       await toast.showToast({
         severity: "error",
         summary: "Action not allowed",
-        detail:
-          "Admin accounts cannot add products to cart or place orders.",
+        detail: "Admin accounts cannot add products to cart or place orders.",
         life: 4000,
       });
       error.value = "";

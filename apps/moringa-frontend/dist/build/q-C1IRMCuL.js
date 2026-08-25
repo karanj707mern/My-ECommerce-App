@@ -1,1 +1,0 @@
-import{_ as t}from"./q-BD-hIznX.js";import{y as o,L as e}from"./q-DbZgC2Xw.js";const s=o(e(()=>t(()=>import("./q-sTi2S7pr.js"),[]),"s_phJdrjLH9Wk")),_={title:"Admin · Settings"};export{s as default,_ as head};

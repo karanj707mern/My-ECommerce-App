@@ -24,14 +24,11 @@ export const OrderDetails = component$<OrderDetailsProps>(({ order }) => {
               {(item.product as Record<string, unknown>)?.name as string}
             </p>
             <p>
-              Qty {String(item.quantity)} x{" "}
-              {formatRupees(item.price as number)}
+              Qty {String(item.quantity)} x {formatRupees(item.price as number)}
             </p>
           </div>
           <p class="font-medium text-[var(--text-primary)] sm:text-right">
-            {formatRupees(
-              Number(item.price ?? 0) * Number(item.quantity ?? 0),
-            )}
+            {formatRupees(Number(item.price ?? 0) * Number(item.quantity ?? 0))}
           </p>
         </div>
       ))}

@@ -23,7 +23,7 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly logger: PinoLogger,
+    private readonly logger: PinoLogger
   ) {
     this.connectionUrl = this.buildConnectionUrl();
   }
@@ -47,9 +47,7 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
   }
 
   get isConfigured(): boolean {
-    const explicitUrl = this.configService
-      .get<string>('rabbitmq.url', '')
-      .trim();
+    const explicitUrl = this.configService.get<string>('rabbitmq.url', '').trim();
 
     if (explicitUrl) {
       return true;
@@ -76,9 +74,7 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit() {
     if (!this.isConfigured) {
-      this.logger.warn(
-        'RabbitMQ not configured. Notification delivery will use in-process queue.',
-      );
+      this.logger.warn('RabbitMQ not configured. Notification delivery will use in-process queue.');
       return;
     }
 
@@ -86,7 +82,7 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
       this.connectWithRetry().catch((error) => {
         this.logger.error(
           'RabbitMQ background connection failed',
-          error instanceof Error ? error.stack : String(error),
+          error instanceof Error ? error.stack : String(error)
         );
       });
     });
@@ -107,12 +103,12 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
 
         this.logger.error(
           `Failed to connect to RabbitMQ (attempt ${this.retryCount}/${this.maxRetries})`,
-          error instanceof Error ? error.stack : String(error),
+          error instanceof Error ? error.stack : String(error)
         );
 
         if (this.retryCount >= this.maxRetries) {
           this.logger.error(
-            'RabbitMQ connection failed after maximum retries. Notification delivery will use in-process queue.',
+            'RabbitMQ connection failed after maximum retries. Notification delivery will use in-process queue.'
           );
           return;
         }
@@ -120,7 +116,7 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
         const delay = this.calculateBackoff(this.retryCount);
 
         this.logger.log(
-          `Retrying RabbitMQ connection in ${delay}ms (attempt ${this.retryCount + 1}/${this.maxRetries})`,
+          `Retrying RabbitMQ connection in ${delay}ms (attempt ${this.retryCount + 1}/${this.maxRetries})`
         );
 
         await this.sleep(delay);
@@ -158,11 +154,7 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
     await this.channel.assertQueue(this.queueDlx, { durable: true });
     await this.channel.bindQueue(this.queueDlx, this.queueDlx, '');
 
-    await this.channel.bindQueue(
-      this.queueName,
-      this.exchangeName,
-      'notification',
-    );
+    await this.channel.bindQueue(this.queueName, this.exchangeName, 'notification');
 
     this.channelModel?.on('error', (error: Error) => {
       this.logger.error(`RabbitMQ connection error: ${error.message}`);
@@ -220,7 +212,7 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
         .catch((error) => {
           this.logger.error(
             'RabbitMQ reconnection failed',
-            error instanceof Error ? error.stack : String(error),
+            error instanceof Error ? error.stack : String(error)
           );
         });
     }, delay);
@@ -242,7 +234,7 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
         .catch((error) => {
           this.logger.warn(
             'RabbitMQ health check failed',
-            error instanceof Error ? error.message : String(error),
+            error instanceof Error ? error.message : String(error)
           );
           this.connected = false;
           this.scheduleReconnect();
@@ -257,9 +249,7 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
   private async waitForRabbitMQReady(): Promise<void> {
     const connectionUrl = new URL(this.connectionUrl);
     const host = connectionUrl.hostname;
-    const port =
-      Number(connectionUrl.port) ||
-      (connectionUrl.protocol === 'amqps:' ? 5671 : 5672);
+    const port = Number(connectionUrl.port) || (connectionUrl.protocol === 'amqps:' ? 5671 : 5672);
 
     this.logger.log(`Waiting for RabbitMQ at ${host}:${port} to be ready...`);
 
@@ -298,7 +288,7 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
     }
 
     throw new Error(
-      `RabbitMQ at ${host}:${port} did not become ready after ${maxAttempts} attempts`,
+      `RabbitMQ at ${host}:${port} did not become ready after ${maxAttempts} attempts`
     );
   }
 
@@ -332,7 +322,7 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
     } catch (error) {
       this.logger.error(
         'Error closing RabbitMQ connection',
-        error instanceof Error ? error.stack : String(error),
+        error instanceof Error ? error.stack : String(error)
       );
     }
   }
@@ -346,16 +336,11 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
 
     return new Promise((resolve) => {
       try {
-        const sent = this.channel!.publish(
-          this.exchangeName,
-          'notification',
-          message,
-          {
-            persistent: true,
-            contentType: 'application/json',
-            deliveryMode: 2,
-          },
-        );
+        const sent = this.channel!.publish(this.exchangeName, 'notification', message, {
+          persistent: true,
+          contentType: 'application/json',
+          deliveryMode: 2,
+        });
 
         if (!sent) {
           this.channel!.once('drain', () => {
@@ -367,16 +352,14 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
       } catch (error) {
         this.logger.error(
           'Failed to publish to RabbitMQ',
-          error instanceof Error ? error.stack : String(error),
+          error instanceof Error ? error.stack : String(error)
         );
         resolve();
       }
     });
   }
 
-  async registerConsumer(
-    handler: (message: amqp.ConsumeMessage) => Promise<void>,
-  ): Promise<void> {
+  async registerConsumer(handler: (message: amqp.ConsumeMessage) => Promise<void>): Promise<void> {
     if (!this.channel) {
       this.logger.warn('Skipping RabbitMQ consumer: channel not available');
       return;
@@ -394,27 +377,27 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
         handler(msg)
           .then(() => {
             if (this.channel) {
-              this.channel!.ack(msg);
+              this.channel.ack(msg);
             }
           })
           .catch((error) => {
             this.logger.error(
               'RabbitMQ consumer handler error',
-              error instanceof Error ? error.stack : String(error),
+              error instanceof Error ? error.stack : String(error)
             );
 
             if (!this.consuming) {
               if (this.channel) {
-                this.channel!.nack(msg, false, true);
+                this.channel.nack(msg, false, true);
               }
             } else {
               if (this.channel) {
-                this.channel!.nack(msg, false, false);
+                this.channel.nack(msg, false, false);
               }
             }
           });
       },
-      { noAck: false },
+      { noAck: false }
     );
 
     this.logger.log('RabbitMQ consumer registered');

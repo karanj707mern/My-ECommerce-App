@@ -29,20 +29,14 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 
-const allowedImageMimeTypes = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/avif',
-  'image/gif',
-];
+const allowedImageMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
 
 @ApiTags('blog')
 @Controller('blog')
 export class BlogController {
   constructor(
     private readonly blogService: BlogService,
-    private readonly storageService: StorageService,
+    private readonly storageService: StorageService
   ) {}
 
   @Post('upload-image')
@@ -70,9 +64,7 @@ export class BlogController {
     }
 
     if (!allowedImageMimeTypes.includes(file.mimetype)) {
-      throw new BadRequestException(
-        'Only JPG, PNG, WEBP, AVIF, and GIF images are allowed.',
-      );
+      throw new BadRequestException('Only JPG, PNG, WEBP, AVIF, and GIF images are allowed.');
     }
 
     const buffer = await file.toBuffer();
@@ -83,7 +75,7 @@ export class BlogController {
         originalname: file.filename,
         mimetype: file.mimetype,
       },
-      'blog',
+      'blog'
     );
 
     return {
@@ -134,10 +126,7 @@ export class BlogController {
   @ApiResponse({ status: 404, description: 'Blog post not found' })
   @ApiBody({ type: UpdateBlogPostDto })
   @ApiParam({ name: 'id', description: 'Blog post ID' })
-  updatePost(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateBlogPostDto,
-  ) {
+  updatePost(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateBlogPostDto) {
     return this.blogService.updatePost(id, dto);
   }
 

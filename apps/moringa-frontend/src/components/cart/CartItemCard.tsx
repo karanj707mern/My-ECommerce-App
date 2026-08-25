@@ -7,7 +7,9 @@ import type { ServerCartItem } from "../../lib/cart";
 export interface CartItemCardProps {
   item: ServerCartItem;
   onRemove$: PropFunction<(id: string | number, name: string) => void>;
-  onQuantityChange$: PropFunction<(id: string | number, quantity: number) => void>;
+  onQuantityChange$: PropFunction<
+    (id: string | number, quantity: number) => void
+  >;
   addingToCartId: string | number | null;
 }
 
@@ -46,7 +48,10 @@ export const CartItemCard = component$<CartItemCardProps>(
               <button
                 type="button"
                 onClick$={() =>
-                  onRemove$(item.id as string | number, (product?.name as string) ?? "")
+                  onRemove$(
+                    item.id as string | number,
+                    (product?.name as string) ?? "",
+                  )
                 }
                 class="text-sm text-[var(--text-muted)] transition hover:text-[var(--text-primary)]"
               >
@@ -68,7 +73,10 @@ export const CartItemCard = component$<CartItemCardProps>(
               <button
                 type="button"
                 onClick$={() =>
-                  onQuantityChange$(item.id as string | number, Math.max(1, quantity - 1))
+                  onQuantityChange$(
+                    item.id as string | number,
+                    Math.max(1, quantity - 1),
+                  )
                 }
                 disabled={quantity <= 1 || busy}
                 class="h-10 w-10 rounded-full bg-[var(--bg-secondary)] text-lg text-[var(--text-secondary)] shadow-sm disabled:cursor-not-allowed disabled:opacity-40"

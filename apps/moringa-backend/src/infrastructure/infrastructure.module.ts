@@ -65,7 +65,7 @@ export class InfrastructureModule implements OnModuleInit {
     private readonly redisService: RedisService,
     private readonly bullMQService: BullMQService,
     private readonly rabbitMQService: RabbitMQService,
-    private readonly prismaService: PrismaService,
+    private readonly prismaService: PrismaService
   ) {}
 
   async onModuleInit() {

@@ -14,9 +14,9 @@ WORKDIR /repo
 # Workspace manifests for layer caching
 COPY package.json package-lock.json ./
 COPY apps/moringa-frontend/package.json apps/moringa-frontend/
+COPY libs/sdk/package.json libs/sdk/
 COPY libs/shared/package.json libs/shared/
 COPY libs/ui/package.json libs/ui/
-COPY libs/nestia-sdk/package.json libs/nestia-sdk/
 RUN npm ci --no-audit --no-fund
 
 # TypeScript configs

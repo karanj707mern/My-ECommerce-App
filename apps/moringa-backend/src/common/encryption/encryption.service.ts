@@ -38,36 +38,26 @@ export class EncryptionService implements OnModuleDestroy {
   }
 
   decrypt(data: EncryptedValue): string {
-    const decipher = crypto.createDecipheriv(
-      this.algorithm,
-      this.key,
-      Buffer.from(data.iv, 'hex'),
-    );
+    const decipher = crypto.createDecipheriv(this.algorithm, this.key, Buffer.from(data.iv, 'hex'));
     decipher.setAuthTag(Buffer.from(data.tag!, 'hex'));
     let decrypted = decipher.update(data.encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
   }
 
-  encryptFields<T extends Record<string, unknown>>(
-    dto: T,
-    fields: (keyof T)[],
-  ): T {
+  encryptFields<T extends Record<string, unknown>>(dto: T, fields: (keyof T)[]): T {
     const result: Record<string, unknown> = { ...dto };
     for (const field of fields) {
       const key = field as string;
       if (typeof result[key] === 'string' && result[key]) {
-        const encrypted = this.encrypt(result[key] as string);
+        const encrypted = this.encrypt(result[key]);
         result[key] = `${encrypted.iv}:${encrypted.tag}:${encrypted.encrypted}`;
       }
     }
     return result as T;
   }
 
-  decryptFields<T extends Record<string, unknown>>(
-    dto: T,
-    fields: (keyof T)[],
-  ): T {
+  decryptFields<T extends Record<string, unknown>>(dto: T, fields: (keyof T)[]): T {
     const result: Record<string, unknown> = { ...dto };
     for (const field of fields) {
       const key = field as string;

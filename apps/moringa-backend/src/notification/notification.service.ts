@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  Inject,
-  Logger,
-  OnModuleDestroy,
-  OnModuleInit,
-} from '@nestjs/common';
+import { Injectable, Inject, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   Notification,
@@ -55,18 +49,12 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
     private readonly rabbitMqService: RabbitMqService,
     private readonly bullMqService: BullMqService,
     @Inject('HANDLEBARS_EMAIL_TEMPLATE_SERVICE')
-    private readonly handlebarsTemplateService: HandlebarsEmailTemplateService,
+    private readonly handlebarsTemplateService: HandlebarsEmailTemplateService
   ) {
     const host = this.configService.get<string>('email.host', '');
     this.emailFrom = this.configService.get<string>('email.from', '');
-    this.maxAttempts = this.configService.get<number>(
-      'notifications.maxAttempts',
-      3,
-    );
-    this.retryIntervalMs = this.configService.get<number>(
-      'notifications.retryIntervalMs',
-      60000,
-    );
+    this.maxAttempts = this.configService.get<number>('notifications.maxAttempts', 3);
+    this.retryIntervalMs = this.configService.get<number>('notifications.retryIntervalMs', 60000);
 
     this.transporter = host
       ? nodemailer.createTransport({
@@ -84,7 +72,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
   onModuleInit() {
     if (this.bullMqService?.isConfigured) {
       this.bullMqService.setHandler((notificationId) =>
-        this.handleBullMqNotification(notificationId),
+        this.handleBullMqNotification(notificationId)
       );
       return;
     }
@@ -99,15 +87,11 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
 
     if (this.rabbitMqService?.isConfigured) {
       this.rabbitMqService
-        .registerConsumer(
-          this.handleRabbitMqNotification.bind(this) as (
-            message: amqp.ConsumeMessage,
-          ) => Promise<void>,
-        )
+        .registerConsumer(this.handleRabbitMqNotification.bind(this))
         .catch((error) => {
           this.logger.error(
             'Failed to register RabbitMQ consumer',
-            error instanceof Error ? error.stack : undefined,
+            error instanceof Error ? error.stack : undefined
           );
         });
     }
@@ -163,7 +147,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
         recipient,
         subject: input.subject || null,
         body: input.body!,
-        payload: (input.payload ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        payload: input.payload ?? Prisma.JsonNull,
         status: NotificationStatus.PENDING,
         scheduledAt: input.scheduledAt ?? new Date(),
         maxAttempts: input.maxAttempts ?? 3,
@@ -176,18 +160,13 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
     let body = input.body;
 
     if (renderInput?.templateName) {
-      const rendered = await this.renderTemplate(
-        renderInput.templateName,
-        renderInput.variables,
-      );
+      const rendered = await this.renderTemplate(renderInput.templateName, renderInput.variables);
       subject = rendered.subject;
       body = rendered.htmlBody;
     }
 
     if (!body) {
-      throw new Error(
-        'Notification body is required when no template is provided',
-      );
+      throw new Error('Notification body is required when no template is provided');
     }
 
     const recipient = input.recipient?.trim();
@@ -208,7 +187,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
 
       if (preference) {
         this.logger.debug(
-          `Notification ${input.type} via ${input.channel} skipped for user ${input.userId} due to disabled preference`,
+          `Notification ${input.type} via ${input.channel} skipped for user ${input.userId} due to disabled preference`
         );
         return null;
       }
@@ -232,21 +211,21 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
       void this.bullMqService.addJob(notification.id).catch((error) => {
         this.logger.error(
           `Notification ${notification.id} BullMQ add failed`,
-          error instanceof Error ? error.stack : undefined,
+          error instanceof Error ? error.stack : undefined
         );
       });
     } else if (this.rabbitMqService?.isConfigured) {
       void this.publishToRabbitMq(notification).catch((error) => {
         this.logger.error(
           `Notification ${notification.id} RabbitMQ publish failed`,
-          error instanceof Error ? error.stack : undefined,
+          error instanceof Error ? error.stack : undefined
         );
       });
     } else {
       void this.dispatchNotification(notification.id).catch((error) => {
         this.logger.error(
           `Notification ${notification.id} dispatch failed`,
-          error instanceof Error ? error.stack : undefined,
+          error instanceof Error ? error.stack : undefined
         );
       });
     }
@@ -287,7 +266,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
   async getUserNotifications(
     userId: number,
     page: number,
-    limit: number,
+    limit: number
   ): Promise<{
     data: Notification[];
     meta: { total: number; page: number; pages: number };
@@ -325,10 +304,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
     return { count };
   }
 
-  async markNotificationAsRead(
-    notificationId: number,
-    userId: number,
-  ): Promise<Notification> {
+  async markNotificationAsRead(notificationId: number, userId: number): Promise<Notification> {
     const notification = await this.prisma.notification.findUnique({
       where: { id: notificationId },
     });
@@ -361,7 +337,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
 
   async updateNotificationPreference(
     userId: number,
-    dto: NotificationPreferenceDto,
+    dto: NotificationPreferenceDto
   ): Promise<void> {
     await this.prisma.notificationPreference.upsert({
       where: {
@@ -381,9 +357,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  async getUserPreferences(
-    userId: number,
-  ): Promise<NotificationPreferenceDto[]> {
+  async getUserPreferences(userId: number): Promise<NotificationPreferenceDto[]> {
     const preferences = await this.prisma.notificationPreference.findMany({
       where: { userId },
       orderBy: { type: 'asc', channel: 'asc' },
@@ -403,26 +377,20 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
   get isSmsConfigured() {
     return Boolean(
       this.configService.get<string>('notifications.twilio.accountSid', '') &&
-        this.configService.get<string>('notifications.twilio.authToken', '') &&
-        this.configService.get<string>('notifications.twilio.smsFrom', ''),
+      this.configService.get<string>('notifications.twilio.authToken', '') &&
+      this.configService.get<string>('notifications.twilio.smsFrom', '')
     );
   }
 
   get isWhatsappConfigured() {
     const hasTwilioWhatsapp = Boolean(
       this.configService.get<string>('notifications.twilio.accountSid', '') &&
-        this.configService.get<string>('notifications.twilio.authToken', '') &&
-        this.configService.get<string>('notifications.twilio.whatsappFrom', ''),
+      this.configService.get<string>('notifications.twilio.authToken', '') &&
+      this.configService.get<string>('notifications.twilio.whatsappFrom', '')
     );
     const hasCloudApi = Boolean(
-      this.configService.get<string>(
-        'notifications.whatsappCloud.accessToken',
-        '',
-      ) &&
-        this.configService.get<string>(
-          'notifications.whatsappCloud.phoneNumberId',
-          '',
-        ),
+      this.configService.get<string>('notifications.whatsappCloud.accessToken', '') &&
+      this.configService.get<string>('notifications.whatsappCloud.phoneNumberId', '')
     );
 
     return hasTwilioWhatsapp || hasCloudApi;
@@ -460,14 +428,14 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
         } catch (error) {
           this.logger.error(
             `Failed dispatching notification ${notification.id}`,
-            error instanceof Error ? error.stack : String(error),
+            error instanceof Error ? error.stack : String(error)
           );
         }
       }
     } catch (error) {
       this.logger.error(
         'Failed to process notifications',
-        error instanceof Error ? error.stack : String(error),
+        error instanceof Error ? error.stack : String(error)
       );
     } finally {
       this.isProcessing = false;
@@ -508,9 +476,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
       await this.prisma.notification.update({
         where: { id },
         data: {
-          status: failedPermanently
-            ? NotificationStatus.FAILED
-            : NotificationStatus.PENDING,
+          status: failedPermanently ? NotificationStatus.FAILED : NotificationStatus.PENDING,
           attempts,
           lastError: error instanceof Error ? error.message : 'Unknown error',
           scheduledAt: failedPermanently
@@ -532,7 +498,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
         return this.sendEmail(
           notification.recipient,
           notification.subject || 'Moringa Store update',
-          notification.body,
+          notification.body
         );
       case NotificationChannel.SMS:
         return this.sendSms(notification.recipient, notification.body);
@@ -563,18 +529,9 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async sendSms(to: string, body: string) {
-    const accountSid = this.configService.get<string>(
-      'notifications.twilio.accountSid',
-      '',
-    );
-    const authToken = this.configService.get<string>(
-      'notifications.twilio.authToken',
-      '',
-    );
-    const from = this.configService.get<string>(
-      'notifications.twilio.smsFrom',
-      '',
-    );
+    const accountSid = this.configService.get<string>('notifications.twilio.accountSid', '');
+    const authToken = this.configService.get<string>('notifications.twilio.authToken', '');
+    const from = this.configService.get<string>('notifications.twilio.smsFrom', '');
 
     if (!accountSid || !authToken || !from) {
       throw new Error('Twilio SMS is not configured');
@@ -586,16 +543,10 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
   private async sendWhatsapp(to: string, body: string) {
     const twilioWhatsappFrom = this.configService.get<string>(
       'notifications.twilio.whatsappFrom',
-      '',
+      ''
     );
-    const accountSid = this.configService.get<string>(
-      'notifications.twilio.accountSid',
-      '',
-    );
-    const authToken = this.configService.get<string>(
-      'notifications.twilio.authToken',
-      '',
-    );
+    const accountSid = this.configService.get<string>('notifications.twilio.accountSid', '');
+    const authToken = this.configService.get<string>('notifications.twilio.authToken', '');
 
     if (accountSid && authToken && twilioWhatsappFrom) {
       return this.sendTwilioMessage(
@@ -603,7 +554,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
         authToken,
         twilioWhatsappFrom,
         `whatsapp:${to}`,
-        body,
+        body
       );
     }
 
@@ -615,16 +566,14 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
     authToken: string,
     from: string,
     to: string,
-    body: string,
+    body: string
   ) {
     const response = await fetch(
       `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
       {
         method: 'POST',
         headers: {
-          Authorization: `Basic ${Buffer.from(
-            `${accountSid}:${authToken}`,
-          ).toString('base64')}`,
+          Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`,
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
@@ -632,7 +581,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
           To: to,
           Body: body,
         }),
-      },
+      }
     );
 
     const payload = (await response.json().catch(() => ({}))) as {
@@ -650,36 +599,33 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
   private async sendWhatsappCloudMessage(to: string, body: string) {
     const accessToken = this.configService.get<string>(
       'notifications.whatsappCloud.accessToken',
-      '',
+      ''
     );
     const phoneNumberId = this.configService.get<string>(
       'notifications.whatsappCloud.phoneNumberId',
-      '',
+      ''
     );
 
     if (!accessToken || !phoneNumberId) {
       throw new Error('WhatsApp provider is not configured');
     }
 
-    const response = await fetch(
-      `https://graph.facebook.com/v19.0/${phoneNumberId}/messages`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          to: to.replace(/^\+/, ''),
-          type: 'text',
-          text: {
-            preview_url: false,
-            body,
-          },
-        }),
+    const response = await fetch(`https://graph.facebook.com/v19.0/${phoneNumberId}/messages`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
       },
-    );
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to: to.replace(/^\+/, ''),
+        type: 'text',
+        text: {
+          preview_url: false,
+          body,
+        },
+      }),
+    });
 
     const payload = (await response.json().catch(() => ({}))) as {
       messages?: { id?: string }[];
@@ -741,7 +687,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
 
   async renderTemplate(
     templateName: string,
-    variables: Record<string, unknown>,
+    variables: Record<string, unknown>
   ): Promise<{ subject: string; htmlBody: string; textBody: string }> {
     const dbTemplate = await this.prisma.emailTemplate.findFirst({
       where: { name: templateName, isActive: true },
@@ -753,7 +699,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
     try {
       htmlBody = this.handlebarsTemplateService.render(
         templateName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        variables,
+        variables
       );
     } catch {
       // Handlebars template not found or failed to render; fall back to DB.
@@ -764,9 +710,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
     }
 
     if (!htmlBody) {
-      throw new Error(
-        `Email template "${templateName}" not found or is inactive`,
-      );
+      throw new Error(`Email template "${templateName}" not found or is inactive`);
     }
 
     const textBody = dbTemplate?.textBody
@@ -783,10 +727,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
       .trim();
   }
 
-  private replacePlaceholders(
-    content: string,
-    variables: Record<string, unknown>,
-  ): string {
+  private replacePlaceholders(content: string, variables: Record<string, unknown>): string {
     return content.replace(/\{\{(\w+)\}\}/g, (_match: string, key: string) => {
       const record = variables as Record<string, string | number | boolean>;
       const value = record[key];

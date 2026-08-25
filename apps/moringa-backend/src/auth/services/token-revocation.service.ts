@@ -9,11 +9,9 @@ export class TokenRevocationService implements OnModuleDestroy {
   constructor(private readonly redisService: RedisService) {}
 
   async revoke(tokenId: string): Promise<void> {
-    await this.redisService.getClient().setex(
-      `${this.REVOKED_PREFIX}${tokenId}`,
-      this.TTL,
-      'revoked',
-    );
+    await this.redisService
+      .getClient()
+      .setex(`${this.REVOKED_PREFIX}${tokenId}`, this.TTL, 'revoked');
   }
 
   async isRevoked(tokenId: string): Promise<boolean> {

@@ -15,7 +15,7 @@ export class PaymentWebhookController {
   @HttpCode(200)
   async handleRazorpayWebhook(
     @Headers('x-razorpay-signature') signature: string,
-    @Req() req: FastifyRequest & { rawBody?: Buffer },
+    @Req() req: FastifyRequest & { rawBody?: Buffer }
   ) {
     // Prefer the untouched payload bytes when available so the HMAC matches
     // Razorpay's signature exactly; fall back to the parsed body otherwise.

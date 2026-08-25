@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OrderStatus, Prisma } from '../generated/prisma/client';
 import { Observable } from 'rxjs';
@@ -13,24 +8,15 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrderNotificationService } from './order-notification.service';
 import { OrderEventsService, OrderEventMessage } from './order-events.service';
-import {
-  CreateOrderIssueDto,
-  OrderIssueTypeValue,
-} from './dto/create-order-issue.dto';
-import {
-  OrderIssueStatusValue,
-  UpdateOrderIssueDto,
-} from './dto/update-order-issue.dto';
+import { CreateOrderIssueDto, OrderIssueTypeValue } from './dto/create-order-issue.dto';
+import { OrderIssueStatusValue, UpdateOrderIssueDto } from './dto/update-order-issue.dto';
 import { CouponService } from '../coupon/coupon.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { QueryOrderDto } from './dto/query-order.dto';
 
 type OrderTx =
   | PrismaService
-  | Omit<
-      PrismaService,
-      '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'
-    >;
+  | Omit<PrismaService, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
 
 @Injectable()
 export class OrderService {
@@ -48,18 +34,12 @@ export class OrderService {
     private readonly configService: ConfigService,
     private readonly orderNotificationService: OrderNotificationService,
     private readonly orderEventsService: OrderEventsService,
-    private readonly couponService: CouponService,
+    private readonly couponService: CouponService
   ) {
     const razorpayKeyId = this.configService.get<string>('razorpay.keyId', '');
-    const razorpayKeySecret = this.configService.get<string>(
-      'razorpay.keySecret',
-      '',
-    );
+    const razorpayKeySecret = this.configService.get<string>('razorpay.keySecret', '');
 
-    this.razorpayCurrency = this.configService.get<string>(
-      'razorpay.currency',
-      'INR',
-    );
+    this.razorpayCurrency = this.configService.get<string>('razorpay.currency', 'INR');
     this.razorpay =
       razorpayKeyId && razorpayKeySecret
         ? new Razorpay({
@@ -82,10 +62,7 @@ export class OrderService {
     const lowStockProducts = products.filter((product) => product.stock <= 5);
 
     for (const product of lowStockProducts) {
-      await this.orderNotificationService.sendLowStock(
-        product.name,
-        product.stock,
-      );
+      await this.orderNotificationService.sendLowStock(product.name, product.stock);
     }
   }
 
@@ -192,9 +169,7 @@ export class OrderService {
     }
 
     if (user.role === 'ADMIN') {
-      throw new BadRequestException(
-        'Admin accounts cannot place or manage personal orders.',
-      );
+      throw new BadRequestException('Admin accounts cannot place or manage personal orders.');
     }
   }
 
@@ -396,9 +371,7 @@ export class OrderService {
   }
 
   private isActiveIssueStatus(status?: string | null) {
-    return (
-      status === 'OPEN' || status === 'UNDER_REVIEW' || status === 'APPROVED'
-    );
+    return status === 'OPEN' || status === 'UNDER_REVIEW' || status === 'APPROVED';
   }
 
   private encodePricingDetail(input: {
@@ -449,21 +422,17 @@ export class OrderService {
   }) {
     const existingActivities = Array.isArray(order.activities)
       ? order.activities.filter(
-          (activity) =>
-            !this.isIssueActivity(activity) &&
-            !this.isPricingActivity(activity),
+          (activity) => !this.isIssueActivity(activity) && !this.isPricingActivity(activity)
         )
       : [];
-    const seenStatuses = new Set(
-      existingActivities.map((activity) => activity.status),
-    );
+    const seenStatuses = new Set(existingActivities.map((activity) => activity.status));
     const normalizedActivities = [...existingActivities];
 
     const maybeAddActivity = (
       step: number,
       status: OrderStatus,
       createdAt: Date | null | undefined,
-      detail?: string,
+      detail?: string
     ) => {
       if (!createdAt || seenStatuses.has(status)) {
         return;
@@ -483,40 +452,26 @@ export class OrderService {
       1,
       OrderStatus.PENDING,
       order.createdAt,
-      'Order received and queued for processing.',
+      'Order received and queued for processing.'
     );
-    maybeAddActivity(
-      2,
-      OrderStatus.PAID,
-      order.paidAt,
-      'Payment was confirmed for this order.',
-    );
-    maybeAddActivity(
-      3,
-      OrderStatus.SHIPPED,
-      order.shippedAt,
-      'The order was shipped.',
-    );
+    maybeAddActivity(2, OrderStatus.PAID, order.paidAt, 'Payment was confirmed for this order.');
+    maybeAddActivity(3, OrderStatus.SHIPPED, order.shippedAt, 'The order was shipped.');
     maybeAddActivity(
       4,
       OrderStatus.OUT_FOR_DELIVERY,
       order.outForDeliveryAt,
-      'The order is out for delivery.',
+      'The order is out for delivery.'
     );
     maybeAddActivity(
       5,
       OrderStatus.DELIVERED,
       order.deliveredAt,
-      'The order was delivered successfully.',
+      'The order was delivered successfully.'
     );
 
-    if (
-      order.status === OrderStatus.CANCELLED &&
-      !seenStatuses.has(OrderStatus.CANCELLED)
-    ) {
+    if (order.status === OrderStatus.CANCELLED && !seenStatuses.has(OrderStatus.CANCELLED)) {
       const fallbackTimestamp =
-        normalizedActivities[normalizedActivities.length - 1]?.createdAt ??
-        order.createdAt;
+        normalizedActivities[normalizedActivities.length - 1]?.createdAt ?? order.createdAt;
 
       normalizedActivities.push({
         id: this.getSyntheticActivityId(order.id, 6),
@@ -528,9 +483,7 @@ export class OrderService {
     }
 
     return normalizedActivities.sort(
-      (left, right) =>
-        new Date(left.createdAt).getTime() -
-        new Date(right.createdAt).getTime(),
+      (left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime()
     );
   }
 
@@ -566,7 +519,7 @@ export class OrderService {
       }[];
     },
   >(
-    order: T,
+    order: T
   ): T & {
     orderNumber: string;
     invoiceNumber: string;
@@ -680,9 +633,9 @@ export class OrderService {
   }) {
     return Boolean(
       order.paymentMethod === 'online' &&
-        order.razorpayOrderId &&
-        !order.paidAt &&
-        (!order.expiresAt || order.expiresAt.getTime() > Date.now()),
+      order.razorpayOrderId &&
+      !order.paidAt &&
+      (!order.expiresAt || order.expiresAt.getTime() > Date.now())
     );
   }
 
@@ -692,9 +645,7 @@ export class OrderService {
     razorpayOrderId?: string | null;
     paidAt?: Date | null;
   }) {
-    return (
-      order.status === OrderStatus.PENDING || order.status === OrderStatus.PAID
-    );
+    return order.status === OrderStatus.PENDING || order.status === OrderStatus.PAID;
   }
 
   private getCustomerCancellationMessage(order: {
@@ -727,11 +678,9 @@ export class OrderService {
 
   private canCreateIssueForOrder(
     order: { status: OrderStatus; deliveredAt?: Date | null },
-    issueType: OrderIssueTypeValue,
+    issueType: OrderIssueTypeValue
   ) {
-    const deliveredAt = order.deliveredAt
-      ? new Date(order.deliveredAt).getTime()
-      : null;
+    const deliveredAt = order.deliveredAt ? new Date(order.deliveredAt).getTime() : null;
     const returnWindowDeadline = deliveredAt
       ? deliveredAt + this.returnWindowDays * 24 * 60 * 60 * 1000
       : null;
@@ -745,10 +694,7 @@ export class OrderService {
     }
 
     if (issueType === 'DISPUTE') {
-      return (
-        order.status === OrderStatus.PAID ||
-        order.status === OrderStatus.DELIVERED
-      );
+      return order.status === OrderStatus.PAID || order.status === OrderStatus.DELIVERED;
     }
 
     if (
@@ -806,7 +752,7 @@ export class OrderService {
       paidAt?: Date | null;
       expiresAt?: Date | null;
     },
-    nextStatus: OrderStatus,
+    nextStatus: OrderStatus
   ) {
     if (nextStatus === order.status) {
       return;
@@ -815,18 +761,11 @@ export class OrderService {
     const allowedStatuses = this.getAllowedNextStatuses(order);
 
     if (!allowedStatuses.includes(nextStatus)) {
-      throw new BadRequestException(
-        `Order cannot move from ${order.status} to ${nextStatus}.`,
-      );
+      throw new BadRequestException(`Order cannot move from ${order.status} to ${nextStatus}.`);
     }
   }
 
-  private async createActivity(
-    tx: OrderTx,
-    orderId: number,
-    status: OrderStatus,
-    detail?: string,
-  ) {
+  private async createActivity(tx: OrderTx, orderId: number, status: OrderStatus, detail?: string) {
     return tx.orderActivity.create({
       data: {
         orderId,
@@ -843,11 +782,9 @@ export class OrderService {
       orderId: order.id,
       userId: order.userId,
       status: this.inferOrderStatus(
-        order as unknown as Parameters<typeof this.inferOrderStatus>[0],
+        order as unknown as Parameters<typeof this.inferOrderStatus>[0]
       ),
-      payload: this.normalizeOrder(
-        order as unknown as Parameters<typeof this.normalizeOrder>[0],
-      ) as unknown as Record<string, unknown>,
+      payload: this.normalizeOrder(order as unknown as Parameters<typeof this.normalizeOrder>[0]),
     });
   }
 
@@ -897,7 +834,7 @@ export class OrderService {
       product?: {
         name: string;
       };
-    }[],
+    }[]
   ) {
     if (!items.length) {
       return 'Moringa order';
@@ -912,15 +849,11 @@ export class OrderService {
   }
 
   private buildOrderNumber() {
-    return `MOR-${Date.now().toString().slice(-8)}-${crypto
-      .randomInt(100, 1000)
-      .toString()}`;
+    return `MOR-${Date.now().toString().slice(-8)}-${crypto.randomInt(100, 1000).toString()}`;
   }
 
   private buildInvoiceNumber() {
-    return `INV-${Date.now().toString().slice(-8)}-${crypto
-      .randomInt(100, 1000)
-      .toString()}`;
+    return `INV-${Date.now().toString().slice(-8)}-${crypto.randomInt(100, 1000).toString()}`;
   }
 
   private getDefaultShippingOptions() {
@@ -975,7 +908,7 @@ export class OrderService {
       taxRate?: number | null;
       shippingMultiplier?: number | null;
     }[],
-    country?: string,
+    country?: string
   ) {
     const normalizedCountry = country?.trim().toLowerCase() || '';
 
@@ -983,10 +916,9 @@ export class OrderService {
       shippingZones.find((zone) =>
         Array.isArray(zone.countries)
           ? zone.countries.some(
-              (supportedCountry) =>
-                supportedCountry.trim().toLowerCase() === normalizedCountry,
+              (supportedCountry) => supportedCountry.trim().toLowerCase() === normalizedCountry
             )
-          : false,
+          : false
       ) ?? shippingZones[shippingZones.length - 1]
     );
   }
@@ -998,8 +930,7 @@ export class OrderService {
   }) {
     if (
       input.paymentMethod === 'cod' &&
-      (input.total >= 5000 ||
-        (input.country && input.country.trim().toLowerCase() !== 'india'))
+      (input.total >= 5000 || (input.country && input.country.trim().toLowerCase() !== 'india'))
     ) {
       return 'HIGH';
     }
@@ -1014,7 +945,7 @@ export class OrderService {
   private async applyPromoCode(
     userId: number,
     code: string | undefined,
-    subtotal: number,
+    subtotal: number
   ): Promise<{ appliedPromoCode: string | null; discountAmount: number }> {
     const normalizedCode = code?.trim().toUpperCase();
 
@@ -1028,11 +959,7 @@ export class OrderService {
     // Legacy parity: per-user validation (usage limits included); the service
     // throws BadRequestException on any failure and returns the applied coupon
     // with an already-capped discountAmount.
-    const coupon = await this.couponService.validateForUser(
-      normalizedCode,
-      subtotal,
-      userId,
-    );
+    const coupon = await this.couponService.validateForUser(normalizedCode, subtotal, userId);
 
     return {
       appliedPromoCode: coupon.code,
@@ -1045,7 +972,7 @@ export class OrderService {
     shippingType = 'standard',
     paymentMethod: 'online' | 'cod' = 'online',
     country = 'India',
-    promoCode?: string,
+    promoCode?: string
   ) {
     const cartItems = await this.prisma.cartItem.findMany({
       where: { userId },
@@ -1070,20 +997,15 @@ export class OrderService {
       throw new BadRequestException('Your cart is empty');
     }
 
-    const itemWithLowStock = cartItems.find(
-      (item) => item.quantity > item.product.stock,
-    );
+    const itemWithLowStock = cartItems.find((item) => item.quantity > item.product.stock);
 
     if (itemWithLowStock) {
       throw new BadRequestException(
-        `${itemWithLowStock.product.name} has only ${itemWithLowStock.product.stock} item(s) left in stock`,
+        `${itemWithLowStock.product.name} has only ${itemWithLowStock.product.stock} item(s) left in stock`
       );
     }
 
-    const subtotal = cartItems.reduce(
-      (sum, item) => sum + item.product.price * item.quantity,
-      0,
-    );
+    const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
     const shippingZones = Array.isArray(storeSettings.shippingZones)
       ? (storeSettings.shippingZones as unknown as {
@@ -1101,7 +1023,7 @@ export class OrderService {
       !shippingZone.allowedShippingTypes.includes(shippingType)
     ) {
       throw new BadRequestException(
-        `Shipping type ${shippingType} is not available for ${country}.`,
+        `Shipping type ${shippingType} is not available for ${country}.`
       );
     }
 
@@ -1118,8 +1040,7 @@ export class OrderService {
             ? 0
             : storeSettings.shippingCharge;
 
-    const shippingMultiplier =
-      Number(shippingZone?.shippingMultiplier ?? 1) || 1;
+    const shippingMultiplier = Number(shippingZone?.shippingMultiplier ?? 1) || 1;
     let shippingAmount = baseShippingAmount * shippingMultiplier;
 
     if (qualifiesForFreeShipping && shippingType !== 'prime') {
@@ -1130,17 +1051,12 @@ export class OrderService {
 
     if (paymentMethod === 'cod') {
       if (!storeSettings.codEnabled) {
-        throw new BadRequestException(
-          'Cash on delivery is currently unavailable.',
-        );
+        throw new BadRequestException('Cash on delivery is currently unavailable.');
       }
 
-      if (
-        normalizedCountry !== 'india' &&
-        !storeSettings.allowInternationalCod
-      ) {
+      if (normalizedCountry !== 'india' && !storeSettings.allowInternationalCod) {
         throw new BadRequestException(
-          'Cash on delivery is not available for this shipping destination.',
+          'Cash on delivery is not available for this shipping destination.'
         );
       }
     }
@@ -1153,13 +1069,12 @@ export class OrderService {
     const { appliedPromoCode, discountAmount } = await this.applyPromoCode(
       userId,
       promoCode,
-      subtotal,
+      subtotal
     );
 
     const discountedSubtotal = Math.max(0, subtotal - discountAmount);
     const taxAmount = discountedSubtotal * (taxRate / 100);
-    const total =
-      discountedSubtotal + shippingAmount + taxAmount + handlingAmount;
+    const total = discountedSubtotal + shippingAmount + taxAmount + handlingAmount;
     const fraudRiskLevel = this.inferFraudRiskLevel({
       total,
       paymentMethod,
@@ -1173,13 +1088,13 @@ export class OrderService {
         total > storeSettings.maxCodOrderValue
       ) {
         throw new BadRequestException(
-          `Cash on delivery is only available up to ${storeSettings.maxCodOrderValue}.`,
+          `Cash on delivery is only available up to ${storeSettings.maxCodOrderValue}.`
         );
       }
 
       if (fraudRiskLevel === 'HIGH') {
         throw new BadRequestException(
-          'Cash on delivery is unavailable for this checkout. Please pay online to continue.',
+          'Cash on delivery is unavailable for this checkout. Please pay online to continue.'
         );
       }
     }
@@ -1207,17 +1122,14 @@ export class OrderService {
   private ensureRazorpayConfigured() {
     if (!this.razorpay) {
       throw new BadRequestException(
-        'Razorpay checkout is not configured yet. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to continue.',
+        'Razorpay checkout is not configured yet. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to continue.'
       );
     }
 
     return this.razorpay;
   }
 
-  private async restoreOrderStock(
-    tx: OrderTx,
-    items: { productId: number; quantity: number }[],
-  ) {
+  private async restoreOrderStock(tx: OrderTx, items: { productId: number; quantity: number }[]) {
     for (const item of items) {
       await tx.product.update({
         where: { id: item.productId },
@@ -1257,16 +1169,13 @@ export class OrderService {
     } catch (error) {
       this.logger.error(
         `Failed to create Razorpay refund for order ${order.razorpayOrderId ?? 'unknown'} payment ${order.razorpayPaymentId ?? 'unknown'}`,
-        error instanceof Error ? error.stack : String(error),
+        error instanceof Error ? error.stack : String(error)
       );
       return null;
     }
   }
 
-  private async allocateOrderStock(
-    tx: OrderTx,
-    items: { productId: number; quantity: number }[],
-  ) {
+  private async allocateOrderStock(tx: OrderTx, items: { productId: number; quantity: number }[]) {
     const products = await tx.product.findMany({
       where: {
         id: {
@@ -1280,9 +1189,7 @@ export class OrderService {
       },
     });
 
-    const productsById = new Map(
-      products.map((product) => [product.id, product]),
-    );
+    const productsById = new Map(products.map((product) => [product.id, product]));
 
     for (const item of items) {
       const product = productsById.get(item.productId);
@@ -1293,7 +1200,7 @@ export class OrderService {
 
       if (product.stock < item.quantity) {
         throw new BadRequestException(
-          `${product.name} is no longer available in the requested quantity.`,
+          `${product.name} is no longer available in the requested quantity.`
         );
       }
 
@@ -1313,7 +1220,7 @@ export class OrderService {
 
       if (updated.count !== 1) {
         throw new BadRequestException(
-          `${product.name} is no longer available in the requested quantity.`,
+          `${product.name} is no longer available in the requested quantity.`
         );
       }
     }
@@ -1322,7 +1229,7 @@ export class OrderService {
   private async syncCartAfterSuccessfulPayment(
     tx: OrderTx,
     userId: number,
-    items: { productId: number; quantity: number }[],
+    items: { productId: number; quantity: number }[]
   ) {
     for (const item of items) {
       const existingCartItem = await tx.cartItem.findUnique({
@@ -1380,7 +1287,7 @@ export class OrderService {
       country?: string | null;
     },
     razorpayPaymentId: string,
-    activityDetail: string,
+    activityDetail: string
   ) {
     await this.allocateOrderStock(tx, order.items);
 
@@ -1437,7 +1344,7 @@ export class OrderService {
       createOrderDto.shippingType || 'standard',
       createOrderDto.paymentMethod ?? 'online',
       createOrderDto.country,
-      createOrderDto.promoCode,
+      createOrderDto.promoCode
     );
   }
 
@@ -1447,9 +1354,7 @@ export class OrderService {
     const paymentMethod = createOrderDto.paymentMethod ?? 'cod';
 
     if (paymentMethod !== 'cod') {
-      throw new BadRequestException(
-        'Use the checkout session endpoint for online payments.',
-      );
+      throw new BadRequestException('Use the checkout session endpoint for online payments.');
     }
 
     const {
@@ -1470,7 +1375,7 @@ export class OrderService {
       createOrderDto.shippingType || 'standard',
       paymentMethod,
       createOrderDto.country,
-      createOrderDto.promoCode,
+      createOrderDto.promoCode
     );
 
     const order = await this.prisma.$transaction(async (tx) => {
@@ -1510,7 +1415,7 @@ export class OrderService {
         tx as unknown as PrismaService,
         createdOrder.id,
         OrderStatus.PENDING,
-        'Cash on delivery order received. We will confirm dispatch and collect payment on delivery.',
+        'Cash on delivery order received. We will confirm dispatch and collect payment on delivery.'
       );
 
       await tx.user.update({
@@ -1562,15 +1467,11 @@ export class OrderService {
     await this.ensureCustomerAccount(userId);
     this.scheduleExpiredOrderCleanup(userId);
     if (createOrderDto.paymentMethod === 'cod') {
-      throw new BadRequestException(
-        'Use the order endpoint for cash on delivery orders.',
-      );
+      throw new BadRequestException('Use the order endpoint for cash on delivery orders.');
     }
     const razorpay = this.ensureRazorpayConfigured();
     const storeSettings = await this.getStoreSettingsRecord();
-    const expiresAt = this.getPendingOrderExpiryDate(
-      storeSettings.autoCancelPendingMinutes,
-    );
+    const expiresAt = this.getPendingOrderExpiryDate(storeSettings.autoCancelPendingMinutes);
     const {
       cartItems,
       subtotal,
@@ -1589,7 +1490,7 @@ export class OrderService {
       createOrderDto.shippingType || 'standard',
       'online',
       createOrderDto.country,
-      createOrderDto.promoCode,
+      createOrderDto.promoCode
     );
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -1636,7 +1537,7 @@ export class OrderService {
         tx as unknown as PrismaService,
         createdOrder.id,
         OrderStatus.PENDING,
-        'Checkout started. Complete payment to confirm this order.',
+        'Checkout started. Complete payment to confirm this order.'
       );
 
       await tx.orderActivity.create({
@@ -1678,10 +1579,7 @@ export class OrderService {
         },
       });
     } catch (error: unknown) {
-      const isProduction = this.configService.get<boolean>(
-        'app.isProduction',
-        false,
-      );
+      const isProduction = this.configService.get<boolean>('app.isProduction', false);
       const err = error as {
         error?: { description?: string; reason?: string };
         message?: string;
@@ -1695,15 +1593,10 @@ export class OrderService {
               ? err.message
               : null;
 
-      this.logger.error(
-        `Razorpay order creation failed: ${razorpayMessage || String(error)}`,
-      );
+      this.logger.error(`Razorpay order creation failed: ${razorpayMessage || String(error)}`);
 
       await this.prisma.$transaction(async (tx) => {
-        await this.restoreOrderStock(
-          tx as unknown as PrismaService,
-          order.items,
-        );
+        await this.restoreOrderStock(tx as unknown as PrismaService, order.items);
 
         await tx.order.update({
           where: { id: order.id },
@@ -1718,14 +1611,14 @@ export class OrderService {
           tx as unknown as PrismaService,
           order.id,
           OrderStatus.CANCELLED,
-          'The payment session could not be created. Please try checkout again.',
+          'The payment session could not be created. Please try checkout again.'
         );
       });
 
       throw new BadRequestException(
         !isProduction && razorpayMessage
           ? `Razorpay checkout could not start: ${razorpayMessage}`
-          : 'We could not start the payment session. Please try again.',
+          : 'We could not start the payment session. Please try again.'
       );
     }
 
@@ -1758,7 +1651,7 @@ export class OrderService {
           include: this.orderInclude,
           orderBy: { createdAt: 'desc' },
         })
-        .then((orders) => orders.map((order) => this.normalizeOrder(order))),
+        .then((orders) => orders.map((order) => this.normalizeOrder(order)))
     );
   }
 
@@ -1819,8 +1712,7 @@ export class OrderService {
     this.scheduleExpiredOrderCleanup(userId);
 
     const page = query.page && query.page > 0 ? query.page : 1;
-    const limit =
-      query.limit && query.limit > 0 ? Math.min(query.limit, 100) : 20;
+    const limit = query.limit && query.limit > 0 ? Math.min(query.limit, 100) : 20;
     const skip = (page - 1) * limit;
 
     const where = this.buildOrderWhereClause(userId, query);
@@ -1852,8 +1744,7 @@ export class OrderService {
     this.scheduleExpiredOrderCleanup();
 
     const page = query.page && query.page > 0 ? query.page : 1;
-    const limit =
-      query.limit && query.limit > 0 ? Math.min(query.limit, 100) : 20;
+    const limit = query.limit && query.limit > 0 ? Math.min(query.limit, 100) : 20;
     const skip = (page - 1) * limit;
 
     const where = this.buildOrderWhereClause(undefined, query);
@@ -1974,9 +1865,8 @@ export class OrderService {
           .map((order) => this.normalizeOrder(order))
           .filter(
             (order) =>
-              order.status !== OrderStatus.CANCELLED &&
-              order.status !== OrderStatus.DELIVERED,
-          ),
+              order.status !== OrderStatus.CANCELLED && order.status !== OrderStatus.DELIVERED
+          )
       );
   }
 
@@ -2063,7 +1953,7 @@ export class OrderService {
               },
             };
           })
-          .filter(Boolean),
+          .filter(Boolean)
       );
   }
 
@@ -2102,9 +1992,7 @@ export class OrderService {
     ];
 
     if (!billableStatuses.includes(this.inferOrderStatus(order))) {
-      throw new BadRequestException(
-        'Invoice is available only after payment is confirmed.',
-      );
+      throw new BadRequestException('Invoice is available only after payment is confirmed.');
     }
 
     const normalizedOrder = this.normalizeOrder(order);
@@ -2122,11 +2010,7 @@ export class OrderService {
     };
   }
 
-  async createIssue(
-    userId: number,
-    orderId: number,
-    createOrderIssueDto: CreateOrderIssueDto,
-  ) {
+  async createIssue(userId: number, orderId: number, createOrderIssueDto: CreateOrderIssueDto) {
     await this.ensureCustomerAccount(userId);
     const order = await this.prisma.order.findFirst({
       where: {
@@ -2153,9 +2037,7 @@ export class OrderService {
     }
 
     if (!this.canCreateIssueForOrder(order, createOrderIssueDto.type)) {
-      throw new BadRequestException(
-        this.getIssueEligibilityMessage(createOrderIssueDto.type),
-      );
+      throw new BadRequestException(this.getIssueEligibilityMessage(createOrderIssueDto.type));
     }
 
     const activeIssue = order.activities
@@ -2164,15 +2046,14 @@ export class OrderService {
 
     if (activeIssue) {
       throw new BadRequestException(
-        'This order already has an active support request under review.',
+        'This order already has an active support request under review.'
       );
     }
 
-    const user =
-      (await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { id: true, name: true, email: true },
-      })) || { id: userId };
+    const user = (await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, email: true },
+    })) || { id: userId };
 
     const activity = await this.prisma.orderActivity.create({
       data: {
@@ -2206,10 +2087,7 @@ export class OrderService {
       updatedAt: activity.createdAt,
     };
 
-    await this.orderNotificationService.sendSupportIssueSubmitted(
-      normalizedOrder,
-      createdIssue,
-    );
+    await this.orderNotificationService.sendSupportIssueSubmitted(normalizedOrder, createdIssue);
 
     this.emitOrderUpdated(activity.order);
 
@@ -2239,18 +2117,12 @@ export class OrderService {
           ...issueDetail,
           status: nextStatus,
           adminResponse:
-            updateOrderIssueDto.adminResponse?.trim() ??
-            issueDetail.adminResponse ??
-            null,
+            updateOrderIssueDto.adminResponse?.trim() ?? issueDetail.adminResponse ?? null,
           resolutionSummary:
-            updateOrderIssueDto.resolutionSummary?.trim() ??
-            issueDetail.resolutionSummary ??
-            null,
+            updateOrderIssueDto.resolutionSummary?.trim() ?? issueDetail.resolutionSummary ?? null,
           resolvedAt:
             updateOrderIssueDto.status &&
-            ['RESOLVED', 'REJECTED', 'CANCELLED'].includes(
-              updateOrderIssueDto.status,
-            )
+            ['RESOLVED', 'REJECTED', 'CANCELLED'].includes(updateOrderIssueDto.status)
               ? new Date().toISOString()
               : (issueDetail.resolvedAt ?? null),
         }),
@@ -2282,10 +2154,7 @@ export class OrderService {
       },
     };
 
-    await this.orderNotificationService.sendSupportIssueUpdated(
-      normalizedOrder,
-      updatedIssue,
-    );
+    await this.orderNotificationService.sendSupportIssueUpdated(normalizedOrder, updatedIssue);
 
     this.emitOrderUpdated(updatedActivity.order);
 
@@ -2304,10 +2173,7 @@ export class OrderService {
       throw new NotFoundException('Order not found');
     }
 
-    if (
-      order.status === OrderStatus.CANCELLED ||
-      order.status === OrderStatus.DELIVERED
-    ) {
+    if (order.status === OrderStatus.CANCELLED || order.status === OrderStatus.DELIVERED) {
       throw new BadRequestException('This order can no longer be updated');
     }
 
@@ -2318,10 +2184,7 @@ export class OrderService {
     if (updateOrderDto.status === OrderStatus.CANCELLED) {
       const cancelledOrder = await this.prisma.$transaction(async (tx) => {
         if (this.hasAllocatedStock(order)) {
-          await this.restoreOrderStock(
-            tx as unknown as PrismaService,
-            order.items,
-          );
+          await this.restoreOrderStock(tx as unknown as PrismaService, order.items);
         }
 
         const updatedOrder = await tx.order.update({
@@ -2330,10 +2193,8 @@ export class OrderService {
             status: OrderStatus.CANCELLED,
             inventoryReserved: false,
             expiresAt: null,
-            courierName:
-              updateOrderDto.courierName?.trim() || order.courierName,
-            trackingNumber:
-              updateOrderDto.trackingNumber?.trim() || order.trackingNumber,
+            courierName: updateOrderDto.courierName?.trim() || order.courierName,
+            trackingNumber: updateOrderDto.trackingNumber?.trim() || order.trackingNumber,
             estimatedDeliveryAt: updateOrderDto.estimatedDeliveryAt
               ? new Date(updateOrderDto.estimatedDeliveryAt)
               : order.estimatedDeliveryAt,
@@ -2349,7 +2210,7 @@ export class OrderService {
           tx as unknown as PrismaService,
           id,
           OrderStatus.CANCELLED,
-          updateOrderDto.note?.trim() || 'The order was cancelled.',
+          updateOrderDto.note?.trim() || 'The order was cancelled.'
         );
 
         return updatedOrder;
@@ -2376,7 +2237,7 @@ export class OrderService {
 
       await this.orderNotificationService.sendOrderCancelled(
         cancelledOrder,
-        updateOrderDto.note?.trim() || 'The order was cancelled.',
+        updateOrderDto.note?.trim() || 'The order was cancelled.'
       );
 
       this.emitOrderUpdated(cancelledOrder);
@@ -2385,14 +2246,8 @@ export class OrderService {
     }
 
     const updatedOrder = await this.prisma.$transaction(async (tx) => {
-      if (
-        updateOrderDto.status === OrderStatus.PAID &&
-        !this.hasAllocatedStock(order)
-      ) {
-        await this.allocateOrderStock(
-          tx as unknown as PrismaService,
-          order.items,
-        );
+      if (updateOrderDto.status === OrderStatus.PAID && !this.hasAllocatedStock(order)) {
+        await this.allocateOrderStock(tx as unknown as PrismaService, order.items);
       }
 
       const updatedOrder = await tx.order.update({
@@ -2400,12 +2255,9 @@ export class OrderService {
         data: {
           status: updateOrderDto.status ?? order.status,
           inventoryReserved:
-            updateOrderDto.status === OrderStatus.CANCELLED
-              ? false
-              : order.inventoryReserved,
+            updateOrderDto.status === OrderStatus.CANCELLED ? false : order.inventoryReserved,
           courierName: updateOrderDto.courierName?.trim() || order.courierName,
-          trackingNumber:
-            updateOrderDto.trackingNumber?.trim() || order.trackingNumber,
+          trackingNumber: updateOrderDto.trackingNumber?.trim() || order.trackingNumber,
           estimatedDeliveryAt: updateOrderDto.estimatedDeliveryAt
             ? new Date(updateOrderDto.estimatedDeliveryAt)
             : order.estimatedDeliveryAt,
@@ -2414,9 +2266,7 @@ export class OrderService {
               ? updateOrderDto.adminNotes.trim() || null
               : order.adminNotes,
           paidAt:
-            updateOrderDto.status === OrderStatus.PAID && !order.paidAt
-              ? new Date()
-              : order.paidAt,
+            updateOrderDto.status === OrderStatus.PAID && !order.paidAt ? new Date() : order.paidAt,
           expiresAt:
             updateOrderDto.status === OrderStatus.PAID ||
             updateOrderDto.status === OrderStatus.CANCELLED
@@ -2427,13 +2277,11 @@ export class OrderService {
               ? new Date()
               : order.shippedAt,
           outForDeliveryAt:
-            updateOrderDto.status === OrderStatus.OUT_FOR_DELIVERY &&
-            !order.outForDeliveryAt
+            updateOrderDto.status === OrderStatus.OUT_FOR_DELIVERY && !order.outForDeliveryAt
               ? new Date()
               : order.outForDeliveryAt,
           deliveredAt:
-            updateOrderDto.status === OrderStatus.DELIVERED &&
-            !order.deliveredAt
+            updateOrderDto.status === OrderStatus.DELIVERED && !order.deliveredAt
               ? new Date()
               : order.deliveredAt,
         },
@@ -2449,7 +2297,7 @@ export class OrderService {
           await this.syncCartAfterSuccessfulPayment(
             tx as unknown as PrismaService,
             order.userId,
-            order.items,
+            order.items
           );
         }
 
@@ -2466,7 +2314,7 @@ export class OrderService {
                   ? 'The order reached its destination.'
                   : updateOrderDto.status === OrderStatus.PAID
                     ? 'Payment was captured successfully.'
-                    : 'The order status changed.'),
+                    : 'The order status changed.')
         );
       } else if (
         updateOrderDto.courierName ||
@@ -2493,7 +2341,7 @@ export class OrderService {
       await this.orderNotificationService.sendOrderStatusUpdated(
         updatedOrder,
         updateOrderDto.status,
-        updateOrderDto.note?.trim() || null,
+        updateOrderDto.note?.trim() || null
       );
     }
 
@@ -2533,10 +2381,7 @@ export class OrderService {
 
     const cancelledOrder = await this.prisma.$transaction(async (tx) => {
       if (this.hasAllocatedStock(order)) {
-        await this.restoreOrderStock(
-          tx as unknown as PrismaService,
-          order.items,
-        );
+        await this.restoreOrderStock(tx as unknown as PrismaService, order.items);
       }
 
       const updatedOrder = await tx.order.update({
@@ -2555,7 +2400,7 @@ export class OrderService {
         OrderStatus.CANCELLED,
         order.status === OrderStatus.PAID
           ? 'The customer cancelled this order before shipment. Refund handling can now begin.'
-          : 'The customer cancelled this order before shipment.',
+          : 'The customer cancelled this order before shipment.'
       );
 
       return updatedOrder;
@@ -2584,7 +2429,7 @@ export class OrderService {
       cancelledOrder,
       order.status === OrderStatus.PAID
         ? 'The order was cancelled before shipment after payment confirmation.'
-        : 'The order was cancelled before shipment.',
+        : 'The order was cancelled before shipment.'
     );
 
     this.emitOrderUpdated(cancelledOrder);
@@ -2597,7 +2442,7 @@ export class OrderService {
     orderId: number,
     razorpayOrderId: string,
     razorpayPaymentId: string,
-    razorpaySignature: string,
+    razorpaySignature: string
   ) {
     this.ensureRazorpayConfigured();
 
@@ -2648,27 +2493,23 @@ export class OrderService {
         tx as unknown as PrismaService,
         order,
         razorpayPaymentId,
-        'Razorpay confirmed the payment for this order.',
+        'Razorpay confirmed the payment for this order.'
       );
     });
 
     await this.orderNotificationService.sendPaymentConfirmed(paidOrder);
     this.emitOrderUpdated(paidOrder);
 
-    await this.checkLowStock(
-      paidOrder.items?.map((item) => item.productId) || [],
-    );
+    await this.checkLowStock(paidOrder.items?.map((item) => item.productId) || []);
 
     return { success: true, orderId };
   }
 
   async handleRazorpayWebhook(
     rawBody: Buffer | string | undefined,
-    signature: string | string[] | undefined,
+    signature: string | string[] | undefined
   ) {
-    const webhookSecret = this.configService
-      .get<string>('razorpay.webhookSecret', '')
-      .trim();
+    const webhookSecret = this.configService.get<string>('razorpay.webhookSecret', '').trim();
 
     if (!webhookSecret) {
       throw new BadRequestException('Razorpay webhook is not configured.');
@@ -2713,9 +2554,7 @@ export class OrderService {
     const razorpayOrderId = event.payload?.payment?.entity?.order_id;
 
     if (!razorpayPaymentId || !razorpayOrderId) {
-      throw new BadRequestException(
-        'Webhook payload is missing payment details.',
-      );
+      throw new BadRequestException('Webhook payload is missing payment details.');
     }
 
     if (this.isProcessedPayment(razorpayPaymentId)) {
@@ -2749,7 +2588,7 @@ export class OrderService {
         tx as unknown as PrismaService,
         order,
         razorpayPaymentId,
-        'Payment capture was confirmed by the Razorpay webhook.',
+        'Payment capture was confirmed by the Razorpay webhook.'
       );
     });
 
@@ -2758,9 +2597,7 @@ export class OrderService {
     await this.orderNotificationService.sendPaymentConfirmed(paidOrder);
     this.emitOrderUpdated(paidOrder);
 
-    await this.checkLowStock(
-      paidOrder.items?.map((item) => item.productId) || [],
-    );
+    await this.checkLowStock(paidOrder.items?.map((item) => item.productId) || []);
 
     return { received: true, orderId: paidOrder.id };
   }
@@ -2772,7 +2609,7 @@ export class OrderService {
       method?: string;
       reference?: string;
       notes?: string;
-    } = {},
+    } = {}
   ) {
     const order = await this.prisma.order.findUnique({
       where: { id },
@@ -2797,7 +2634,7 @@ export class OrderService {
 
     if (!isOnlinePayment && !dto.manual) {
       throw new BadRequestException(
-        'This order was not paid online. Set manual to true to record a cash/COD refund.',
+        'This order was not paid online. Set manual to true to record a cash/COD refund.'
       );
     }
 
@@ -2814,7 +2651,7 @@ export class OrderService {
 
       if (!razorpayRefundId) {
         throw new BadRequestException(
-          'Razorpay refund could not be processed. Please try again or use the Razorpay dashboard.',
+          'Razorpay refund could not be processed. Please try again or use the Razorpay dashboard.'
         );
       }
 
@@ -2850,7 +2687,7 @@ export class OrderService {
       OrderStatus.CANCELLED,
       dto.manual
         ? `A manual refund was recorded for this cancelled order.${dto.method ? ` Method: ${dto.method}.` : ''}${dto.reference ? ` Reference: ${dto.reference}.` : ''}`
-        : 'A refund was processed for this cancelled order.',
+        : 'A refund was processed for this cancelled order.'
     );
 
     this.emitOrderUpdated(updatedOrder);

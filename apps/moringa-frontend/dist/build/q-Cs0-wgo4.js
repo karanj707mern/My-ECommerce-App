@@ -1,1 +1,0 @@
-import{v as o}from"./q-DbZgC2Xw.js";import{x as C}from"./q-DbZgC2Xw.js";import{b as u,g as n,a as l}from"./q-Cu-wKEl-.js";const m=()=>{const[t,e,a,r,s]=o();e.value=u(),s.value=n(),a.value=l(),t.value=!0,r.value=document.documentElement.classList.contains("dark")?"dark":"light"};export{C as _hW,m as s_BZdlT0nlVqg};

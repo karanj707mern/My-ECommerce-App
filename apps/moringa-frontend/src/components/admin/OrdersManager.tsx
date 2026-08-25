@@ -93,7 +93,9 @@ export const OrdersManager = component$(() => {
   const toast = useToast();
   const openOrders = useSignal<Record<string, unknown>[]>([]);
   const cancelledOrders = useSignal<Record<string, unknown>[]>([]);
-  const orderForms = useSignal<Record<string | number, Record<string, unknown>>>({});
+  const orderForms = useSignal<
+    Record<string | number, Record<string, unknown>>
+  >({});
   const orderSearchTerm = useSignal("");
   const orderSortBy = useSignal("newest");
   const loading = useSignal(true);
@@ -301,10 +303,14 @@ export const OrdersManager = component$(() => {
       <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <p class="text-sm uppercase tracking-[0.15em] text-emerald-700 dark:text-emerald-300">
-            {activeTab.value === "active" ? "Active orders" : "Cancelled orders"}
+            {activeTab.value === "active"
+              ? "Active orders"
+              : "Cancelled orders"}
           </p>
           <h2 class="mt-1 font-serif text-xl text-[var(--text-primary)] sm:text-2xl">
-            {activeTab.value === "active" ? "Shipment queue" : "Cancelled orders"}
+            {activeTab.value === "active"
+              ? "Shipment queue"
+              : "Cancelled orders"}
           </h2>
         </div>
 
@@ -389,13 +395,15 @@ export const OrdersManager = component$(() => {
                     </p>
                     <h3 class="mt-1 text-lg font-semibold text-[var(--text-primary)]">
                       {(order.orderTitle as string) ||
-                        (((order.items as Record<string, unknown>[])?.[0]
-                          ?.product as Record<string, unknown>)?.name as string) ||
+                        ((
+                          (order.items as Record<string, unknown>[])?.[0]
+                            ?.product as Record<string, unknown>
+                        )?.name as string) ||
                         "Customer order"}
                     </h3>
                     <p class="mt-1 text-xs text-[var(--text-muted)]">
-                      {((order.user as Record<string, unknown>)?.name as string) ||
-                        "Customer"}{" "}
+                      {((order.user as Record<string, unknown>)
+                        ?.name as string) || "Customer"}{" "}
                       ·{" "}
                       {(order.user as Record<string, unknown>)?.email as string}
                     </p>
@@ -477,53 +485,55 @@ export const OrdersManager = component$(() => {
                       </tr>
                     </thead>
                     <tbody>
-                      {(order.items as Record<string, unknown>[]).map((item) => {
-                        const product =
-                          (item.product as Record<string, unknown>) || {};
-                        const unitPrice = Number(item.price as number);
-                        const quantity = Number(item.quantity as number);
-                        const lineTotal = unitPrice * quantity;
-                        const orderDate = new Date(
-                          order.createdAt as string,
-                        ).toLocaleDateString("en-IN", {
-                          dateStyle: "medium",
-                        });
-                        const userName =
-                          ((order.user as Record<string, unknown>)
-                            ?.name as string) || "Customer";
-                        const userEmail =
-                          ((order.user as Record<string, unknown>)
-                            ?.email as string) || "";
+                      {(order.items as Record<string, unknown>[]).map(
+                        (item) => {
+                          const product =
+                            (item.product as Record<string, unknown>) || {};
+                          const unitPrice = Number(item.price as number);
+                          const quantity = Number(item.quantity as number);
+                          const lineTotal = unitPrice * quantity;
+                          const orderDate = new Date(
+                            order.createdAt as string,
+                          ).toLocaleDateString("en-IN", {
+                            dateStyle: "medium",
+                          });
+                          const userName =
+                            ((order.user as Record<string, unknown>)
+                              ?.name as string) || "Customer";
+                          const userEmail =
+                            ((order.user as Record<string, unknown>)
+                              ?.email as string) || "";
 
-                        return (
-                          <tr
-                            key={String(item.id)}
-                            class="border-b border-[var(--border-color)] last:border-0"
-                          >
-                            <td class="py-2 pr-3 align-top">
-                              <div class="flex flex-col">
-                                <span class="font-medium text-[var(--text-primary)]">
-                                  {userName}
-                                </span>
-                                <span class="text-xs text-[var(--text-muted)]">
-                                  {userEmail}
-                                </span>
-                              </div>
-                            </td>
-                            <td class="py-2 pr-3 align-top">
-                              {(product.name as string) || "Product"}
-                            </td>
-                            <td class="py-2 pr-3 align-top">{quantity}</td>
-                            <td class="py-2 pr-3 align-top">{orderDate}</td>
-                            <td class="py-2 pr-3 align-top">
-                              Rs {unitPrice.toFixed(2)}
-                            </td>
-                            <td class="py-2 align-top font-medium">
-                              Rs {lineTotal.toFixed(2)}
-                            </td>
-                          </tr>
-                        );
-                      })}
+                          return (
+                            <tr
+                              key={String(item.id)}
+                              class="border-b border-[var(--border-color)] last:border-0"
+                            >
+                              <td class="py-2 pr-3 align-top">
+                                <div class="flex flex-col">
+                                  <span class="font-medium text-[var(--text-primary)]">
+                                    {userName}
+                                  </span>
+                                  <span class="text-xs text-[var(--text-muted)]">
+                                    {userEmail}
+                                  </span>
+                                </div>
+                              </td>
+                              <td class="py-2 pr-3 align-top">
+                                {(product.name as string) || "Product"}
+                              </td>
+                              <td class="py-2 pr-3 align-top">{quantity}</td>
+                              <td class="py-2 pr-3 align-top">{orderDate}</td>
+                              <td class="py-2 pr-3 align-top">
+                                Rs {unitPrice.toFixed(2)}
+                              </td>
+                              <td class="py-2 align-top font-medium">
+                                Rs {lineTotal.toFixed(2)}
+                              </td>
+                            </tr>
+                          );
+                        },
+                      )}
                     </tbody>
                     <tfoot>
                       <tr class="border-t border-[var(--border-color)]">
@@ -691,7 +701,12 @@ export const OrdersManager = component$(() => {
                           <p class="mt-0.5">{order.addressLine2 as string}</p>
                         ) : null}
                         <p class="mt-0.5">
-                          {[order.city, order.state, order.postalCode, order.country]
+                          {[
+                            order.city,
+                            order.state,
+                            order.postalCode,
+                            order.country,
+                          ]
                             .filter(Boolean)
                             .join(", ")}
                         </p>

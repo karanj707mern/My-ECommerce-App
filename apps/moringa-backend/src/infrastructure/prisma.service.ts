@@ -34,10 +34,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     type LogEventHandler = (event: Prisma.LogEvent) => void;
 
     (this.$on as unknown as (e: 'query', cb: QueryEventHandler) => void)('query', (e) => {
-      this.queryLogger.debug(
-        `Query: ${e.query} | Duration: ${e.duration}ms`,
-        'Prisma',
-      );
+      this.queryLogger.debug(`Query: ${e.query} | Duration: ${e.duration}ms`, 'Prisma');
     });
 
     (this.$on as unknown as (e: 'info', cb: LogEventHandler) => void)('info', (e) => {
@@ -78,11 +75,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
           async $allOperations({ model, operation, args, query }) {
             const softDeleteReadOps = ['findMany', 'findFirst', 'count', 'aggregate', 'groupBy'];
 
-            if (
-              model &&
-              softDeleteModels.has(model) &&
-              softDeleteReadOps.includes(operation)
-            ) {
+            if (model && softDeleteModels.has(model) && softDeleteReadOps.includes(operation)) {
               const currentArgs = (args ?? {}) as Record<string, unknown>;
               const where = (currentArgs.where ?? {}) as Record<string, unknown>;
 
@@ -143,7 +136,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async transactionWithRetry<T>(
     fn: (tx: Prisma.TransactionClient) => Promise<T>,
-    maxRetries = 3,
+    maxRetries = 3
   ): Promise<T> {
     let lastError: Error | null = null;
 

@@ -1,0 +1,1 @@
+import{v as a}from"./q-93TgTwg6.js";import{x as c}from"./q-93TgTwg6.js";import{g as v}from"./q-m-X_bGyP.js";const u=({track:n,cleanup:s})=>{const[t,i,o]=a(),r=n(()=>i.images.length),e=()=>{o.value=v(),t.value=Math.min(t.value,Math.max(0,r-o.value))};e(),window.addEventListener("resize",e),s(()=>window.removeEventListener("resize",e))};export{c as _hW,u as s_JkYvI00MJAI};

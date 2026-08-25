@@ -1,0 +1,1 @@
+import{v as r}from"./q-93TgTwg6.js";import{x as i}from"./q-93TgTwg6.js";const a=()=>{const[s,t]=r(),e=new URL(s.url.href).searchParams.get("cartMessage");e&&t.showToast({severity:"info",detail:e,life:4e3})};export{i as _hW,a as s_JHk0yzCSpJ4};

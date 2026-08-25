@@ -37,7 +37,7 @@ export class UserService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly captchaService: CaptchaService,
+    private readonly captchaService: CaptchaService
   ) {}
 
   private normalizeEmail(email: string) {
@@ -53,7 +53,7 @@ export class UserService {
           password: hashedPassword,
         },
         select: this.safeUserSelect,
-      }),
+      })
     );
   }
 
@@ -83,26 +83,21 @@ export class UserService {
       browser?: string;
       os?: string;
       device?: string;
-    },
+    }
   ) {
     // Check if we're modifying sensitive fields
     const sensitiveFields = ['email', 'password'];
     const isModifyingSensitive = sensitiveFields.some(
-      (field) => updateUserDto[field as keyof UpdateUserDto] !== undefined,
+      (field) => updateUserDto[field as keyof UpdateUserDto] !== undefined
     );
 
     // If modifying sensitive fields, require CAPTCHA verification
     if (isModifyingSensitive) {
       if (!captchaId || !captchaInput) {
-        throw new BadRequestException(
-          'CAPTCHA verification is required for security changes',
-        );
+        throw new BadRequestException('CAPTCHA verification is required for security changes');
       }
 
-      const isValid = await this.captchaService.verifyCaptcha(
-        captchaId,
-        captchaInput,
-      );
+      const isValid = await this.captchaService.verifyCaptcha(captchaId, captchaInput);
       if (!isValid) {
         throw new BadRequestException('Invalid or expired CAPTCHA');
       }
@@ -136,7 +131,7 @@ export class UserService {
           emailChanged: updateUserDto.email !== undefined,
           passwordChanged: updateUserDto.password !== undefined,
         },
-        deviceInfo,
+        deviceInfo
       );
     }
 
@@ -154,7 +149,7 @@ export class UserService {
       browser?: string;
       os?: string;
       device?: string;
-    },
+    }
   ) {
     const logEntry = {
       timestamp: new Date().toISOString(),

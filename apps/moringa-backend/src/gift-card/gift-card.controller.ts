@@ -75,10 +75,7 @@ export class GiftCardController {
   @ApiOperation({ summary: 'Update gift card (admin)' })
   @ApiResponse({ status: 200, description: 'Gift card updated' })
   @ApiResponse({ status: 404, description: 'Gift card not found' })
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateGiftCardDto,
-  ): unknown {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateGiftCardDto): unknown {
     return this.giftCardService.update(id, dto);
   }
 

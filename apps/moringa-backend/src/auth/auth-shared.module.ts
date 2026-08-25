@@ -34,12 +34,6 @@ import { InfrastructureModule } from '../infrastructure/infrastructure.module';
     }),
   ],
   providers: [TokenRevocationService, JwtAuthGuard, RolesGuard, AuthThrottlerGuard],
-  exports: [
-    JwtModule,
-    TokenRevocationService,
-    JwtAuthGuard,
-    RolesGuard,
-    AuthThrottlerGuard,
-  ],
+  exports: [JwtModule, TokenRevocationService, JwtAuthGuard, RolesGuard, AuthThrottlerGuard],
 })
 export class AuthSharedModule {}

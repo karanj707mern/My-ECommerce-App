@@ -10,12 +10,7 @@ export class EmailTemplateService {
   private readonly cache = new Map<string, Handlebars.TemplateDelegate>();
 
   constructor() {
-    this.templateDir = path.join(
-      process.cwd(),
-      'src',
-      'common',
-      'email-templates',
-    );
+    this.templateDir = path.join(process.cwd(), 'src', 'common', 'email-templates');
   }
 
   render(templateName: string, context: Record<string, unknown>): string {
@@ -31,15 +26,13 @@ export class EmailTemplateService {
     } catch (error) {
       this.logger.error(
         `Failed to render email template: ${templateName}`,
-        error instanceof Error ? error.stack : undefined,
+        error instanceof Error ? error.stack : undefined
       );
       return '';
     }
   }
 
-  private getTemplate(
-    templateName: string,
-  ): Handlebars.TemplateDelegate | undefined {
+  private getTemplate(templateName: string): Handlebars.TemplateDelegate | undefined {
     if (this.cache.has(templateName)) {
       return this.cache.get(templateName);
     }
@@ -58,7 +51,7 @@ export class EmailTemplateService {
     } catch (error) {
       this.logger.error(
         `Failed to load email template: ${templateName}`,
-        error instanceof Error ? error.stack : undefined,
+        error instanceof Error ? error.stack : undefined
       );
       return undefined;
     }

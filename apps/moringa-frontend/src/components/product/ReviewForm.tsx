@@ -13,7 +13,9 @@ export interface ReviewFormProps {
   reviewForm: ReviewFormState;
   submittingReview: boolean;
   reviewError: string;
-  onFieldChange$: QRL<(field: "rating" | "title" | "content", value: string) => void>;
+  onFieldChange$: QRL<
+    (field: "rating" | "title" | "content", value: string) => void
+  >;
   onSubmit$: QRL<() => void>;
 }
 
@@ -92,11 +94,7 @@ export const ReviewForm = component$<ReviewFormProps>(
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={submittingReview}
-              class="btn-admin"
-            >
+            <button type="submit" disabled={submittingReview} class="btn-admin">
               {submittingReview ? "Posting review..." : "Post review"}
             </button>
           </form>

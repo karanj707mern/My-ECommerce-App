@@ -18,15 +18,14 @@ export class ReviewService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: RedisCacheService,
-    private readonly emailVerificationService: EmailVerificationService,
+    private readonly emailVerificationService: EmailVerificationService
   ) {}
 
   private isMissingReviewTable(error: unknown) {
     return (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === 'P2021' &&
-      (error.meta?.modelName === 'Review' ||
-        error.meta?.modelName === 'ReviewComment')
+      (error.meta?.modelName === 'Review' || error.meta?.modelName === 'ReviewComment')
     );
   }
 
@@ -190,12 +189,7 @@ export class ReviewService {
     const reviewCount = reviews.length;
     const averageRating =
       reviewCount > 0
-        ? Number(
-            (
-              reviews.reduce((sum, review) => sum + review.rating, 0) /
-              reviewCount
-            ).toFixed(1),
-          )
+        ? Number((reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount).toFixed(1))
         : 0;
 
     const result = {
@@ -209,18 +203,15 @@ export class ReviewService {
       },
       reviews: reviews.map((review) => ({
         ...review,
-        title: (review.title as string | null)
-          ? sanitizeHtml(review.title as string)
-          : null,
+        title: (review.title as string | null) ? sanitizeHtml(review.title as string) : null,
         content: sanitizeHtml(review.content as string),
         comments:
-          (
-            review.comments as
-              (Record<string, unknown> & { content: string })[] | undefined
-          )?.map((comment) => ({
-            ...comment,
-            content: sanitizeHtml(comment.content),
-          })) || [],
+          (review.comments as (Record<string, unknown> & { content: string })[] | undefined)?.map(
+            (comment) => ({
+              ...comment,
+              content: sanitizeHtml(comment.content),
+            })
+          ) || [],
       })),
     };
 
@@ -271,8 +262,7 @@ export class ReviewService {
         return {
           canReview: false,
           hasReviewed: false,
-          reason:
-            'Reviews will be available after the database update is applied.',
+          reason: 'Reviews will be available after the database update is applied.',
         };
       }
 
@@ -307,7 +297,7 @@ export class ReviewService {
     } catch (error: unknown) {
       if (this.isMissingReviewTable(error)) {
         throw new BadRequestException(
-          'Reviews are not available yet. Apply the latest database migration and try again.',
+          'Reviews are not available yet. Apply the latest database migration and try again.'
         );
       }
 
@@ -319,9 +309,7 @@ export class ReviewService {
     }
 
     if (!qualifyingOrder) {
-      throw new BadRequestException(
-        'You can only review products you have purchased.',
-      );
+      throw new BadRequestException('You can only review products you have purchased.');
     }
 
     try {
@@ -344,11 +332,7 @@ export class ReviewService {
       });
 
       if (user?.email) {
-        await this.emailVerificationService.sendReviewPosted(
-          user.email,
-          user.name,
-          userId,
-        );
+        await this.emailVerificationService.sendReviewPosted(user.email, user.name, userId);
       }
 
       await this.cache.del(`reviews:product:${productId}`);
@@ -362,7 +346,7 @@ export class ReviewService {
     } catch (error: unknown) {
       if (this.isMissingReviewTable(error)) {
         throw new BadRequestException(
-          'Reviews are not available yet. Apply the latest database migration and try again.',
+          'Reviews are not available yet. Apply the latest database migration and try again.'
         );
       }
 
@@ -372,7 +356,7 @@ export class ReviewService {
 
   async moderateReview(
     reviewId: number,
-    dto: ModerateReviewDto,
+    dto: ModerateReviewDto
   ): Promise<{ id: number; status: ReviewStatus; adminNote: string | null }> {
     const review = await this.prisma.review.findUnique({
       where: { id: reviewId },
@@ -386,10 +370,7 @@ export class ReviewService {
     const updatedReview = await this.prisma.review.update({
       where: { id: reviewId },
       data: {
-        status:
-          dto.status === 'APPROVED'
-            ? ReviewStatus.APPROVED
-            : ReviewStatus.REJECTED,
+        status: dto.status === 'APPROVED' ? ReviewStatus.APPROVED : ReviewStatus.REJECTED,
         adminNote: dto.adminNote ?? null,
       },
       select: { id: true, status: true, adminNote: true },
@@ -435,11 +416,7 @@ export class ReviewService {
     };
   }
 
-  async createComment(
-    userId: number,
-    reviewId: number,
-    dto: CreateReviewCommentDto,
-  ) {
+  async createComment(userId: number, reviewId: number, dto: CreateReviewCommentDto) {
     const content = dto.content.trim();
 
     if (!content) {
@@ -456,7 +433,7 @@ export class ReviewService {
     } catch (error: unknown) {
       if (this.isMissingReviewTable(error)) {
         throw new BadRequestException(
-          'Review comments are not available yet. Apply the latest database migration and try again.',
+          'Review comments are not available yet. Apply the latest database migration and try again.'
         );
       }
 
@@ -493,7 +470,7 @@ export class ReviewService {
         await this.emailVerificationService.sendCommentPosted(
           commentUser.email,
           commentUser.name,
-          userId,
+          userId
         );
       }
 
@@ -506,7 +483,7 @@ export class ReviewService {
     } catch (error: unknown) {
       if (this.isMissingReviewTable(error)) {
         throw new BadRequestException(
-          'Review comments are not available yet. Apply the latest database migration and try again.',
+          'Review comments are not available yet. Apply the latest database migration and try again.'
         );
       }
 

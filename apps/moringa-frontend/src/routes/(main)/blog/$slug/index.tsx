@@ -4,7 +4,7 @@ import {
   useNavigate,
   type DocumentHead,
 } from "@builder.io/qwik-city";
-import { getBlogPost, getAllBlogPosts } from "../../../../lib/api/blog";
+import { getAllBlogPosts } from "../../../../lib/api/blog";
 import { API_BASE_URL, resolveImageUrl } from "../../../../lib/config";
 import { useToast } from "../../../../hooks/useToast";
 import { SmartImage } from "../../../../components/SmartImage";
@@ -85,7 +85,12 @@ export default component$(() => {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Home", item: `${siteUrl}/` },
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: `${siteUrl}/`,
+          },
           {
             "@type": "ListItem",
             position: 2,
@@ -155,7 +160,10 @@ export default component$(() => {
                   <span>Wellness Journal</span>
                   {post.publishedAt ? (
                     <span>
-                      • {new Date(post.publishedAt as string).toLocaleDateString()}
+                      •{" "}
+                      {new Date(
+                        post.publishedAt as string,
+                      ).toLocaleDateString()}
                     </span>
                   ) : null}
                 </div>

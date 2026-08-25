@@ -1,4 +1,10 @@
-import { $, component$, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik";
+import {
+  $,
+  component$,
+  useSignal,
+  useStore,
+  useVisibleTask$,
+} from "@builder.io/qwik";
 import { getStoreSettings, updateStoreSettings } from "../../lib/api/settings";
 import { useToast } from "../../hooks/useToast";
 
@@ -194,7 +200,11 @@ export const SettingsManager = component$(() => {
           Loading settings…
         </div>
       ) : (
-        <form preventdefault:submit onSubmit$={handleSubmit} class="mt-8 space-y-4">
+        <form
+          preventdefault:submit
+          onSubmit$={handleSubmit}
+          class="mt-8 space-y-4"
+        >
           <label class="block text-sm font-medium text-[var(--text-secondary)] dark:text-[var(--text-secondary)]">
             Shipping charge
             <input
@@ -342,7 +352,11 @@ export const SettingsManager = component$(() => {
             zones, and auto-expiry for unpaid online orders.
           </div>
 
-          <button type="submit" class="btn-admin w-full" disabled={loading.value}>
+          <button
+            type="submit"
+            class="btn-admin w-full"
+            disabled={loading.value}
+          >
             {loading.value ? "Saving…" : "Save store settings"}
           </button>
         </form>

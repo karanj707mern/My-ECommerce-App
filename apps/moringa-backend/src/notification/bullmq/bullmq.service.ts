@@ -18,7 +18,7 @@ export class BullMqService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly logger: PinoLogger,
+    private readonly logger: PinoLogger
   ) {}
 
   get isConfigured(): boolean {
@@ -31,9 +31,7 @@ export class BullMqService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     if (!this.isConfigured) {
-      this.logger.warn(
-        'BullMQ not configured. Notification delivery will use in-process queue.',
-      );
+      this.logger.warn('BullMQ not configured. Notification delivery will use in-process queue.');
       return Promise.resolve();
     }
 
@@ -69,7 +67,7 @@ export class BullMqService implements OnModuleInit, OnModuleDestroy {
         connection: this.redisClient,
         concurrency: 5,
         limiter: { max: 10, duration: 1000 },
-      },
+      }
     );
 
     this.worker.on('completed', (job) => {
@@ -79,21 +77,18 @@ export class BullMqService implements OnModuleInit, OnModuleDestroy {
     this.worker.on('failed', (job, err) => {
       this.logger.error(
         `Notification job ${job?.id} failed`,
-        err instanceof Error ? err.stack : err,
+        err instanceof Error ? err.stack : err
       );
     });
 
     this.queue.on('error', (error) => {
-      this.logger.error(
-        'BullMQ queue error',
-        error instanceof Error ? error.stack : String(error),
-      );
+      this.logger.error('BullMQ queue error', error instanceof Error ? error.stack : String(error));
     });
 
     this.worker.on('error', (error) => {
       this.logger.error(
         'BullMQ worker error',
-        error instanceof Error ? error.stack : String(error),
+        error instanceof Error ? error.stack : String(error)
       );
     });
 
@@ -108,7 +103,7 @@ export class BullMqService implements OnModuleInit, OnModuleDestroy {
     } catch (error) {
       this.logger.error(
         'Error closing BullMQ connection',
-        error instanceof Error ? error.stack : String(error),
+        error instanceof Error ? error.stack : String(error)
       );
     }
   }
@@ -123,7 +118,7 @@ export class BullMqService implements OnModuleInit, OnModuleDestroy {
     } catch (error) {
       this.logger.error(
         'Failed to add BullMQ job',
-        error instanceof Error ? error.stack : String(error),
+        error instanceof Error ? error.stack : String(error)
       );
     }
   }

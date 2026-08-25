@@ -156,7 +156,9 @@ const AdminOverviewPage = component$(() => {
                   </span>
                 </div>
                 <p class="mt-4 text-3xl font-semibold text-[var(--text-primary)] sm:text-4xl">
-                  {loading.value ? "…" : Number(value ?? 0).toLocaleString("en-IN")}
+                  {loading.value
+                    ? "…"
+                    : Number(value ?? 0).toLocaleString("en-IN")}
                 </p>
                 <span
                   class={`mt-4 inline-flex h-1.5 w-8 rounded-full ${stat.color}`}

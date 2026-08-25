@@ -1,1 +1,0 @@
-import{v as o}from"./q-DbZgC2Xw.js";import{x as c}from"./q-DbZgC2Xw.js";import{w as t}from"./q-DiqXMaqQ.js";const s=()=>{const[r]=o(),e=new URLSearchParams(window.location.search).get("preview")==="true";e!==r.value&&(t(e),r.value=e)};export{c as _hW,s as s_dylScv2Jrf0};

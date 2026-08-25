@@ -31,8 +31,7 @@ export function buildHead({
   type = "website",
 }: SeoOptions): DocumentHeadValue {
   const siteUrl = getSiteUrl();
-  const fullTitle =
-    path === "/" ? title : `${title} | ${SITE_NAME}`;
+  const fullTitle = path === "/" ? title : `${title} | ${SITE_NAME}`;
   const imageUrl = image || DEFAULT_OG_IMAGE;
 
   return {

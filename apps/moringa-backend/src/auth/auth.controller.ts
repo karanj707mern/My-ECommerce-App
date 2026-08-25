@@ -1,4 +1,17 @@
-import { Controller, Get, Param, UseGuards, Req, Post, Body, Patch, Delete, HttpCode, BadRequestException, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  UseGuards,
+  Req,
+  Post,
+  Body,
+  Patch,
+  Delete,
+  HttpCode,
+  BadRequestException,
+  Query,
+} from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { AuthThrottlerGuard } from '../auth/guards/auth-throttler.guard';
@@ -16,7 +29,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly storageService: StorageService,
     private readonly prisma: PrismaService,
-    private readonly authCookiesService: AuthCookiesService,
+    private readonly authCookiesService: AuthCookiesService
   ) {}
 
   @UseGuards(AuthThrottlerGuard)
@@ -25,7 +38,10 @@ export class AuthController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Login user with email and password' })
   @ApiResponse({ status: 200, description: 'Login successful' })
-  async login(@Req() req: FastifyRequest, @Body() dto: { email: string; password: string; captchaId?: string; captchaInput?: string }) {
+  async login(
+    @Req() req: FastifyRequest,
+    @Body() dto: { email: string; password: string; captchaId?: string; captchaInput?: string }
+  ) {
     const result = await this.authService.login(dto);
     this.authCookiesService.queueAuthCookies(req, result.accessToken, result.refreshToken);
     return { message: result.message, user: result.user };
@@ -36,7 +52,17 @@ export class AuthController {
   @HttpCode(201)
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
-  async register(@Req() req: FastifyRequest, @Body() dto: { name: string; email: string; password: string; captchaId?: string; captchaInput?: string }) {
+  async register(
+    @Req() req: FastifyRequest,
+    @Body()
+    dto: {
+      name: string;
+      email: string;
+      password: string;
+      captchaId?: string;
+      captchaInput?: string;
+    }
+  ) {
     const result = await this.authService.register(dto);
     this.authCookiesService.queueAuthCookies(req, result.accessToken, result.refreshToken);
     return { message: result.message, user: result.user };
@@ -99,7 +125,10 @@ export class AuthController {
   @Post('change-password')
   @ApiOperation({ summary: 'Change password' })
   @ApiResponse({ status: 200, description: 'Password changed' })
-  async changePassword(@Req() req: { user: { id: number } }, @Body() dto: { currentPassword: string; newPassword: string }) {
+  async changePassword(
+    @Req() req: { user: { id: number } },
+    @Body() dto: { currentPassword: string; newPassword: string }
+  ) {
     return this.authService.changePassword(req.user.id, dto);
   }
 
@@ -156,7 +185,11 @@ export class AuthController {
   @Patch('addresses/:id')
   @ApiOperation({ summary: 'Update user address' })
   @ApiResponse({ status: 200, description: 'Address updated' })
-  async updateAddress(@Req() req: { user: { id: number } }, @Param('id') id: string, @Body() dto: Record<string, unknown>) {
+  async updateAddress(
+    @Req() req: { user: { id: number } },
+    @Param('id') id: string,
+    @Body() dto: Record<string, unknown>
+  ) {
     return this.authService.updateAddress(req.user.id, Number(id), dto);
   }
 
@@ -192,7 +225,13 @@ export class AuthController {
       throw new Error('An avatar image is required.');
     }
 
-    const allowedImageMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
+    const allowedImageMimeTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/avif',
+      'image/gif',
+    ];
     if (!allowedImageMimeTypes.includes(multipartFile.mimetype)) {
       throw new BadRequestException('Only JPG, PNG, WEBP, AVIF, and GIF images are allowed.');
     }

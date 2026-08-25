@@ -129,7 +129,10 @@ const ProfileIcon = () => (
   </svg>
 );
 
-const ThemeButton = (props: { theme: string; toggleTheme: QRL<() => void> }) => (
+const ThemeButton = (props: {
+  theme: string;
+  toggleTheme: QRL<() => void>;
+}) => (
   <button
     type="button"
     onClick$={props.toggleTheme}
@@ -280,7 +283,11 @@ const NavLinks = ({
       ) : null}
 
       {isLoggedIn ? (
-        <button type="button" onClick$={onLogout} class="btn-nav whitespace-nowrap">
+        <button
+          type="button"
+          onClick$={onLogout}
+          class="btn-nav whitespace-nowrap"
+        >
           Logout
         </button>
       ) : (
@@ -395,103 +402,180 @@ export const SiteNav = component$(() => {
         class="sticky top-0 z-30 border-y border-[var(--border-strong)] bg-[var(--bg-secondary)] pt-[env(safe-area-inset-top)]"
         style={{ isolation: "isolate" }}
       >
-      <div class="mx-auto flex max-w-7xl flex-col items-center gap-4 px-6 py-3 sm:px-8 md:flex-row md:items-center md:justify-between md:gap-6 lg:px-10">
-        <div class="group min-w-0 flex-shrink">
-          <Link
-            href="/"
-            aria-label="Moringa Store Online homepage"
-            class="block font-serif text-[1.35rem] text-[var(--text-primary)] transition-all duration-300 hover:scale-[1.03] hover:text-emerald-700 md:text-[1.9rem] dark:hover:text-emerald-300"
-          >
-            <span class="relative inline-flex items-center gap-2">
-              <span class="relative whitespace-nowrap">
-                Moringa Store Online
-                <span class="absolute bottom-0 left-0 h-0.5 w-full origin-left scale-x-0 bg-emerald-600 transition-transform duration-300 group-hover:scale-x-100 dark:bg-emerald-400" />
-              </span>
-              <span class="self-center opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:opacity-100">
-                <svg
-                  viewBox="0 0 220 64"
-                  fill="none"
-                  class="h-6 w-auto text-emerald-600 dark:text-emerald-400"
-                  aria-hidden="true"
-                >
-                  <path d="M4 52 L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                  <ellipse cx="12" cy="14" rx="4" ry="7.5" fill="currentColor" transform="rotate(-15 12 14)" />
-                  <ellipse cx="12" cy="38" rx="4" ry="7.5" fill="currentColor" transform="rotate(15 12 38)" />
-                  <ellipse cx="4" cy="26" rx="4" ry="7.5" fill="currentColor" />
-                  <ellipse cx="22" cy="10" rx="3.6" ry="6.8" fill="currentColor" transform="rotate(-10 22 10)" />
-                  <ellipse cx="22" cy="42" rx="3.6" ry="6.8" fill="currentColor" transform="rotate(10 22 42)" />
-                  <ellipse cx="34" cy="8" rx="3.2" ry="6" fill="currentColor" transform="rotate(-8 34 8)" />
-                  <ellipse cx="34" cy="44" rx="3.2" ry="6" fill="currentColor" transform="rotate(8 34 44)" />
-                  <ellipse cx="46" cy="7" rx="2.8" ry="5.2" fill="currentColor" transform="rotate(-6 46 7)" />
-                  <ellipse cx="46" cy="45" rx="2.8" ry="5.2" fill="currentColor" transform="rotate(6 46 45)" />
-                  <ellipse cx="58" cy="8" rx="2.4" ry="4.4" fill="currentColor" transform="rotate(-5 58 8)" />
-                  <ellipse cx="58" cy="44" rx="2.4" ry="4.4" fill="currentColor" transform="rotate(5 58 44)" />
-                  <ellipse cx="70" cy="10" rx="2" ry="3.6" fill="currentColor" transform="rotate(-4 70 10)" />
-                  <ellipse cx="70" cy="42" rx="2" ry="3.6" fill="currentColor" transform="rotate(4 70 42)" />
-                </svg>
-              </span>
-            </span>
-          </Link>
-          <p class="text-sm uppercase tracking-[0.1em] text-[var(--text-secondary)] transition-all duration-300 group-hover:text-emerald-700 md:tracking-[0.16em] dark:hover:text-emerald-300">
-            Your Natural Health Partner
-          </p>
-        </div>
-
-        <div class="flex w-full items-center justify-between md:hidden md:w-auto md:justify-end">
-          <button
-            type="button"
-            onClick$={() => {
-              menuOpen.value = !menuOpen.value;
-            }}
-            aria-label={menuOpen.value ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen.value}
-            class="rounded-xl border border-[var(--border-color)] p-2 text-[var(--text-secondary)] transition hover:bg-[var(--bg-muted)]"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="h-6 w-6"
-              aria-hidden="true"
+        <div class="mx-auto flex max-w-7xl flex-col items-center gap-4 px-6 py-3 sm:px-8 md:flex-row md:items-center md:justify-between md:gap-6 lg:px-10">
+          <div class="group min-w-0 flex-shrink">
+            <Link
+              href="/"
+              aria-label="Moringa Store Online homepage"
+              class="block font-serif text-[1.35rem] text-[var(--text-primary)] transition-all duration-300 hover:scale-[1.03] hover:text-emerald-700 md:text-[1.9rem] dark:hover:text-emerald-300"
             >
-              {menuOpen.value ? (
-                <>
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </>
-              ) : (
-                <>
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                  <line x1="3" y1="18" x2="21" y2="18" />
-                </>
-              )}
-            </svg>
-          </button>
-        </div>
+              <span class="relative inline-flex items-center gap-2">
+                <span class="relative whitespace-nowrap">
+                  Moringa Store Online
+                  <span class="absolute bottom-0 left-0 h-0.5 w-full origin-left scale-x-0 bg-emerald-600 transition-transform duration-300 group-hover:scale-x-100 dark:bg-emerald-400" />
+                </span>
+                <span class="self-center opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:opacity-100">
+                  <svg
+                    viewBox="0 0 220 64"
+                    fill="none"
+                    class="h-6 w-auto text-emerald-600 dark:text-emerald-400"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M4 52 L4 12"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                    <ellipse
+                      cx="12"
+                      cy="14"
+                      rx="4"
+                      ry="7.5"
+                      fill="currentColor"
+                      transform="rotate(-15 12 14)"
+                    />
+                    <ellipse
+                      cx="12"
+                      cy="38"
+                      rx="4"
+                      ry="7.5"
+                      fill="currentColor"
+                      transform="rotate(15 12 38)"
+                    />
+                    <ellipse
+                      cx="4"
+                      cy="26"
+                      rx="4"
+                      ry="7.5"
+                      fill="currentColor"
+                    />
+                    <ellipse
+                      cx="22"
+                      cy="10"
+                      rx="3.6"
+                      ry="6.8"
+                      fill="currentColor"
+                      transform="rotate(-10 22 10)"
+                    />
+                    <ellipse
+                      cx="22"
+                      cy="42"
+                      rx="3.6"
+                      ry="6.8"
+                      fill="currentColor"
+                      transform="rotate(10 22 42)"
+                    />
+                    <ellipse
+                      cx="34"
+                      cy="8"
+                      rx="3.2"
+                      ry="6"
+                      fill="currentColor"
+                      transform="rotate(-8 34 8)"
+                    />
+                    <ellipse
+                      cx="34"
+                      cy="44"
+                      rx="3.2"
+                      ry="6"
+                      fill="currentColor"
+                      transform="rotate(8 34 44)"
+                    />
+                    <ellipse
+                      cx="46"
+                      cy="7"
+                      rx="2.8"
+                      ry="5.2"
+                      fill="currentColor"
+                      transform="rotate(-6 46 7)"
+                    />
+                    <ellipse
+                      cx="46"
+                      cy="45"
+                      rx="2.8"
+                      ry="5.2"
+                      fill="currentColor"
+                      transform="rotate(6 46 45)"
+                    />
+                    <ellipse
+                      cx="58"
+                      cy="8"
+                      rx="2.4"
+                      ry="4.4"
+                      fill="currentColor"
+                      transform="rotate(-5 58 8)"
+                    />
+                    <ellipse
+                      cx="58"
+                      cy="44"
+                      rx="2.4"
+                      ry="4.4"
+                      fill="currentColor"
+                      transform="rotate(5 58 44)"
+                    />
+                    <ellipse
+                      cx="70"
+                      cy="10"
+                      rx="2"
+                      ry="3.6"
+                      fill="currentColor"
+                      transform="rotate(-4 70 10)"
+                    />
+                    <ellipse
+                      cx="70"
+                      cy="42"
+                      rx="2"
+                      ry="3.6"
+                      fill="currentColor"
+                      transform="rotate(4 70 42)"
+                    />
+                  </svg>
+                </span>
+              </span>
+            </Link>
+            <p class="text-sm uppercase tracking-[0.1em] text-[var(--text-secondary)] transition-all duration-300 group-hover:text-emerald-700 md:tracking-[0.16em] dark:hover:text-emerald-300">
+              Your Natural Health Partner
+            </p>
+          </div>
 
-        <div class="hidden flex-shrink flex-nowrap items-center justify-end gap-2 md:flex">
-          <NavLinks
-            isAdmin={!!isAdmin}
-            previewMode={previewMode.value}
-            pathname={pathname}
-            isLoggedIn={isLoggedIn}
-            onLogout={onLogout}
-            theme={theme.value}
-            toggleTheme={toggleTheme}
-            disablePreview={disablePreview}
-            cartCount={cartCount.value}
-            wishlistCount={wishlistCount.value}
-          />
-        </div>
-      </div>
+          <div class="flex w-full items-center justify-between md:hidden md:w-auto md:justify-end">
+            <button
+              type="button"
+              onClick$={() => {
+                menuOpen.value = !menuOpen.value;
+              }}
+              aria-label={menuOpen.value ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen.value}
+              class="rounded-xl border border-[var(--border-color)] p-2 text-[var(--text-secondary)] transition hover:bg-[var(--bg-muted)]"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="h-6 w-6"
+                aria-hidden="true"
+              >
+                {menuOpen.value ? (
+                  <>
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </>
+                ) : (
+                  <>
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                  </>
+                )}
+              </svg>
+            </button>
+          </div>
 
-      {menuOpen.value ? (
-        <div class="border-t border-[var(--border-color)] bg-[var(--bg-secondary)] px-4 pb-4 pt-2 md:hidden">
-          <div class="flex flex-col gap-3">
+          <div class="hidden flex-shrink flex-nowrap items-center justify-end gap-2 md:flex">
             <NavLinks
               isAdmin={!!isAdmin}
               previewMode={previewMode.value}
@@ -506,8 +590,26 @@ export const SiteNav = component$(() => {
             />
           </div>
         </div>
-      ) : null}
-    </nav>
+
+        {menuOpen.value ? (
+          <div class="border-t border-[var(--border-color)] bg-[var(--bg-secondary)] px-4 pb-4 pt-2 md:hidden">
+            <div class="flex flex-col gap-3">
+              <NavLinks
+                isAdmin={!!isAdmin}
+                previewMode={previewMode.value}
+                pathname={pathname}
+                isLoggedIn={isLoggedIn}
+                onLogout={onLogout}
+                theme={theme.value}
+                toggleTheme={toggleTheme}
+                disablePreview={disablePreview}
+                cartCount={cartCount.value}
+                wishlistCount={wishlistCount.value}
+              />
+            </div>
+          </div>
+        ) : null}
+      </nav>
     </>
   );
 });

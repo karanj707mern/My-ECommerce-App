@@ -11,7 +11,7 @@ export class OrderProcessor {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly rabbitMQService: RabbitMQService,
+    private readonly rabbitMQService: RabbitMQService
   ) {}
 
   async process(job: Job<OrderJobData>): Promise<void> {
@@ -45,7 +45,11 @@ export class OrderProcessor {
     });
   }
 
-  private async handleSendConfirmation(orderId: number, userId: number, payload: Record<string, unknown>) {
+  private async handleSendConfirmation(
+    orderId: number,
+    userId: number,
+    payload: Record<string, unknown>
+  ) {
     this.logger.log(`Sending order confirmation email for order ${orderId}, user ${userId}`);
 
     const order = await this.prisma.order.findFirst({
@@ -81,7 +85,11 @@ export class OrderProcessor {
     this.logger.log(`Inventory finalized for order ${orderId}`);
   }
 
-  private async handleSendNotification(orderId: number, userId: number, payload: Record<string, unknown>) {
+  private async handleSendNotification(
+    orderId: number,
+    userId: number,
+    payload: Record<string, unknown>
+  ) {
     this.logger.log(`Sending notification for order ${orderId}, user ${userId}`);
 
     const notificationType = payload.type as string;

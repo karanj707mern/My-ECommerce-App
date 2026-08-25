@@ -19,9 +19,6 @@ export const AdminLayout = component$(() => {
         <AdminSidebar
           open={drawerOpen.value}
           collapsed={sidebarCollapsed.value}
-          onOpen$={() => {
-            drawerOpen.value = true;
-          }}
           onClose$={() => {
             drawerOpen.value = false;
           }}

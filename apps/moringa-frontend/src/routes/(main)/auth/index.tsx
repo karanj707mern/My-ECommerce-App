@@ -1,5 +1,10 @@
 import { $, component$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
-import { Link, useLocation, useNavigate, type DocumentHead } from "@builder.io/qwik-city";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  type DocumentHead,
+} from "@builder.io/qwik-city";
 import ThemeToggle from "../../../components/ThemeToggle";
 import {
   forgotPassword,
@@ -22,10 +27,7 @@ import { env } from "../../../lib/env";
 
 interface GoogleIdApi {
   initialize: (opts: unknown) => void;
-  renderButton: (
-    parent: HTMLDivElement,
-    opts: Record<string, unknown>,
-  ) => void;
+  renderButton: (parent: HTMLDivElement, opts: Record<string, unknown>) => void;
 }
 
 function getGoogleId(): GoogleIdApi | undefined {
@@ -62,8 +64,7 @@ function loadGoogleIdentityScript(): Promise<void> {
     script.async = true;
     script.defer = true;
     script.onload = () => resolve();
-    script.onerror = () =>
-      reject(new Error("Could not load Google sign-in."));
+    script.onerror = () => reject(new Error("Could not load Google sign-in."));
 
     if (!existingScript) {
       document.head.appendChild(script);
@@ -88,7 +89,8 @@ function loadGoogleIdentityScript(): Promise<void> {
  */
 const googleAuthState = {
   initializedClientId: "",
-  credentialHandler: null as ((response: { credential: string }) => void) | null,
+  credentialHandler: null as
+    ((response: { credential: string }) => void) | null,
 };
 
 const inputClassName = "input-field-dark";
@@ -193,9 +195,7 @@ export default component$(() => {
       setCurrentUser(data.user);
 
       if (data.user?.role === "ADMIN") {
-        await nav(
-          "/admin?cartMessage=" + encodeURIComponent(successMessage),
-        );
+        await nav("/admin?cartMessage=" + encodeURIComponent(successMessage));
         return;
       }
 
@@ -229,7 +229,9 @@ export default component$(() => {
           !googleAuthState.credentialHandler ||
           googleAuthState.initializedClientId !== googleClientId
         ) {
-          googleAuthState.credentialHandler = async (response: { credential: string }) => {
+          googleAuthState.credentialHandler = async (response: {
+            credential: string;
+          }) => {
             if (!response.credential) {
               void toast.showToast({
                 severity: "error",
@@ -477,13 +479,17 @@ export default component$(() => {
       <div class="relative z-10 w-full max-w-md rounded-[2rem] border border-emerald-400/20 bg-slate-950/88 p-5 text-slate-100 shadow-[0_30px_80px_rgba(0,0,0,0.45)] sm:p-8">
         {/* TITLE */}
         <h1 class="text-2xl font-semibold text-white">
-          {resetTokenFromUrl
-            ? "Reset password"
-            : isForgotPasswordMode.value
-              ? "Forgot password"
-              : isLogin.value
-                ? (<>Sign in to <span class="text-emerald-300">Moringa Store</span></>)
-                : "Create your account"}
+          {resetTokenFromUrl ? (
+            "Reset password"
+          ) : isForgotPasswordMode.value ? (
+            "Forgot password"
+          ) : isLogin.value ? (
+            <>
+              Sign in to <span class="text-emerald-300">Moringa Store</span>
+            </>
+          ) : (
+            "Create your account"
+          )}
         </h1>
 
         {!resetTokenFromUrl && !isForgotPasswordMode.value ? (
@@ -495,17 +501,23 @@ export default component$(() => {
         ) : null}
 
         {/* FORM */}
-        <form preventdefault:submit onSubmit$={handleSubmit} class="mt-6 space-y-4">
-          {!isLogin.value && !isForgotPasswordMode.value && !resetTokenFromUrl && (
-            <input
-              placeholder="Full name"
-              aria-label="Full name"
-              autoComplete="name"
-              value={name.value}
-              onInput$={(_, el) => (name.value = el.value)}
-              class={inputClassName}
-            />
-          )}
+        <form
+          preventdefault:submit
+          onSubmit$={handleSubmit}
+          class="mt-6 space-y-4"
+        >
+          {!isLogin.value &&
+            !isForgotPasswordMode.value &&
+            !resetTokenFromUrl && (
+              <input
+                placeholder="Full name"
+                aria-label="Full name"
+                autoComplete="name"
+                value={name.value}
+                onInput$={(_, el) => (name.value = el.value)}
+                class={inputClassName}
+              />
+            )}
 
           {!resetTokenFromUrl ? (
             <input
@@ -534,7 +546,9 @@ export default component$(() => {
               <button
                 type="button"
                 aria-label={
-                  isResetPasswordVisible.value ? "Hide password" : "Show password"
+                  isResetPasswordVisible.value
+                    ? "Hide password"
+                    : "Show password"
                 }
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 onClick$={() => {
@@ -652,15 +666,15 @@ export default component$(() => {
             }}
             class="mt-4 text-sm text-emerald-300 hover:underline"
           >
-            {isForgotPasswordMode.value ? "Back to sign in" : "Forgot password?"}
+            {isForgotPasswordMode.value
+              ? "Back to sign in"
+              : "Forgot password?"}
           </button>
         ) : null}
 
         {/* SWITCH */}
         <p class="mt-6 text-center text-sm text-slate-400">
-          {isLogin.value
-            ? "New here?"
-            : "Already have an account with us?"}{" "}
+          {isLogin.value ? "New here?" : "Already have an account with us?"}{" "}
           <button
             type="button"
             onClick$={() => {

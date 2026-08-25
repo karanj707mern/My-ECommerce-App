@@ -55,10 +55,7 @@ export class EmailTemplateController {
   @ApiOperation({ summary: 'Update an existing email template (admin)' })
   @ApiResponse({ status: 404, description: 'Template not found' })
   @ApiResponse({ status: 409, description: 'Template name already exists' })
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateEmailTemplateDto,
-  ) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateEmailTemplateDto) {
     return this.emailTemplateService.update(id, dto);
   }
 

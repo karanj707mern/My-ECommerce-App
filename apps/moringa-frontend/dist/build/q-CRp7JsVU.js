@@ -1,0 +1,1 @@
+import{v as o}from"./q-93TgTwg6.js";import{x as m}from"./q-93TgTwg6.js";import{g as l}from"./q-Ca9YnS-A.js";const u=async({track:s})=>{const[a,e,t]=o();if(s(e.currentUser)?.role==="ADMIN"){t.value=!0;try{const r=await l();a.value=Array.isArray(r)?r:[]}catch{a.value=[]}finally{t.value=!1}}};export{m as _hW,u as s_gWJPQAG7LXE};

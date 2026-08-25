@@ -30,7 +30,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 export class UserController {
   constructor(
     private readonly userService: UserService,
-    private readonly deviceInfoService: DeviceInfoService,
+    private readonly deviceInfoService: DeviceInfoService
   ) {}
 
   @Roles(Role.ADMIN)
@@ -58,7 +58,7 @@ export class UserController {
   @ApiParam({ name: 'id', description: 'User ID' })
   findOne(
     @Req() req: FastifyRequest & { user: { id: number; role: Role } },
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: number
   ) {
     if (req.user.role !== Role.ADMIN && req.user.id !== id) {
       throw new ForbiddenException('You can only access your own account.');
@@ -74,7 +74,7 @@ export class UserController {
   async update(
     @Req() req: FastifyRequest & { user: { id: number; role: Role } },
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateUserDto & { captchaId?: string; captchaInput?: string },
+    @Body() dto: UpdateUserDto & { captchaId?: string; captchaInput?: string }
   ) {
     if (req.user.role !== Role.ADMIN && req.user.id !== id) {
       throw new ForbiddenException('You can only update your own account.');
@@ -82,13 +82,7 @@ export class UserController {
 
     const deviceInfo = this.deviceInfoService.extractDeviceInfo(req);
 
-    return this.userService.update(
-      id,
-      dto,
-      dto.captchaId,
-      dto.captchaInput,
-      deviceInfo,
-    );
+    return this.userService.update(id, dto, dto.captchaId, dto.captchaInput, deviceInfo);
   }
 
   @Roles(Role.ADMIN)

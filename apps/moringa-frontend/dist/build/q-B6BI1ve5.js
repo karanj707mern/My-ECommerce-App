@@ -1,0 +1,1 @@
+import{v as s}from"./q-93TgTwg6.js";import{x as c}from"./q-93TgTwg6.js";const l=({cleanup:r})=>{const[t,n]=s(),e=n.values;if(!e||e.length<=1)return;const o=window.setInterval(()=>{t.value=(t.value+1)%e.length},n.interval??2e3);r(()=>window.clearInterval(o))};export{c as _hW,l as s_207dcui7bZA};

@@ -1,4 +1,10 @@
-import { $, component$, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik";
+import {
+  $,
+  component$,
+  useSignal,
+  useStore,
+  useVisibleTask$,
+} from "@builder.io/qwik";
 import { useNavigate } from "@builder.io/qwik-city";
 import {
   createProduct,
@@ -61,7 +67,9 @@ function toFormState(product: Record<string, unknown>): ProductFormState {
     description: (product.description ?? "") as string,
     image: (product.image ?? "") as string,
     brand: (product.brand ?? "") as string,
-    tags: Array.isArray(product.tags) ? (product.tags as string[]).join(", ") : "",
+    tags: Array.isArray(product.tags)
+      ? (product.tags as string[]).join(", ")
+      : "",
     seoTitle: (product.seoTitle ?? "") as string,
     seoDescription: (product.seoDescription ?? "") as string,
     weightGrams:
@@ -135,40 +143,44 @@ export const ProductsManager = component$(() => {
     localImagePreview.value = "";
   });
 
-  const handleImageFileChange = $(async (_event: Event, el: HTMLInputElement) => {
-    const file = el.files?.[0];
-    if (!file) return;
+  const handleImageFileChange = $(
+    async (_event: Event, el: HTMLInputElement) => {
+      const file = el.files?.[0];
+      if (!file) return;
 
-    const previewUrl = URL.createObjectURL(file);
-    try {
-      uploadingImage.value = true;
-      error.value = "";
-      if (localImagePreview.value) {
-        URL.revokeObjectURL(localImagePreview.value);
+      const previewUrl = URL.createObjectURL(file);
+      try {
+        uploadingImage.value = true;
+        error.value = "";
+        if (localImagePreview.value) {
+          URL.revokeObjectURL(localImagePreview.value);
+        }
+        selectedImageName.value = file.name;
+        localImagePreview.value = previewUrl;
+        const response = (await uploadProductImage(file)) as {
+          imageUrl: string;
+        };
+        form.image = response.imageUrl;
+        await toast.showToast({
+          severity: "success",
+          summary: "Success",
+          detail: "Product image uploaded successfully.",
+          life: 4000,
+        });
+      } catch (err) {
+        URL.revokeObjectURL(previewUrl);
+        localImagePreview.value = "";
+        selectedImageName.value = "";
+        error.value =
+          err instanceof Error && err.message
+            ? err.message
+            : "Could not upload image.";
+      } finally {
+        uploadingImage.value = false;
+        el.value = "";
       }
-      selectedImageName.value = file.name;
-      localImagePreview.value = previewUrl;
-      const response = (await uploadProductImage(file)) as { imageUrl: string };
-      form.image = response.imageUrl;
-      await toast.showToast({
-        severity: "success",
-        summary: "Success",
-        detail: "Product image uploaded successfully.",
-        life: 4000,
-      });
-    } catch (err) {
-      URL.revokeObjectURL(previewUrl);
-      localImagePreview.value = "";
-      selectedImageName.value = "";
-      error.value =
-        err instanceof Error && err.message
-          ? err.message
-          : "Could not upload image.";
-    } finally {
-      uploadingImage.value = false;
-      el.value = "";
-    }
-  });
+    },
+  );
 
   const handleSubmit = $(async () => {
     error.value = "";
@@ -290,7 +302,11 @@ export const ProductsManager = component$(() => {
           ) : null}
         </div>
 
-        <form preventdefault:submit onSubmit$={handleSubmit} class="mt-8 space-y-4">
+        <form
+          preventdefault:submit
+          onSubmit$={handleSubmit}
+          class="mt-8 space-y-4"
+        >
           <input
             placeholder="Product name"
             aria-label="Product name"

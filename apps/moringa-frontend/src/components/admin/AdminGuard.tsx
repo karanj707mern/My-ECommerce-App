@@ -1,4 +1,10 @@
-import { $, Slot, component$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
+import {
+  $,
+  Slot,
+  component$,
+  useSignal,
+  useVisibleTask$,
+} from "@builder.io/qwik";
 import { useNavigate } from "@builder.io/qwik-city";
 import { getProfile } from "../../lib/api/auth";
 import { clearToken, setCurrentUser } from "../../lib/storage";

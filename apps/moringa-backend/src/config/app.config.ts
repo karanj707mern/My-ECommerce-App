@@ -14,27 +14,19 @@ export const appConfig = registerAs('app', () => ({
   environment: process.env.NODE_ENV ?? 'development',
   isProduction: process.env.NODE_ENV === 'production',
   port: parseInt(process.env.PORT ?? '5000', 10),
-  siteUrl:
-    process.env.SITE_URL ??
-    process.env.FRONTEND_URL?.split(',')[0]?.trim() ??
-    '',
+  siteUrl: process.env.SITE_URL ?? process.env.FRONTEND_URL?.split(',')[0]?.trim() ?? '',
   frontendUrl: process.env.FRONTEND_URL ?? '',
   backendUrl:
-    process.env.BACKEND_URL ??
-    process.env.API_PUBLIC_URL ??
-    process.env.FRONTEND_URL ??
-    '',
+    process.env.BACKEND_URL ?? process.env.API_PUBLIC_URL ?? process.env.FRONTEND_URL ?? '',
   corsOrigins: Array.from(
     new Set(
       [
-        ...(process.env.CORS_ORIGINS ?? process.env.FRONTEND_URL ?? '').split(
-          ',',
-        ),
+        ...(process.env.CORS_ORIGINS ?? process.env.FRONTEND_URL ?? '').split(','),
         ...defaultCorsOrigins,
       ]
         .map((origin) => origin.trim())
-        .filter(Boolean),
-    ),
+        .filter(Boolean)
+    )
   ),
   jwtSecret: process.env.JWT_SECRET ?? '',
   googleClientId: process.env.GOOGLE_CLIENT_ID ?? '',
@@ -78,10 +70,7 @@ export const redisConfig = registerAs('redis', () => ({
 }));
 
 export const notificationsConfig = registerAs('notifications', () => ({
-  retryIntervalMs: parseInt(
-    process.env.NOTIFICATION_RETRY_INTERVAL_MS ?? '60000',
-    10,
-  ),
+  retryIntervalMs: parseInt(process.env.NOTIFICATION_RETRY_INTERVAL_MS ?? '60000', 10),
   maxAttempts: parseInt(process.env.NOTIFICATION_MAX_ATTEMPTS ?? '3', 10),
   twilio: {
     accountSid: process.env.TWILIO_ACCOUNT_SID ?? '',

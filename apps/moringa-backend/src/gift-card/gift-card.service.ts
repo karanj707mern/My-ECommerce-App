@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as crypto from 'crypto';
 
@@ -132,9 +128,7 @@ export class GiftCardService {
     }
 
     if (giftCard.redeemedBy && giftCard.redeemedAt) {
-      throw new BadRequestException(
-        'This gift card has already been redeemed.',
-      );
+      throw new BadRequestException('This gift card has already been redeemed.');
     }
 
     const updatedGiftCard = await this.prisma.giftCard.update({

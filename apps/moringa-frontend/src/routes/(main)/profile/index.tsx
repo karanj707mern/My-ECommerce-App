@@ -95,7 +95,8 @@ export default component$(() => {
         postalCode: (data.user.postalCode as string) ?? "",
         country: (data.user.country as string) ?? "India",
       };
-      addresses.value = (data.user.addresses as Record<string, unknown>[]) ?? [];
+      addresses.value =
+        (data.user.addresses as Record<string, unknown>[]) ?? [];
       const msg = successMessage || data.message || "";
       if (msg) {
         void toast.showToast({
@@ -127,7 +128,7 @@ export default component$(() => {
       };
       await applyProfileResponse(data);
       avatarPreview.value =
-        ((data.user?.avatar as string | null | undefined) || null);
+        (data.user?.avatar as string | null | undefined) || null;
     } catch (err) {
       if (hasStatus(err, 401)) {
         await redirectToAuth();
@@ -254,10 +255,9 @@ export default component$(() => {
 
     try {
       const data = editingAddressId.value
-        ? ((await updateUserAddress(
-            editingAddressId.value,
-            { ...addressForm.value },
-          )) as { user: Record<string, unknown>; message?: string })
+        ? ((await updateUserAddress(editingAddressId.value, {
+            ...addressForm.value,
+          })) as { user: Record<string, unknown>; message?: string })
         : ((await createUserAddress({ ...addressForm.value })) as {
             user: Record<string, unknown>;
             message?: string;
@@ -381,7 +381,11 @@ export default component$(() => {
                 Loading profile...
               </div>
             ) : (
-              <form preventdefault:submit onSubmit$={handleSubmit} class="space-y-6">
+              <form
+                preventdefault:submit
+                onSubmit$={handleSubmit}
+                class="space-y-6"
+              >
                 <div>
                   <p class="text-sm uppercase tracking-[0.1em] text-emerald-700 dark:text-emerald-300">
                     Account Details
@@ -405,13 +409,12 @@ export default component$(() => {
                       ) : (
                         <span class="text-3xl font-semibold">
                           {(
-                            (form.value.name ||
-                              ((currentUser.value?.email as string) ?? "") ||
-                              "U"
-                            )
-                              .charAt(0)
-                              .toUpperCase()
-                          )}
+                            form.value.name ||
+                            ((currentUser.value?.email as string) ?? "") ||
+                            "U"
+                          )
+                            .charAt(0)
+                            .toUpperCase()}
                         </span>
                       )}
                     </div>
@@ -431,7 +434,9 @@ export default component$(() => {
                         disabled={!avatarFile.value || uploadingAvatar.value}
                         class="btn-primary disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        {uploadingAvatar.value ? "Uploading..." : "Upload photo"}
+                        {uploadingAvatar.value
+                          ? "Uploading..."
+                          : "Upload photo"}
                       </button>
                       {avatarPreview.value ? (
                         <button

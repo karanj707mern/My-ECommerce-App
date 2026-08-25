@@ -1,0 +1,1 @@
+import{I as e,R as r}from"./q-93TgTwg6.js";const s=a=>e("div",{class:`skeleton ${{text:"rounded",rounded:"rounded",circular:"rounded-full",rectangular:"rounded-lg"}[a.variant??"rectangular"]} ${a.class??""}`},{style:r(t=>({width:t.width??"100%",height:t.height??(t.variant==="text"?"1rem":"100%")}),[a]),"aria-hidden":"true"},null,3,"wZ_0");export{s as s_SkWMRa4OCkA};

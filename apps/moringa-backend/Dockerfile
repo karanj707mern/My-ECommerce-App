@@ -22,7 +22,7 @@ WORKDIR /repo
 COPY package.json package-lock.json ./
 COPY apps/moringa-backend/package.json apps/moringa-backend/package-lock.json* apps/moringa-backend/
 COPY apps/moringa-frontend/package.json apps/moringa-frontend/
-COPY libs/nestia-sdk/package.json libs/nestia-sdk/
+COPY libs/sdk/package.json libs/sdk/
 COPY libs/shared/package.json libs/shared/
 COPY libs/ui/package.json libs/ui/
 RUN npm ci --no-audit --no-fund

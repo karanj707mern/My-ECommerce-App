@@ -64,17 +64,17 @@ export class RabbitMQService implements OnModuleDestroy {
       await this.channel.bindQueue(
         this.config.queues.orderEvents,
         this.config.exchangeName,
-        'order.*',
+        'order.*'
       );
       await this.channel.bindQueue(
         this.config.queues.notifications,
         this.config.exchangeName,
-        'notification.*',
+        'notification.*'
       );
       await this.channel.bindQueue(
         this.config.queues.analytics,
         this.config.exchangeName,
-        'analytics.*',
+        'analytics.*'
       );
 
       this.connected = true;
@@ -107,17 +107,12 @@ export class RabbitMQService implements OnModuleDestroy {
     const routingKey = payload.type.replace(/\./g, '_');
     const message = Buffer.from(JSON.stringify(payload));
 
-    const published = this.channel.publish(
-      this.config.exchangeName,
-      routingKey,
-      message,
-      {
-        persistent: true,
-        contentType: 'application/json',
-        messageId: payload.idempotencyKey,
-        timestamp: payload.timestamp,
-      },
-    );
+    const published = this.channel.publish(this.config.exchangeName, routingKey, message, {
+      persistent: true,
+      contentType: 'application/json',
+      messageId: payload.idempotencyKey,
+      timestamp: payload.timestamp,
+    });
 
     if (!published) {
       throw new Error('Failed to publish message to RabbitMQ');
@@ -126,7 +121,7 @@ export class RabbitMQService implements OnModuleDestroy {
 
   async consume(
     queueName: string,
-    onMessage: (payload: MessagePayload) => Promise<void>,
+    onMessage: (payload: MessagePayload) => Promise<void>
   ): Promise<void> {
     // No broker → no consumer; callers already degrade gracefully.
     if (!this.config.url || !this.channel) {

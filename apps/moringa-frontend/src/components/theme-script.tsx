@@ -1,4 +1,4 @@
-import { component$ } from '@builder.io/qwik';
+import { component$ } from "@builder.io/qwik";
 
 /**
  * Inline theme bootstrap script. Runs before first paint to apply the

@@ -58,8 +58,18 @@ export class AuthCookiesService {
   }
 
   clearAuthCookies(res: FastifyReply) {
-    res.clearCookie('accessToken', { path: '/', httpOnly: true, sameSite: 'strict', secure: process.env.NODE_ENV === 'production' });
-    res.clearCookie('refreshToken', { path: '/', httpOnly: true, sameSite: 'strict', secure: process.env.NODE_ENV === 'production' });
+    res.clearCookie('accessToken', {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+    });
+    res.clearCookie('refreshToken', {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+    });
   }
 
   queueClearAuthCookies(req: FastifyRequest) {
@@ -68,13 +78,21 @@ export class AuthCookiesService {
     if (!cookieState) {
       return;
     }
-    cookieState.clearCookie('accessToken', { path: '/', httpOnly: true, sameSite: 'strict', secure: isProduction });
-    cookieState.clearCookie('refreshToken', { path: '/', httpOnly: true, sameSite: 'strict', secure: isProduction });
+    cookieState.clearCookie('accessToken', {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: isProduction,
+    });
+    cookieState.clearCookie('refreshToken', {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: isProduction,
+    });
   }
 
   clearCsrfCookie(res: FastifyReply) {
     res.clearCookie('csrf-token');
   }
 }
-
-

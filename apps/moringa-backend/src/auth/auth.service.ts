@@ -60,7 +60,7 @@ export class AuthService {
     private readonly cache: RedisCacheService,
     private readonly sessionService: SessionService,
     private readonly deviceInfoService: DeviceInfoService,
-    private readonly tokenRevocationService: TokenRevocationService,
+    private readonly tokenRevocationService: TokenRevocationService
   ) {}
 
   private normalizeEmail(email: string) {
@@ -88,20 +88,10 @@ export class AuthService {
     return user.emailVerifyLastSentAt.getTime() <= Date.now() - 2 * 60 * 1000;
   }
 
-  private async generateTokens(payload: {
-    id: number;
-    email: string;
-    role: string;
-  }) {
+  private async generateTokens(payload: { id: number; email: string; role: string }) {
     const jti = crypto.randomUUID();
-    const accessToken = await this.jwt.signAsync(
-      { ...payload, jti },
-      { expiresIn: '15m' },
-    );
-    const refreshToken = await this.jwt.signAsync(
-      { ...payload, jti },
-      { expiresIn: '7d' },
-    );
+    const accessToken = await this.jwt.signAsync({ ...payload, jti }, { expiresIn: '15m' });
+    const refreshToken = await this.jwt.signAsync({ ...payload, jti }, { expiresIn: '7d' });
     return { accessToken, refreshToken, jti };
   }
 
@@ -139,10 +129,7 @@ export class AuthService {
       where: { emailVerifyToken: hashed },
     });
 
-    if (
-      !user?.emailVerifyTokenExpiresAt ||
-      user.emailVerifyTokenExpiresAt.getTime() < Date.now()
-    ) {
+    if (!user?.emailVerifyTokenExpiresAt || user.emailVerifyTokenExpiresAt.getTime() < Date.now()) {
       throw new UnauthorizedException('Invalid or expired token');
     }
 
@@ -160,9 +147,7 @@ export class AuthService {
     };
   }
 
-  async resendVerification(
-    dto: { email: string },
-  ): Promise<{ message: string }> {
+  async resendVerification(dto: { email: string }): Promise<{ message: string }> {
     const email = this.normalizeEmail(dto.email);
 
     const user = await this.prisma.user.findUnique({
@@ -196,7 +181,7 @@ export class AuthService {
       user.email,
       token,
       user.name,
-      user.id,
+      user.id
     );
 
     return {
@@ -237,7 +222,7 @@ export class AuthService {
       user.email,
       token,
       user.name,
-      user.id,
+      user.id
     );
 
     return {
@@ -245,7 +230,10 @@ export class AuthService {
     };
   }
 
-  async resetPassword(dto: { token: string; password: string }): Promise<{ message: string; email: string }> {
+  async resetPassword(dto: {
+    token: string;
+    password: string;
+  }): Promise<{ message: string; email: string }> {
     const hashed = crypto.createHash('sha256').update(dto.token).digest('hex');
 
     const user = await this.prisma.user.findFirst({
@@ -297,10 +285,7 @@ export class AuthService {
       createdAt: true,
       updatedAt: true,
       addresses: {
-        orderBy: [
-          { isDefault: 'desc' as const },
-          { updatedAt: 'desc' as const },
-        ],
+        orderBy: [{ isDefault: 'desc' as const }, { updatedAt: 'desc' as const }],
       },
     };
   }
@@ -308,7 +293,7 @@ export class AuthService {
   private async buildAuthResponse(
     userId: number,
     message: string,
-    deviceInfo?: DeviceInfo,
+    deviceInfo?: DeviceInfo
   ): Promise<AuthResponse> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -328,14 +313,14 @@ export class AuthService {
     const { accessToken, refreshToken, jti } = await this.generateTokens(payload);
     await this.createSession(user.id, refreshToken, deviceInfo, jti);
 
-    return { message, accessToken, refreshToken, user: user as SafeUser };
+    return { message, accessToken, refreshToken, user: user };
   }
 
   private async createSession(
     userId: number,
     refreshToken: string,
     deviceInfo?: DeviceInfo,
-    jti?: string,
+    jti?: string
   ) {
     await this.sessionService.createSession(userId, refreshToken, deviceInfo, jti);
   }
@@ -350,7 +335,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    return { message: 'Profile loaded', user: user as SafeUser };
+    return { message: 'Profile loaded', user: user };
   }
 
   async updateProfile(
@@ -365,7 +350,7 @@ export class AuthService {
       postalCode?: string;
       country?: string;
       avatar?: string;
-    },
+    }
   ): Promise<{ message: string; user: SafeUser }> {
     const data: Record<string, unknown> = {};
     if (dto.name !== undefined) data.name = dto.name.trim();
@@ -406,7 +391,7 @@ export class AuthService {
       postalCode: string;
       country: string;
       isDefault?: boolean;
-    },
+    }
   ): Promise<{ message: string; user: SafeUser }> {
     await this.prisma.userAddress.create({
       data: { ...dto, userId },
@@ -429,7 +414,7 @@ export class AuthService {
       postalCode?: string;
       country?: string;
       isDefault?: boolean;
-    },
+    }
   ): Promise<{ message: string; user: SafeUser }> {
     const address = await this.prisma.userAddress.findFirst({
       where: { id, userId },
@@ -447,10 +432,7 @@ export class AuthService {
     return this.getProfile(userId);
   }
 
-  async removeAddress(
-    userId: number,
-    id: number,
-  ): Promise<{ message: string; user: SafeUser }> {
+  async removeAddress(userId: number, id: number): Promise<{ message: string; user: SafeUser }> {
     const address = await this.prisma.userAddress.findFirst({
       where: { id, userId },
     });
@@ -465,7 +447,7 @@ export class AuthService {
 
   async changePassword(
     userId: number,
-    dto: { currentPassword: string; newPassword: string },
+    dto: { currentPassword: string; newPassword: string }
   ): Promise<{ message: string }> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
@@ -493,7 +475,12 @@ export class AuthService {
     return { message: 'Password updated successfully' };
   }
 
-  async login(dto: { email: string; password: string; captchaId?: string; captchaInput?: string }): Promise<{ message: string; accessToken: string; refreshToken: string; user: SafeUser }> {
+  async login(dto: {
+    email: string;
+    password: string;
+    captchaId?: string;
+    captchaInput?: string;
+  }): Promise<{ message: string; accessToken: string; refreshToken: string; user: SafeUser }> {
     const email = this.normalizeEmail(dto.email);
     const user = await this.prisma.user.findUnique({ where: { email } });
 
@@ -526,7 +513,13 @@ export class AuthService {
     return result;
   }
 
-  async register(dto: { name: string; email: string; password: string; captchaId?: string; captchaInput?: string }): Promise<{ message: string; accessToken: string; refreshToken: string; user: SafeUser }> {
+  async register(dto: {
+    name: string;
+    email: string;
+    password: string;
+    captchaId?: string;
+    captchaInput?: string;
+  }): Promise<{ message: string; accessToken: string; refreshToken: string; user: SafeUser }> {
     const email = this.normalizeEmail(dto.email);
     const existing = await this.prisma.user.findUnique({ where: { email } });
 
@@ -549,18 +542,16 @@ export class AuthService {
       select: this.getSafeUserSelect(),
     });
 
-    await this.emailVerificationService.sendVerificationEmail(
-      email,
-      token,
-      user.name,
-      user.id,
-    );
+    await this.emailVerificationService.sendVerificationEmail(email, token, user.name, user.id);
 
     const result = await this.buildAuthResponse(user.id, 'Registration successful');
     return result;
   }
 
-  async getSession(accessToken?: string, refreshToken?: string): Promise<{ authenticated: boolean; user: SafeUser | null }> {
+  async getSession(
+    accessToken?: string,
+    refreshToken?: string
+  ): Promise<{ authenticated: boolean; user: SafeUser | null }> {
     if (!accessToken && !refreshToken) {
       return { authenticated: false, user: null };
     }
@@ -585,7 +576,9 @@ export class AuthService {
     }
   }
 
-  async refreshAccessToken(refreshToken: string): Promise<{ message: string; accessToken: string; refreshToken: string }> {
+  async refreshAccessToken(
+    refreshToken: string
+  ): Promise<{ message: string; accessToken: string; refreshToken: string }> {
     const session = await this.sessionService.findSessionByRefreshToken(0, refreshToken);
 
     if (!session) {

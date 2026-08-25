@@ -1,12 +1,14 @@
 import { $, component$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
 import { Link, useLocation, useNavigate } from "@builder.io/qwik-city";
 import { io, type Socket } from "socket.io-client";
-import { cancelOrder, createOrderIssue, getOrders, getOrderInvoice } from "../../lib/api/order";
-import { SOCKET_BASE_URL } from "../../lib/config";
 import {
-  clearToken,
-} from "../../lib/storage";
-import { signOutCurrentUser } from "../../lib/session";
+  cancelOrder,
+  createOrderIssue,
+  getOrders,
+  getOrderInvoice,
+} from "../../lib/api/order";
+import { SOCKET_BASE_URL } from "../../lib/config";
+import { clearToken } from "../../lib/storage";
 import { buildInvoiceHtml } from "../../lib/invoice";
 import {
   ACTIVE_STATUSES,
@@ -68,10 +70,15 @@ export const OrdersPage = component$(() => {
   const orderSortOption = useSignal("newest");
   const issueForms = useSignal<Record<string, IssueFormState>>({});
 
-  useAutoDismiss(error, $(() => { error.value = ""; }), 5000);
+  useAutoDismiss(
+    error,
+    $(() => {
+      error.value = "";
+    }),
+    5000,
+  );
 
   const currentUserId = currentUser.value?.id as string | number | undefined;
-  const isAdmin = currentUser.value?.role === "ADMIN";
 
   const redirectToAuth = $(async () => {
     clearToken();
@@ -252,14 +259,13 @@ export const OrdersPage = component$(() => {
           (order.activities as Record<string, unknown>[]) || [];
         const deliveredAt = order.deliveredAt
           ? new Date(order.deliveredAt as string).getTime()
-          : ((activities.find((activity) => activity.status === "DELIVERED")
-              ?.createdAt as string | undefined)
+          : (activities.find((activity) => activity.status === "DELIVERED")
+                ?.createdAt as string | undefined)
             ? new Date(
-                activities.find(
-                  (activity) => activity.status === "DELIVERED",
-                )?.createdAt as string,
+                activities.find((activity) => activity.status === "DELIVERED")
+                  ?.createdAt as string,
               ).getTime()
-            : null);
+            : null;
         return (
           deliveredAt !== null &&
           Number.isNaN(deliveredAt) === false &&
@@ -306,10 +312,7 @@ export const OrdersPage = component$(() => {
         order,
       })),
     )
-    .filter(
-      (ticket) =>
-        getIssueSearchValue(ticket).includes(searchTermValue),
-    );
+    .filter((ticket) => getIssueSearchValue(ticket).includes(searchTermValue));
 
   const sortedSupportTickets = [...supportTickets].sort((left, right) => {
     const leftOrder = left.order as Record<string, unknown>;
@@ -332,10 +335,30 @@ export const OrdersPage = component$(() => {
   });
 
   const trackingLinks = [
-    { key: "active", label: "Active", path: "/orders/active", count: sortedCurrentOrders.length },
-    { key: "delivered", label: "Delivered", path: "/orders/delivered", count: sortedCompletedOrders.length },
-    { key: "cancelled", label: "Cancelled", path: "/orders/cancelled", count: sortedCancelledOrders.length },
-    { key: "support", label: "Support tickets", path: "/orders/support", count: supportTickets.length },
+    {
+      key: "active",
+      label: "Active",
+      path: "/orders/active",
+      count: sortedCurrentOrders.length,
+    },
+    {
+      key: "delivered",
+      label: "Delivered",
+      path: "/orders/delivered",
+      count: sortedCompletedOrders.length,
+    },
+    {
+      key: "cancelled",
+      label: "Cancelled",
+      path: "/orders/cancelled",
+      count: sortedCancelledOrders.length,
+    },
+    {
+      key: "support",
+      label: "Support tickets",
+      path: "/orders/support",
+      count: supportTickets.length,
+    },
   ];
 
   const lastSegment = loc.url.pathname.split("/").pop() || "active";
@@ -378,7 +401,8 @@ export const OrdersPage = component$(() => {
       : availableIssueTypes[0]?.value;
 
     if (!selectedType) {
-      error.value = "Support requests are not available for this order right now.";
+      error.value =
+        "Support requests are not available for this order right now.";
       return;
     }
 

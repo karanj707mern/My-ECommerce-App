@@ -27,10 +27,7 @@ export interface OrderJobData {
   idempotencyKey: string;
 }
 
-export type OrderJobHandler = (
-  data: OrderJobData,
-  job: Job<OrderJobData>,
-) => Promise<void>;
+export type OrderJobHandler = (data: OrderJobData, job: Job<OrderJobData>) => Promise<void>;
 
 @Injectable()
 export class BullMQService implements OnModuleDestroy {
@@ -57,7 +54,10 @@ export class BullMQService implements OnModuleDestroy {
           type: config.defaultJobOptions?.backoff?.type ?? 'exponential',
           delay: config.defaultJobOptions?.backoff?.delay ?? 1000,
         },
-        removeOnComplete: config.defaultJobOptions?.removeOnComplete ?? { count: 100, age: 24 * 3600 },
+        removeOnComplete: config.defaultJobOptions?.removeOnComplete ?? {
+          count: 100,
+          age: 24 * 3600,
+        },
         removeOnFail: config.defaultJobOptions?.removeOnFail ?? { age: 7 * 24 * 3600 },
       },
     });
@@ -72,7 +72,7 @@ export class BullMQService implements OnModuleDestroy {
           // Unknown/unwired actions are acknowledged with a warning so they do
           // not retry forever and poison the queue.
           console.warn(
-            `[BullMQ] no processor registered for action "${action}" — job ${job.id} skipped`,
+            `[BullMQ] no processor registered for action "${action}" — job ${job.id} skipped`
           );
           return;
         }
@@ -84,7 +84,7 @@ export class BullMQService implements OnModuleDestroy {
         concurrency: 10,
         removeOnComplete: { count: 100, age: 24 * 3600 },
         removeOnFail: { age: 7 * 24 * 3600 },
-      },
+      }
     );
 
     this.worker.on('completed', (job) => {
@@ -109,17 +109,13 @@ export class BullMQService implements OnModuleDestroy {
   }
 
   async enqueue(data: OrderJobData): Promise<void> {
-    await this.queue.add(
-      'order-event',
-      data,
-      {
-        // BullMQ forbids ':' in custom job ids; idempotency keys are built
-        // from colon-joined segments, so normalize to dashes.
-        jobId: `order-${data.orderId}-${data.action}-${data.idempotencyKey}`.replace(/:/g, '-'),
-        removeOnComplete: true,
-        removeOnFail: false,
-      },
-    );
+    await this.queue.add('order-event', data, {
+      // BullMQ forbids ':' in custom job ids; idempotency keys are built
+      // from colon-joined segments, so normalize to dashes.
+      jobId: `order-${data.orderId}-${data.action}-${data.idempotencyKey}`.replace(/:/g, '-'),
+      removeOnComplete: true,
+      removeOnFail: false,
+    });
   }
 
   async getJob(jobId: string): Promise<Job<OrderJobData> | undefined> {

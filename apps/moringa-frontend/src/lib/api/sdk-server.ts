@@ -62,7 +62,12 @@ export class ApiError extends Error {
   readonly status?: number;
   readonly payload: unknown;
 
-  constructor(kind: ApiErrorKind, message: string, status?: number, payload?: unknown) {
+  constructor(
+    kind: ApiErrorKind,
+    message: string,
+    status?: number,
+    payload?: unknown,
+  ) {
     super(message);
     this.name = "ApiError";
     this.kind = kind;
@@ -96,7 +101,8 @@ function resolveServerApiBaseUrl(): string {
 function resolveRequestId(event: ServerRequestLike): string {
   return (
     event.headers.get("x-request-id") ??
-    (globalThis.crypto?.randomUUID?.() ?? `req-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`)
+    globalThis.crypto?.randomUUID?.() ??
+    `req-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
   );
 }
 
@@ -107,7 +113,9 @@ function resolveRequestId(event: ServerRequestLike): string {
  * to module scope — a shared connection would cross-wire cookies between
  * concurrent users on the streaming SSR server.
  */
-export function createServerConnection(input: ServerConnectionInput): IConnection {
+export function createServerConnection(
+  input: ServerConnectionInput,
+): IConnection {
   const { event, timeoutMs = DEFAULT_TIMEOUT_MS } = input;
 
   const cookie = event.headers.get("cookie");
@@ -219,7 +227,9 @@ export async function invokeSdk<T>(
   call: () => Promise<T>,
   options: InvokeOptions = {},
 ): Promise<T> {
-  const budget = options.idempotent ? (options.attempts ?? DEFAULT_ATTEMPTS) : 1;
+  const budget = options.idempotent
+    ? (options.attempts ?? DEFAULT_ATTEMPTS)
+    : 1;
   let lastError: ApiError | null = null;
 
   for (let attempt = 0; attempt < budget; attempt++) {
@@ -228,11 +238,16 @@ export async function invokeSdk<T>(
     } catch (err) {
       lastError = toApiError(err);
       const canRetry =
-        attempt + 1 < budget && options.idempotent === true && isRetryable(lastError);
+        attempt + 1 < budget &&
+        options.idempotent === true &&
+        isRetryable(lastError);
       if (!canRetry) break;
       await sleep(backoffDelay(attempt));
     }
   }
 
-  throw lastError ?? new ApiError("unknown", "API call failed without an error object.");
+  throw (
+    lastError ??
+    new ApiError("unknown", "API call failed without an error object.")
+  );
 }

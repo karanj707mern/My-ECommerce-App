@@ -8,8 +8,7 @@ import { RedisCacheService } from '../cache/redis-cache.service';
 import { AbandonedCartService } from '../analytics/abandoned-cart.service';
 
 @Module({
-  imports: [
-    AuthSharedModule,PrismaModule, InfrastructureModule],
+  imports: [AuthSharedModule, PrismaModule, InfrastructureModule],
   controllers: [CartController],
   providers: [CartService, RedisCacheService, AbandonedCartService],
   exports: [CartService],

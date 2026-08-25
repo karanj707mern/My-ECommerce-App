@@ -32,11 +32,9 @@
     --input-bg: #ffffff;
     --input-border: #e7e5e4;
     --shadow-card:
-      -1px -1px 2px rgba(255, 255, 255, 0.7),
-      1px 1px 3px rgba(0, 0, 0, 0.1);
+      -1px -1px 2px rgba(255, 255, 255, 0.7), 1px 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-card-hover:
-      -1px -1px 3px rgba(255, 255, 255, 0.85),
-      1px 1px 5px rgba(0, 0, 0, 0.18);
+      -1px -1px 3px rgba(255, 255, 255, 0.85), 1px 1px 5px rgba(0, 0, 0, 0.18);
     --hero-bg-start: #dff5dd;
     --hero-bg-mid: #f6f2e8;
     --hero-bg-end: #f8f7f3;
@@ -50,6 +48,8 @@
     --text-secondary: #e7e5e4;
     --text-muted: #a8a29e;
     --text-muted-strong: #78716c;
+    --text-accent: #22d3ee;
+    --text-accent-strong: #06b6d4;
     --border-color: #44403c;
     --border-strong: #57534e;
     --fab-border: #10b981;
@@ -72,11 +72,9 @@
     --input-bg: #1c1917;
     --input-border: #44403c;
     --shadow-card:
-      -1px -1px 2px rgba(255, 255, 255, 0.08),
-      1px 1px 3px rgba(0, 0, 0, 0.45);
+      -1px -1px 2px rgba(255, 255, 255, 0.08), 1px 1px 3px rgba(0, 0, 0, 0.45);
     --shadow-card-hover:
-      -1px -1px 3px rgba(255, 255, 255, 0.12),
-      1px 1px 5px rgba(0, 0, 0, 0.6);
+      -1px -1px 3px rgba(255, 255, 255, 0.12), 1px 1px 5px rgba(0, 0, 0, 0.6);
     --hero-bg-start: #0f3d2e;
     --hero-bg-mid: #1a3c2a;
     --hero-bg-end: #0c0a09;
@@ -93,6 +91,7 @@
     background-color: var(--bg-primary);
     color: var(--text-primary);
     font-family:
+      var(--font-instrument-sans),
       ui-sans-serif,
       system-ui,
       -apple-system,
@@ -284,7 +283,9 @@
     pointer-events: none;
     opacity: 0;
     clip-path: inset(0 100% 0 0);
-    transition: clip-path 0.35s linear, opacity 0.15s;
+    transition:
+      clip-path 0.35s linear,
+      opacity 0.15s;
     filter: drop-shadow(0 0 6px rgba(5, 150, 105, 0.85));
     z-index: 1;
   }
@@ -340,7 +341,9 @@
     pointer-events: none;
     opacity: 0;
     clip-path: inset(0 100% 0 0);
-    transition: clip-path 0.35s linear, opacity 0.15s;
+    transition:
+      clip-path 0.35s linear,
+      opacity 0.15s;
     filter: drop-shadow(0 0 6px rgba(5, 150, 105, 0.85));
     z-index: 1;
   }
@@ -420,7 +423,9 @@
     pointer-events: none;
     opacity: 0;
     clip-path: inset(0 100% 0 0);
-    transition: clip-path 0.35s linear, opacity 0.15s;
+    transition:
+      clip-path 0.35s linear,
+      opacity 0.15s;
     filter: drop-shadow(0 0 6px rgba(5, 150, 105, 0.85));
     z-index: 1;
   }
@@ -625,7 +630,9 @@
     pointer-events: none;
     opacity: 0;
     clip-path: inset(0 100% 0 0);
-    transition: clip-path 0.35s linear, opacity 0.15s;
+    transition:
+      clip-path 0.35s linear,
+      opacity 0.15s;
     filter: drop-shadow(0 0 6px rgba(5, 150, 105, 0.85));
     z-index: 1;
   }
@@ -726,7 +733,9 @@
 .admin-nav-item {
   position: relative;
   border: 2px solid var(--border-color);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .admin-nav-item::after {
@@ -738,7 +747,9 @@
   pointer-events: none;
   opacity: 0;
   clip-path: inset(0 100% 0 0);
-  transition: clip-path 0.35s linear, opacity 0.15s;
+  transition:
+    clip-path 0.35s linear,
+    opacity 0.15s;
   filter: drop-shadow(0 0 6px rgba(5, 150, 105, 0.85));
   z-index: 1;
 }
@@ -785,7 +796,9 @@
   position: relative;
   border: 2px solid var(--border-color);
   user-select: none;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .admin-sidebar-theme-toggle::after {
@@ -797,7 +810,9 @@
   pointer-events: none;
   opacity: 0;
   clip-path: inset(0 100% 0 0);
-  transition: clip-path 0.35s linear, opacity 0.15s;
+  transition:
+    clip-path 0.35s linear,
+    opacity 0.15s;
   filter: drop-shadow(0 0 6px rgba(5, 150, 105, 0.85));
   z-index: 1;
 }
@@ -875,5 +890,17 @@
       0 0 14px rgba(34, 211, 238, 0.8),
       0 0 28px rgba(34, 211, 238, 0.4),
       0 0 40px rgba(34, 211, 238, 0.2);
+  }
+}
+
+/* Floating particles used by the themed 404 page (ported from legacy
+   Next.js `not-found.tsx` styled-jsx block). */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
   }
 }

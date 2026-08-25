@@ -12,26 +12,15 @@ import { CouponModule } from '../coupon/coupon.module';
 import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-  imports: [
-    AuthSharedModule,
-    PrismaModule,
-    InfrastructureModule,
-    CouponModule,
-    NotificationModule,
-  ],
+  imports: [AuthSharedModule, PrismaModule, InfrastructureModule, CouponModule, NotificationModule],
   controllers: [OrderController],
-  providers: [
-    OrderService,
-    OrderProcessor,
-    OrderEventsService,
-    OrderNotificationService,
-  ],
+  providers: [OrderService, OrderProcessor, OrderEventsService, OrderNotificationService],
   exports: [OrderService, OrderEventsService, OrderNotificationService],
 })
 export class OrderModule implements OnModuleInit {
   constructor(
     private readonly bullMQService: BullMQService,
-    private readonly orderProcessor: OrderProcessor,
+    private readonly orderProcessor: OrderProcessor
   ) {}
 
   /**
@@ -48,9 +37,7 @@ export class OrderModule implements OnModuleInit {
     ] as const;
 
     for (const action of actions) {
-      this.bullMQService.registerProcessor(action, (data, job) =>
-        this.orderProcessor.process(job),
-      );
+      this.bullMQService.registerProcessor(action, (data, job) => this.orderProcessor.process(job));
     }
   }
 }

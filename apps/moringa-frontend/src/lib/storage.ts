@@ -173,9 +173,9 @@ export function getCartItems(): CartItemRecord[] {
   }
 }
 
-export function addCartItem<T extends { id: string | number; quantity?: number }>(
-  item: T,
-): CartItemRecord[] {
+export function addCartItem<
+  T extends { id: string | number; quantity?: number },
+>(item: T): CartItemRecord[] {
   if (typeof window === "undefined") return [];
 
   const currentItems = getCartItems();

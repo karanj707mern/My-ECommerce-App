@@ -10,8 +10,7 @@ import { InfrastructureModule } from '../infrastructure/infrastructure.module';
 import { RedisCacheService } from '../cache/redis-cache.service';
 
 @Module({
-  imports: [
-    AuthModule,AuthSharedModule, PrismaModule, AuditModule, InfrastructureModule],
+  imports: [AuthModule, AuthSharedModule, PrismaModule, AuditModule, InfrastructureModule],
   controllers: [ReviewController],
   providers: [ReviewService, RolesGuard, RedisCacheService],
   exports: [ReviewService],

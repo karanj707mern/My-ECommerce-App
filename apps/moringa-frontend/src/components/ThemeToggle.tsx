@@ -1,4 +1,10 @@
-import { $, component$, useOnWindow, useSignal, useVisibleTask$ } from "@builder.io/qwik";
+import {
+  $,
+  component$,
+  useOnWindow,
+  useSignal,
+  useVisibleTask$,
+} from "@builder.io/qwik";
 
 /**
  * Self-contained theme switch. Toggles the `dark` class on <html> and

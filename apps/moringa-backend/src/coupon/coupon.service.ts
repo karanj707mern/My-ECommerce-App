@@ -26,7 +26,7 @@ export class CouponService {
 
     if (coupon.minOrderValue && orderValue < coupon.minOrderValue) {
       throw new BadRequestException(
-        `Minimum order value of ${coupon.minOrderValue} required for this coupon.`,
+        `Minimum order value of ${coupon.minOrderValue} required for this coupon.`
       );
     }
 
@@ -68,24 +68,20 @@ export class CouponService {
       throw new BadRequestException('This coupon has reached its usage limit.');
     }
 
-    if (
-      userId > 0 &&
-      coupon.perUserLimit !== null &&
-      coupon.perUserLimit !== undefined
-    ) {
+    if (userId > 0 && coupon.perUserLimit !== null && coupon.perUserLimit !== undefined) {
       const userUsageCount = await this.prisma.couponUsage.count({
         where: { couponId: coupon.id, userId },
       });
       if (userUsageCount >= coupon.perUserLimit) {
         throw new BadRequestException(
-          'You have reached the maximum number of times this coupon can be used.',
+          'You have reached the maximum number of times this coupon can be used.'
         );
       }
     }
 
     if (coupon.minOrderValue && orderValue < coupon.minOrderValue) {
       throw new BadRequestException(
-        `Minimum order value of ${coupon.minOrderValue} required for this coupon.`,
+        `Minimum order value of ${coupon.minOrderValue} required for this coupon.`
       );
     }
 
@@ -121,9 +117,7 @@ export class CouponService {
       }
 
       if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) {
-        throw new BadRequestException(
-          'This coupon has reached its usage limit.',
-        );
+        throw new BadRequestException('This coupon has reached its usage limit.');
       }
 
       await tx.couponUsage.create({
@@ -149,8 +143,7 @@ export class CouponService {
       const totalUsages = (coupon.usages as Record<string, unknown>[]).length;
       const totalDiscountGiven =
         coupon.discountType === 'FIXED'
-          ? ((coupon.usedCount as number) || 0) *
-            (coupon.discountValue as number)
+          ? ((coupon.usedCount as number) || 0) * (coupon.discountValue as number)
           : 0;
 
       return {

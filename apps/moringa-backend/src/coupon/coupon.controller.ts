@@ -33,13 +33,9 @@ export class CouponController {
       code: string;
       orderValue: number;
       userId?: number;
-    },
+    }
   ): unknown {
-    return this.couponService.validateForUser(
-      body.code,
-      body.orderValue,
-      body.userId ?? 0,
-    );
+    return this.couponService.validateForUser(body.code, body.orderValue, body.userId ?? 0);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

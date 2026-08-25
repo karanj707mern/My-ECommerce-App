@@ -1,5 +1,16 @@
-import { $, component$, useSignal, useVisibleTask$, useTask$ } from "@builder.io/qwik";
-import { Link, useLocation, useNavigate, type DocumentHead } from "@builder.io/qwik-city";
+import {
+  $,
+  component$,
+  useSignal,
+  useVisibleTask$,
+  useTask$,
+} from "@builder.io/qwik";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  type DocumentHead,
+} from "@builder.io/qwik-city";
 import { getProfile } from "../../../lib/api/auth";
 import {
   addCartItem,
@@ -72,9 +83,14 @@ export default component$(() => {
   const pricingPreview = useSignal<Record<string, unknown> | null>(null);
   const addressForm = useSignal<AddressForm>({ ...DEFAULT_ADDRESS_FORM });
 
-  useAutoDismiss(error, $(() => { error.value = ""; }), 5000);
+  useAutoDismiss(
+    error,
+    $(() => {
+      error.value = "";
+    }),
+    5000,
+  );
 
-  const isAdmin = currentUser.value?.role === "ADMIN";
   const isLoggedIn = !!currentUser.value;
 
   const filteredWishlistItems = cartItems.value
@@ -170,9 +186,7 @@ export default component$(() => {
         > | null) ?? null;
 
       savedAddresses.value = nextSavedAddresses;
-      selectedAddressId.value = defaultAddress
-        ? String(defaultAddress.id)
-        : "";
+      selectedAddressId.value = defaultAddress ? String(defaultAddress.id) : "";
 
       const pick = (
         key: keyof AddressForm,
@@ -184,20 +198,41 @@ export default component$(() => {
         ...addressForm.value,
         ...(defaultAddress
           ? {
-              recipientName: pick("recipientName", defaultAddress.recipientName as string),
-              phoneNumber: pick("phoneNumber", defaultAddress.phoneNumber as string),
-              addressLine1: pick("addressLine1", defaultAddress.addressLine1 as string),
-              addressLine2: pick("addressLine2", defaultAddress.addressLine2 as string),
+              recipientName: pick(
+                "recipientName",
+                defaultAddress.recipientName as string,
+              ),
+              phoneNumber: pick(
+                "phoneNumber",
+                defaultAddress.phoneNumber as string,
+              ),
+              addressLine1: pick(
+                "addressLine1",
+                defaultAddress.addressLine1 as string,
+              ),
+              addressLine2: pick(
+                "addressLine2",
+                defaultAddress.addressLine2 as string,
+              ),
               city: pick("city", defaultAddress.city as string),
               state: pick("state", defaultAddress.state as string),
-              postalCode: pick("postalCode", defaultAddress.postalCode as string),
+              postalCode: pick(
+                "postalCode",
+                defaultAddress.postalCode as string,
+              ),
               country: pick("country", defaultAddress.country as string),
             }
           : {
               recipientName: pick("recipientName", data.user.name as string),
               phoneNumber: pick("phoneNumber", data.user.phoneNumber as string),
-              addressLine1: pick("addressLine1", data.user.addressLine1 as string),
-              addressLine2: pick("addressLine2", data.user.addressLine2 as string),
+              addressLine1: pick(
+                "addressLine1",
+                data.user.addressLine1 as string,
+              ),
+              addressLine2: pick(
+                "addressLine2",
+                data.user.addressLine2 as string,
+              ),
               city: pick("city", data.user.city as string),
               state: pick("state", data.user.state as string),
               postalCode: pick("postalCode", data.user.postalCode as string),
@@ -597,8 +632,7 @@ export default component$(() => {
               void toast.showToast({
                 severity: "warning",
                 summary: "Payment cancelled",
-                detail:
-                  "Payment was cancelled. Your cart is still available.",
+                detail: "Payment was cancelled. Your cart is still available.",
                 life: 4000,
               });
             } catch (dismissError) {
@@ -615,7 +649,8 @@ export default component$(() => {
 
       rzp.on("payment.failed", async (response: Record<string, unknown>) => {
         const failureDescription =
-          (response?.error as Record<string, string> | undefined)?.description ||
+          (response?.error as Record<string, string> | undefined)
+            ?.description ||
           (response?.error as Record<string, string> | undefined)?.reason ||
           "Payment failed before it could be completed.";
 

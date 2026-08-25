@@ -8,7 +8,7 @@ export class CartService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly abandonedCartService: AbandonedCartService,
-    private readonly cache: RedisCacheService,
+    private readonly cache: RedisCacheService
   ) {}
 
   async create(userId: number, dto: { productId: number; quantity?: number }) {
@@ -33,7 +33,11 @@ export class CartService {
   async findAll(userId: number) {
     return this.prisma.cartItem.findMany({
       where: { userId },
-      include: { product: { select: { id: true, name: true, price: true, image: true, stock: true, slug: true } } },
+      include: {
+        product: {
+          select: { id: true, name: true, price: true, image: true, stock: true, slug: true },
+        },
+      },
       orderBy: { id: 'desc' },
     });
   }

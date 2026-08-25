@@ -1,9 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -69,9 +64,7 @@ export class EmailTemplateService {
         },
       })) as EmailTemplateRecord;
     } catch {
-      throw new ConflictException(
-        `Email template with name "${data.name}" already exists`,
-      );
+      throw new ConflictException(`Email template with name "${data.name}" already exists`);
     }
   }
 
@@ -84,7 +77,7 @@ export class EmailTemplateService {
       textBody?: string;
       variables?: Prisma.InputJsonValue;
       isActive?: boolean;
-    },
+    }
   ): Promise<EmailTemplateRecord> {
     const existing = await this.prisma.emailTemplate.findUnique({
       where: { id },
@@ -100,9 +93,7 @@ export class EmailTemplateService {
       });
 
       if (duplicate) {
-        throw new ConflictException(
-          `Email template with name "${data.name}" already exists`,
-        );
+        throw new ConflictException(`Email template with name "${data.name}" already exists`);
       }
     }
 
@@ -133,16 +124,14 @@ export class EmailTemplateService {
 
   async renderTemplate(
     templateName: string,
-    variables: Record<string, unknown>,
+    variables: Record<string, unknown>
   ): Promise<{ subject: string; htmlBody: string; textBody: string }> {
     const template = await this.prisma.emailTemplate.findFirst({
       where: { name: templateName, isActive: true },
     });
 
     if (!template) {
-      throw new NotFoundException(
-        `Email template "${templateName}" not found or is inactive`,
-      );
+      throw new NotFoundException(`Email template "${templateName}" not found or is inactive`);
     }
 
     const subject = this.replacePlaceholders(template.subject, variables);
@@ -154,10 +143,7 @@ export class EmailTemplateService {
     return { subject, htmlBody, textBody };
   }
 
-  private replacePlaceholders(
-    content: string,
-    variables: Record<string, unknown>,
-  ): string {
+  private replacePlaceholders(content: string, variables: Record<string, unknown>): string {
     return content.replace(/\{\{(\w+)\}\}/g, (_match: string, key: string) => {
       const record = variables as Record<string, string | number | boolean>;
       const value = record[key];

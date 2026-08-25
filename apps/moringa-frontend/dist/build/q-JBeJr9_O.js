@@ -1,0 +1,1 @@
+import{v as n}from"./q-93TgTwg6.js";import{x as p}from"./q-93TgTwg6.js";import{g as c}from"./q-CagrNKIG.js";const h=async({track:s})=>{const[e,t]=n(),r=s(e.currentUser)?.role==="ADMIN";if(!s(e.authChecked)||r){t.value={};return}try{const a=await c(),o={};for(const i of a)o[String(i.id)]=!0;t.value=o}catch{t.value={}}};export{p as _hW,h as s_Hj1IVnYw35A};

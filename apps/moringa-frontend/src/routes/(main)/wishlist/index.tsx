@@ -2,10 +2,7 @@ import { $, component$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
 import { Link, type DocumentHead } from "@builder.io/qwik-city";
 import { addCartItem } from "../../../lib/api/cart";
 import { getWishlist, removeFromWishlist } from "../../../lib/api/wishlist";
-import {
-  notifyCartChanged,
-  notifyWishlistChanged,
-} from "../../../lib/storage";
+import { notifyCartChanged, notifyWishlistChanged } from "../../../lib/storage";
 import { resolveImageUrl } from "../../../lib/config";
 import { formatRupees } from "../../../lib/formatters";
 import { useToast } from "../../../hooks/useToast";
@@ -31,7 +28,13 @@ export default component$(() => {
   const { currentUser, authChecked } = useAuthState();
   const isLoggedIn = !!currentUser.value;
 
-  useAutoDismiss(error, $(() => { error.value = ""; }), 5000);
+  useAutoDismiss(
+    error,
+    $(() => {
+      error.value = "";
+    }),
+    5000,
+  );
 
   useVisibleTask$(async ({ track }) => {
     const checked = track(authChecked);
@@ -45,7 +48,9 @@ export default component$(() => {
       items.value = Array.isArray(data) ? (data as WishlistItem[]) : [];
     } catch (err) {
       const message =
-        err instanceof Error && err.message ? err.message : "Could not load wishlist.";
+        err instanceof Error && err.message
+          ? err.message
+          : "Could not load wishlist.";
       error.value = message;
       await toast.showToast({
         severity: "error",
@@ -75,34 +80,32 @@ export default component$(() => {
     }
   });
 
-  const handleAddToCart = $(
-    async (product: WishlistItem): Promise<void> => {
-      const productId = product.id as string | number;
-      addingToCartId.value = productId;
-      try {
-        await addCartItem(productId);
-        await removeFromWishlist(productId);
-        items.value = items.value.filter((item) => item.id !== productId);
-        notifyCartChanged();
-        notifyWishlistChanged();
-        await toast.showToast({
-          severity: "success",
-          summary: "Added to cart",
-          detail: `${product.name as string} was added to your cart.`,
-          life: 3000,
-        });
-      } catch {
-        await toast.showToast({
-          severity: "error",
-          summary: "Cart error",
-          detail: "Could not add item to cart.",
-          life: 4000,
-        });
-      } finally {
-        addingToCartId.value = null;
-      }
-    },
-  );
+  const handleAddToCart = $(async (product: WishlistItem): Promise<void> => {
+    const productId = product.id as string | number;
+    addingToCartId.value = productId;
+    try {
+      await addCartItem(productId);
+      await removeFromWishlist(productId);
+      items.value = items.value.filter((item) => item.id !== productId);
+      notifyCartChanged();
+      notifyWishlistChanged();
+      await toast.showToast({
+        severity: "success",
+        summary: "Added to cart",
+        detail: `${product.name as string} was added to your cart.`,
+        life: 3000,
+      });
+    } catch {
+      await toast.showToast({
+        severity: "error",
+        summary: "Cart error",
+        detail: "Could not add item to cart.",
+        life: 4000,
+      });
+    } finally {
+      addingToCartId.value = null;
+    }
+  });
 
   const handleRemove = $(async (productId: string | number) => {
     try {

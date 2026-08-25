@@ -27,13 +27,7 @@ import { CreateOrderIssueDto } from './dto/create-order-issue.dto';
 import { UpdateOrderIssueDto } from './dto/update-order-issue.dto';
 import { RefundOrderDto } from './dto/refund-order.dto';
 import { QueryOrderDto } from './dto/query-order.dto';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBody,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiQuery } from '@nestjs/swagger';
 
 interface AuthenticatedUser {
   id: number;
@@ -60,10 +54,7 @@ export class OrderController {
   // a long-lived connection. Nestia cannot analyze streaming responses (there is
   // no typed return value), and the frontend uses EventSource, not the SDK, for
   // this path — so @Res() passthrough is retained here by design.
-  streamOrders(
-    @Req() req: AuthenticatedRequest,
-    @Res() reply: FastifyReply,
-  ): FastifyReply {
+  streamOrders(@Req() req: AuthenticatedRequest, @Res() reply: FastifyReply): FastifyReply {
     const role = req.user.role;
     const userId = req.user.id;
 
@@ -107,20 +98,18 @@ export class OrderController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Verify Razorpay payment' })
   @ApiResponse({ status: 200, description: 'Payment verified' })
-  verifyPayment(@Req() req: AuthenticatedRequest, @Body() body: {
-    orderId: number;
-    razorpayOrderId: string;
-    razorpayPaymentId: string;
-    razorpaySignature: string;
-  }) {
-    const { orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature } =
-      body;
-    if (
-      !orderId ||
-      !razorpayOrderId ||
-      !razorpayPaymentId ||
-      !razorpaySignature
-    ) {
+  verifyPayment(
+    @Req() req: AuthenticatedRequest,
+    @Body()
+    body: {
+      orderId: number;
+      razorpayOrderId: string;
+      razorpayPaymentId: string;
+      razorpaySignature: string;
+    }
+  ) {
+    const { orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature } = body;
+    if (!orderId || !razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
       throw new BadRequestException('Missing payment verification data');
     }
 
@@ -129,7 +118,7 @@ export class OrderController {
       orderId,
       razorpayOrderId,
       razorpayPaymentId,
-      razorpaySignature,
+      razorpaySignature
     );
   }
 
@@ -139,10 +128,7 @@ export class OrderController {
   @ApiOperation({ summary: 'Create Razorpay checkout session' })
   @ApiResponse({ status: 201, description: 'Checkout session created' })
   @ApiBody({ type: CreateOrderDto })
-  createCheckoutSession(
-    @Req() req: AuthenticatedRequest,
-    @Body() createOrderDto: CreateOrderDto,
-  ) {
+  createCheckoutSession(@Req() req: AuthenticatedRequest, @Body() createOrderDto: CreateOrderDto) {
     return this.orderService.createCheckoutSession(req.user.id, createOrderDto);
   }
 
@@ -287,10 +273,7 @@ export class OrderController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get order by ID' })
   @ApiResponse({ status: 200, description: 'Order retrieved' })
-  findOne(
-    @Req() req: AuthenticatedRequest,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
+  findOne(@Req() req: AuthenticatedRequest, @Param('id', ParseIntPipe) id: number) {
     return this.orderService.findOne(req.user.id, id);
   }
 
@@ -298,10 +281,7 @@ export class OrderController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get order invoice' })
   @ApiResponse({ status: 200, description: 'Invoice retrieved' })
-  getInvoice(
-    @Req() req: AuthenticatedRequest,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
+  getInvoice(@Req() req: AuthenticatedRequest, @Param('id', ParseIntPipe) id: number) {
     return this.orderService.getInvoice(req.user.id, id);
   }
 
@@ -313,7 +293,7 @@ export class OrderController {
   createIssue(
     @Req() req: AuthenticatedRequest,
     @Param('id', ParseIntPipe) id: number,
-    @Body() createOrderIssueDto: CreateOrderIssueDto,
+    @Body() createOrderIssueDto: CreateOrderIssueDto
   ) {
     return this.orderService.createIssue(req.user.id, id, createOrderIssueDto);
   }
@@ -324,10 +304,7 @@ export class OrderController {
   @ApiOperation({ summary: 'Update order (admin)' })
   @ApiResponse({ status: 200, description: 'Order updated' })
   @ApiBody({ type: UpdateOrderDto })
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateOrderDto: UpdateOrderDto,
-  ) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateOrderDto: UpdateOrderDto) {
     return this.orderService.update(id, updateOrderDto);
   }
 
@@ -339,7 +316,7 @@ export class OrderController {
   @ApiBody({ type: UpdateOrderIssueDto })
   updateIssue(
     @Param('issueId', ParseIntPipe) issueId: number,
-    @Body() updateOrderIssueDto: UpdateOrderIssueDto,
+    @Body() updateOrderIssueDto: UpdateOrderIssueDto
   ) {
     return this.orderService.updateIssue(issueId, updateOrderIssueDto);
   }
@@ -352,10 +329,7 @@ export class OrderController {
   @ApiResponse({ status: 400, description: 'Order cannot be refunded' })
   @ApiResponse({ status: 404, description: 'Order not found' })
   @ApiBody({ type: RefundOrderDto })
-  refundOrder(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() refundOrderDto: RefundOrderDto,
-  ) {
+  refundOrder(@Param('id', ParseIntPipe) id: number, @Body() refundOrderDto: RefundOrderDto) {
     return this.orderService.refundOrder(id, {
       manual: refundOrderDto.manual,
       method: refundOrderDto.method,

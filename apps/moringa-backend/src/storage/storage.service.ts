@@ -1,14 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
 import { ConfigService } from '@nestjs/config';
-import {
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  unlinkSync,
-  writeFileSync,
-} from 'fs';
+import { existsSync, mkdirSync, readdirSync, unlinkSync, writeFileSync } from 'fs';
 import { join, extname } from 'path';
 import sharp from 'sharp';
 import * as crypto from 'crypto';
@@ -39,35 +32,15 @@ export class StorageService {
   private readonly logger = new Logger(StorageService.name);
 
   constructor(private readonly configService: ConfigService) {
-    this.provider = this.configService.get<string>(
-      'storage.provider',
-      'cloudinary',
-    ) as 'cloudinary' | 'local';
+    this.provider = this.configService.get<string>('storage.provider', 'cloudinary') as
+      'cloudinary' | 'local';
 
-    this.cloudName = this.configService.get<string>(
-      'storage.cloudinary.cloudName',
-      '',
-    );
-    this.apiKey = this.configService.get<string>(
-      'storage.cloudinary.apiKey',
-      '',
-    );
-    this.apiSecret = this.configService.get<string>(
-      'storage.cloudinary.apiSecret',
-      '',
-    );
-    this.folder = this.configService.get<string>(
-      'storage.cloudinary.folder',
-      'moringa-store',
-    );
-    this.publicUrl = this.configService.get<string>(
-      'storage.cloudinary.publicUrl',
-      '',
-    );
-    this.uploadPreset = this.configService.get<string>(
-      'storage.cloudinary.uploadPreset',
-      '',
-    );
+    this.cloudName = this.configService.get<string>('storage.cloudinary.cloudName', '');
+    this.apiKey = this.configService.get<string>('storage.cloudinary.apiKey', '');
+    this.apiSecret = this.configService.get<string>('storage.cloudinary.apiSecret', '');
+    this.folder = this.configService.get<string>('storage.cloudinary.folder', 'moringa-store');
+    this.publicUrl = this.configService.get<string>('storage.cloudinary.publicUrl', '');
+    this.uploadPreset = this.configService.get<string>('storage.cloudinary.uploadPreset', '');
 
     if (this.cloudName && this.apiKey && this.apiSecret) {
       cloudinary.config({
@@ -75,20 +48,16 @@ export class StorageService {
         api_key: this.apiKey,
         api_secret: this.apiSecret,
       });
-      this.logger.log(
-        `Cloudinary configured: cloudName=${this.cloudName}, folder=${this.folder}`,
-      );
+      this.logger.log(`Cloudinary configured: cloudName=${this.cloudName}, folder=${this.folder}`);
     } else {
-      this.logger.warn(
-        'Cloudinary credentials missing; uploads will fall back to local storage',
-      );
+      this.logger.warn('Cloudinary credentials missing; uploads will fall back to local storage');
     }
   }
 
   async uploadFile(
     file: StorageFile,
     folder?: string,
-    prefix?: string,
+    prefix?: string
   ): Promise<{ url: string; key: string }> {
     await this.validateImage(file.buffer);
 
@@ -98,7 +67,7 @@ export class StorageService {
         return await this.uploadToCloudinary(file, folder, prefix);
       } catch (error) {
         this.logger.warn(
-          `Cloudinary upload failed, falling back to local storage: ${error instanceof Error ? error.message : String(error)}`,
+          `Cloudinary upload failed, falling back to local storage: ${error instanceof Error ? error.message : String(error)}`
         );
       }
     }
@@ -118,7 +87,7 @@ export class StorageService {
       return;
     } catch (error) {
       this.logger.warn(
-        `Cloudinary delete failed for ${key}: ${error instanceof Error ? error.message : String(error)}`,
+        `Cloudinary delete failed for ${key}: ${error instanceof Error ? error.message : String(error)}`
       );
     }
 
@@ -128,18 +97,12 @@ export class StorageService {
   }
 
   getSignedUrl(key: string): string {
-    if (
-      this.cloudName &&
-      this.apiKey &&
-      this.apiSecret &&
-      this.isCloudinaryUrl(key)
-    ) {
+    if (this.cloudName && this.apiKey && this.apiSecret && this.isCloudinaryUrl(key)) {
       return key;
     }
 
     const deliveredUrl =
-      this.publicUrl ||
-      `https://res.cloudinary.com/${this.cloudName}/image/upload`;
+      this.publicUrl || `https://res.cloudinary.com/${this.cloudName}/image/upload`;
 
     if (this.isCloudinaryUrl(key)) {
       return key;
@@ -167,7 +130,7 @@ export class StorageService {
   private async uploadToCloudinary(
     file: StorageFile,
     folder?: string,
-    prefix?: string,
+    prefix?: string
   ): Promise<{ url: string; key: string }> {
     const targetFolder = folder || this.folder || 'moringa-store';
     const publicId = this.buildPublicId(targetFolder, prefix);
@@ -187,7 +150,7 @@ export class StorageService {
 
     const result = await cloudinary.uploader.upload(
       `data:image/webp;base64,${optimizedBuffer.toString('base64')}`,
-      uploadOptions,
+      uploadOptions
     );
 
     return {
@@ -199,14 +162,12 @@ export class StorageService {
   private async uploadLocal(
     file: StorageFile,
     folder?: string,
-    prefix?: string,
+    prefix?: string
   ): Promise<{ url: string; key: string }> {
     await this.validateImage(file.buffer);
 
     const sanitizedFolder = folder
-      ? folder
-          .replace(/^(\.\.(\/)?|(\/\.\.)+|\/\.{1,2}$)/, '')
-          .replace(/[\\]+/g, '/')
+      ? folder.replace(/^(\.\.(\/)?|(\/\.\.)+|\/\.{1,2}$)/, '').replace(/[\\]+/g, '/')
       : '';
     const uploadsPath = join(process.cwd(), 'uploads', sanitizedFolder);
     if (!existsSync(uploadsPath)) {
@@ -227,9 +188,7 @@ export class StorageService {
 
   private generateFilename(folder?: string, prefix?: string): string {
     const sanitizedFolder = folder
-      ? folder
-          .replace(/^(\.\.(\/)?|(\/\.\.)+|\/\.{1,2}$)/, '')
-          .replace(/[\\]+/g, '/')
+      ? folder.replace(/^(\.\.(\/)?|(\/\.\.)+|\/\.{1,2}$)/, '').replace(/[\\]+/g, '/')
       : '';
     if (!prefix) {
       const uniqueSuffix = `${Date.now()}-${crypto.randomInt(0, 1e9).toString()}`;
@@ -289,9 +248,7 @@ export class StorageService {
 
   private buildPublicId(folder: string, prefix?: string): string {
     const sanitizedFolder = folder
-      ? folder
-          .replace(/^(\.\.(\/)?|(\/\.\.)+|\/\.{1,2}$)/, '')
-          .replace(/[\\]+/g, '/')
+      ? folder.replace(/^(\.\.(\/)?|(\/\.\.)+|\/\.{1,2}$)/, '').replace(/[\\]+/g, '/')
       : '';
     const slug = prefix
       ? prefix

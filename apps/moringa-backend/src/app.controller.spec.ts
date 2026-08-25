@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { FastifyAdapter } from '@nestjs/platform-fastify';
 import request from 'supertest';
 import { AppModule } from './app.module';
 
@@ -11,13 +12,15 @@ describe('AppController (e2e)', () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = moduleFixture.createNestApplication(
+      new FastifyAdapter({ forceCloseConnections: true }),
+    );
     await app.init();
-  });
+  }, 30000);
 
   afterAll(async () => {
     await app.close();
-  });
+  }, 10000);
 
   describe('/ (GET)', () => {
     it('should return application status', () => {

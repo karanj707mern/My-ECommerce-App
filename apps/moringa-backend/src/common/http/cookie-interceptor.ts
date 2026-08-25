@@ -1,9 +1,4 @@
-import {
-  CallHandler,
-  ExecutionContext,
-  Injectable,
-  NestInterceptor,
-} from '@nestjs/common';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -33,12 +28,12 @@ export class CookieInterceptor implements NestInterceptor {
       tap(() => {
         const { toSet, toClear } = cookieState.consume();
         for (const { name, value, options } of toSet) {
-          res.cookie(name, value, options as CookieSerializeOptions);
+          res.cookie(name, value, options);
         }
         for (const { name, options } of toClear) {
-          res.clearCookie(name, options as CookieSerializeOptions);
+          res.clearCookie(name, options);
         }
-      }),
+      })
     );
   }
 }

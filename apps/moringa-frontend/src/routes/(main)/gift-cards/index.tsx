@@ -28,7 +28,13 @@ export default component$(() => {
   const error = useSignal("");
 
   const toast = useToast();
-  useAutoDismiss(error, $(() => { error.value = ""; }), 5000);
+  useAutoDismiss(
+    error,
+    $(() => {
+      error.value = "";
+    }),
+    5000,
+  );
 
   const handleCheckBalance = $(async () => {
     if (!code.value.trim()) return;
@@ -71,7 +77,9 @@ export default component$(() => {
   });
 
   const canRedeem =
-    balance.value && balance.value.isActive && balance.value.remainingAmount > 0;
+    balance.value &&
+    balance.value.isActive &&
+    balance.value.remainingAmount > 0;
 
   return (
     <div class="min-h-screen bg-[var(--bg-primary)] pb-24 text-[var(--text-primary)] theme-transition">
@@ -156,7 +164,9 @@ export default component$(() => {
                 </div>
                 <div class="mt-6 grid gap-4 sm:grid-cols-2">
                   <div>
-                    <p class="text-sm text-[var(--text-muted)]">Initial amount</p>
+                    <p class="text-sm text-[var(--text-muted)]">
+                      Initial amount
+                    </p>
                     <p class="mt-1 text-lg font-semibold text-[var(--text-primary)]">
                       {formatCurrency(
                         balance.value.initialAmount,

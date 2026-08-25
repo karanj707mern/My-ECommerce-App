@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisCacheService } from '../cache/redis-cache.service';
@@ -14,14 +10,11 @@ import { UpdateBlogPostDto } from './dto/update-blog-post.dto';
 export class BlogService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly cache: RedisCacheService,
+    private readonly cache: RedisCacheService
   ) {}
 
   private isUniqueConstraintError(error: unknown): boolean {
-    return (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === 'P2002'
-    );
+    return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
   }
 
   async createPost(data: CreateBlogPostDto) {
@@ -43,8 +36,7 @@ export class BlogService {
   }
 
   async getPublishedPosts() {
-    const cached =
-      await this.cache.getJson<Record<string, unknown>[]>('blog:published');
+    const cached = await this.cache.getJson<Record<string, unknown>[]>('blog:published');
     if (cached) {
       return cached;
     }
@@ -66,8 +58,7 @@ export class BlogService {
   }
 
   async getAllPosts() {
-    const cached =
-      await this.cache.getJson<Record<string, unknown>[]>('blog:all');
+    const cached = await this.cache.getJson<Record<string, unknown>[]>('blog:all');
     if (cached) {
       return cached;
     }
@@ -174,9 +165,6 @@ export class BlogService {
   }
 
   private async invalidateBlogCaches() {
-    await Promise.all([
-      this.cache.del('blog:published'),
-      this.cache.del('blog:all'),
-    ]);
+    await Promise.all([this.cache.del('blog:published'), this.cache.del('blog:all')]);
   }
 }

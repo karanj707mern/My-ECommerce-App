@@ -21,7 +21,8 @@ export const head: DocumentHead = ({ resolveValue }) => {
   const image = resolveValue(useHeroImage);
   return buildHead({
     title: "Privacy Policy",
-    description: "How Moringa Store Online handles customer information, data storage, and privacy commitments.",
+    description:
+      "How Moringa Store Online handles customer information, data storage, and privacy commitments.",
     path: "/privacy-policy",
     image,
   });

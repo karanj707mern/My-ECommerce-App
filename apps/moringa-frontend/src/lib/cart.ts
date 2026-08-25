@@ -107,10 +107,7 @@ export function computeCartPricing(
   selectedPaymentMethod: string,
   pricingPreview: Record<string, unknown> | null,
 ): CartPricing {
-  const itemCount = cartItems.reduce(
-    (total, item) => total + item.quantity,
-    0,
-  );
+  const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   const subtotal = cartItems.reduce(
     (total, item) => total + Number(item.product?.price ?? 0) * item.quantity,
@@ -148,8 +145,7 @@ export function computeCartPricing(
   const previewCodCharge = Number(pricingPreview?.codAmount ?? codCharge);
   const previewTax = Number(pricingPreview?.taxAmount ?? tax);
   const total = Number(
-    pricingPreview?.total ??
-      subtotal + shipping + handling + codCharge + tax,
+    pricingPreview?.total ?? subtotal + shipping + handling + codCharge + tax,
   );
 
   return {

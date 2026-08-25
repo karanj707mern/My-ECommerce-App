@@ -1,7 +1,11 @@
 import { component$, type PropFunction } from "@builder.io/qwik";
 import { Link } from "@builder.io/qwik-city";
 import type { Product } from "../../lib/types";
-import { formatRupees, normalizePrice, renderStars } from "../../lib/formatters";
+import {
+  formatRupees,
+  normalizePrice,
+  renderStars,
+} from "../../lib/formatters";
 import { resolveImageUrl } from "../../lib/config";
 import { SmartImage } from "../SmartImage";
 
@@ -28,7 +32,8 @@ const HIGHLIGHTS = [
 ];
 
 function buildHighlights(product: Product): string[] {
-  const lowerText = `${product.name} ${product.description ?? ""}`.toLowerCase();
+  const lowerText =
+    `${product.name} ${product.description ?? ""}`.toLowerCase();
   return HIGHLIGHTS.filter((highlight) => {
     if (
       lowerText.includes("tea") &&

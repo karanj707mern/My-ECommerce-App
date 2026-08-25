@@ -1,16 +1,15 @@
 import { Test, type TestingModule } from '@nestjs/testing';
-import { JwtAuthGuard } from '../auth/jwt.guard';
+import { JwtAuthGuard } from '@/auth/jwt.guard';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
-import { AuditInterceptor } from '../audit/audit.interceptor';
-import { AuditLoggerService } from '../audit/audit-logger.service';
+import { AuditInterceptor } from '@/audit/audit.interceptor';
+import { AuditLoggerService } from '@/audit/audit-logger.service';
 
 describe('AdminController', () => {
   let controller: AdminController;
 
   const adminServiceMock = {
     getOverview: jest.fn(),
-    getDashboardStats: jest.fn(),
   };
 
   const auditLoggerServiceMock = {

@@ -15,13 +15,29 @@ import type { IConnection } from "@nestia/fetcher";
 
 interface SdkViteEnv {
   readonly DEV?: boolean;
+  readonly PROD?: boolean;
   readonly VITE_API_BASE_URL?: string;
 }
 
+/**
+ * Read the Vite-injected environment.
+ *
+ * CRITICAL SHAPE CONSTRAINT: every access MUST be a fully static member
+ * expression (`import.meta.env.KEY`). Wrapping `import.meta` in a cast makes
+ * the access dynamic, which Vite's SSR module runner refuses at runtime
+ * ("Dynamic access of import.meta.env is not supported") even though tsc and
+ * rollup both pass. Static chains are replaced textually by Vite in BOTH the
+ * client bundle and the Qwik City SSR/SSG pipelines.
+ */
 function viteEnv(): Partial<SdkViteEnv> {
-  // @ts-expect-error -- TS1470 under NodeNext/CJS analysis; see module docs.
-  const meta = import.meta as unknown as { env?: Partial<SdkViteEnv> };
-  return meta.env ?? {};
+  return {
+    // @ts-expect-error -- TS1470 under NodeNext/CJS analysis; see above.
+    DEV: import.meta.env.DEV,
+    // @ts-expect-error -- TS1470 under NodeNext/CJS analysis; see above.
+    PROD: import.meta.env.PROD,
+    // @ts-expect-error -- TS1470 under NodeNext/CJS analysis; see above.
+    VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+  };
 }
 
 function trimTrailingSlash(value: string | undefined): string | undefined {

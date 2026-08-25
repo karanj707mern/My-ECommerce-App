@@ -12,7 +12,7 @@ export class AuditLoggerService {
     entityId: number | null,
     oldValue?: string,
     newValue?: string,
-    req?: FastifyRequest & { user?: { id: number } },
+    req?: FastifyRequest & { user?: { id: number } }
   ): Promise<void> {
     const userId = req?.user?.id;
     if (!userId) {
