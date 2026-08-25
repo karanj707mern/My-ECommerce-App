@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { AuthSharedModule } from '@/auth/auth-shared.module';
-import { PrismaModule } from '@/prisma/prisma.module';
+import { AuthSharedModule } from '../auth/auth-shared.module';
+import { PrismaModule } from '../prisma/prisma.module';
 import { AuditLoggerService } from './audit-logger.service';
 import { AuditService } from './audit.service';
 import { AuditInterceptor } from './audit.interceptor';

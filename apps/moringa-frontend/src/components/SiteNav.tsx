@@ -382,11 +382,19 @@ export const SiteNav = component$(() => {
   const isAdmin = currentUser.value?.role === "ADMIN";
 
   return (
-    <nav
-      aria-label="Main"
-      class="sticky top-0 z-30 border-y border-[var(--border-strong)] bg-[var(--bg-secondary)] pt-[env(safe-area-inset-top)]"
-      style={{ isolation: "isolate" }}
-    >
+    <>
+      {/* Skip navigation link — keyboard users bypass nav to reach content */}
+      <a
+        href="#main-content"
+        class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-emerald-700 focus:px-4 focus:py-2 focus:text-white focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
+      <nav
+        aria-label="Main"
+        class="sticky top-0 z-30 border-y border-[var(--border-strong)] bg-[var(--bg-secondary)] pt-[env(safe-area-inset-top)]"
+        style={{ isolation: "isolate" }}
+      >
       <div class="mx-auto flex max-w-7xl flex-col items-center gap-4 px-6 py-3 sm:px-8 md:flex-row md:items-center md:justify-between md:gap-6 lg:px-10">
         <div class="group min-w-0 flex-shrink">
           <Link
@@ -500,6 +508,7 @@ export const SiteNav = component$(() => {
         </div>
       ) : null}
     </nav>
+    </>
   );
 });
 

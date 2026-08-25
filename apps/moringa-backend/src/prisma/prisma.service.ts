@@ -1,1 +1,1 @@
-export { PrismaService } from '@/infrastructure/prisma.service';
+export { PrismaService } from '../infrastructure/prisma.service';

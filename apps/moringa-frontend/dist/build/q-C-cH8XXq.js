@@ -1,0 +1,1 @@
+import{_ as o}from"./q-BD-hIznX.js";import{y as a,L as e}from"./q-DbZgC2Xw.js";function m(t,r="INR"){return new Intl.NumberFormat("en-IN",{style:"currency",currency:r,maximumFractionDigits:0}).format(t)}const s=a(e(()=>o(()=>import("./q-DY28nijJ.js"),[]),"s_FLc36jW9g0E")),_={title:"Admin · Gift Cards"};export{m as _auto_formatCurrency,s as default,_ as head};

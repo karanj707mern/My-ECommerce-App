@@ -1,22 +1,102 @@
 {
-  "extends": "./tsconfig.app.json",
+  /**
+   * CANONICAL TypeScript configuration for the Qwik City storefront.
+   * Editors, `tsc --noEmit` (the `typecheck` script) and CI all read this file.
+   *
+   * MODULE STRATEGY — the NodeNext alignment contract:
+   *
+   * `module: NodeNext` + `moduleResolution: NodeNext` is mandated so this app
+   * type-checks `@moringa/sdk` sources under exactly the same resolution rules
+   * the NestJS backend ecosystem publishes. Because this package deliberately
+   * omits `"type": "module"` (mirroring the backend), every `.ts/.tsx` here is
+   * analysed as a CommonJS-flavoured unit:
+   *
+   *   - extensionless relative imports stay valid (`./shop`, not `./shop.js`),
+   *     so the existing route/component tree needs zero import churn;
+   *   - bare specifiers resolve through `node_modules` with full support for
+   *     modern `exports` maps (`@nestia/fetcher` v13 ships import/require
+   *     conditions that `node10` resolution cannot even express);
+   *   - the workspace-linked SDK resolves through its package `main`/`types`
+   *     pointing at raw `.ts` sources, giving instant cross-project
+   *     autocomplete and compile errors when backend endpoints change.
+   *
+   * Emission is owned by Vite/Rollup (client) and the Qwik optimizer (SSR);
+   * `tsc` runs strictly as the type oracle (`noEmit`). The single sanctioned
+   * escape hatch for Vite's `import.meta.env` lives in `src/lib/env.ts`.
+   */
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "allowJs": true,
+    /* ---- module contract (see block comment above) ---- */
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    /* ---- language level ---- */
     "target": "ES2022",
-    "module": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable", "WebWorker"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
     "jsxImportSource": "@builder.io/qwik",
+
+    /* ---- correctness gates ---- */
     "strict": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "moduleResolution": "bundler",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
+    "allowJs": false,
     "isolatedModules": true,
+
+    /* ---- interop & tooling ---- */
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "types": ["node", "vite/client"],
+
+    /* ---- no emission: Vite owns output ---- */
     "noEmit": true,
-    "types": ["node", "vite/client"]
+
+    /* ---- workspace path mappings ----
+     * Declared WITHOUT baseUrl: since TypeScript 5.0, relative `paths` are
+     * resolved against THIS config file's directory. These mappings pin the
+     * workspace packages to their raw TypeScript entry points so a backend
+     * endpoint change surfaces as an error HERE at type-check time — before
+     * any runtime request can drift from the generated contract.
+     *
+     * The three `@builder.io/qwik*` entries are NodeNext-compat pins, not
+     * redirects: Qwik 1.x's dist/jsx-runtime.d.ts re-exports via extensionless
+     * relative specifiers (`from './core'`), which are illegal when that
+     * declaration file is analyzed as ESM under nodenext (the file itself
+     * comments "when not using nodenext import resolution"). skipLibCheck
+     * hides the internal error but the JSX namespace then fails to load,
+     * producing TS7026 on every element. Pinning the jsx factory modules to
+     * dist/core.d.ts — the exact file Qwik's own exports map already names
+     * for "." types — restores full JSX.IntrinsicElements typing under pure
+     * NodeNext with zero runtime impact (Vite emits its own factory imports). */
+    "paths": {
+      "@builder.io/qwik": ["../../node_modules/@builder.io/qwik/dist/core.d.ts"],
+      "@builder.io/qwik/jsx-runtime": [
+        "../../node_modules/@builder.io/qwik/dist/core.d.ts"
+      ],
+      /* Same class of NodeNext-compat pin as Qwik above: Vite 6 exposes its
+       * CJS build via "./index.cjs" with no adjacent declarations, so tsc
+       * under nodenext cannot attach defineConfig/UserConfig/Plugin. Pinning
+       * to the canonical node API surface restores full typing. */
+      "vite": ["../../node_modules/vite/dist/node/index.d.ts"],
+      "@moringa/sdk": ["../../libs/sdk/src/index.ts"],
+      "@moringa/sdk/*": ["../../libs/sdk/src/*"],
+      "@moringa/shared": ["../../libs/shared/src/index.ts"],
+      "@moringa/shared/*": ["../../libs/shared/src/*"]
+    }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "./*.config.ts"],
-  "exclude": ["node_modules", "dist", "server", "tmp"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "./*.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "server",
+    "tmp",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ]
 }

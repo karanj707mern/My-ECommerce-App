@@ -1,15 +1,15 @@
 import { Injectable, Scope } from '@nestjs/common';
-import type { CookieSetOptions } from 'fastify';
+import type { CookieSerializeOptions } from '@fastify/cookie';
 
 export interface PendingCookie {
   name: string;
   value: string;
-  options?: CookieSetOptions;
+  options?: CookieSerializeOptions;
 }
 
 export interface PendingCookieClear {
   name: string;
-  options?: CookieSetOptions;
+  options?: CookieSerializeOptions;
 }
 
 /**
@@ -25,11 +25,11 @@ export class CookieState {
   private readonly toSet: PendingCookie[] = [];
   private readonly toClear: PendingCookieClear[] = [];
 
-  setCookie(name: string, value: string, options?: CookieSetOptions): void {
+  setCookie(name: string, value: string, options?: CookieSerializeOptions): void {
     this.toSet.push({ name, value, options });
   }
 
-  clearCookie(name: string, options?: CookieSetOptions): void {
+  clearCookie(name: string, options?: CookieSerializeOptions): void {
     this.toClear.push({ name, options });
   }
 

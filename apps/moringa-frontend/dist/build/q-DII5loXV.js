@@ -1,0 +1,1 @@
+import{v as t}from"./q-DbZgC2Xw.js";import{x as f}from"./q-DbZgC2Xw.js";import{a as o,f as s}from"./q-Cu-wKEl-.js";const m=()=>{const[e,r]=t();r.value=o(),e.value=s()};export{f as _hW,m as s_tm2eHQRhF2k};

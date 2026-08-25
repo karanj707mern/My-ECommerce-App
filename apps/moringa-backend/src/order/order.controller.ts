@@ -16,10 +16,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
-import { JwtAuthGuard } from '@/auth/jwt.guard';
-import { Roles } from '@/auth/decorators/roles.decorator';
-import { RolesGuard } from '@/auth/rolesguard';
-import { Role } from '@/generated/prisma/client';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/rolesguard';
+import { Role } from '../generated/prisma/client';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -56,6 +56,10 @@ export class OrderController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Stream orders via SSE' })
   @ApiResponse({ status: 200, description: 'Order stream established' })
+  // SSE: this endpoint writes directly to the raw response stream and manages
+  // a long-lived connection. Nestia cannot analyze streaming responses (there is
+  // no typed return value), and the frontend uses EventSource, not the SDK, for
+  // this path — so @Res() passthrough is retained here by design.
   streamOrders(
     @Req() req: AuthenticatedRequest,
     @Res() reply: FastifyReply,

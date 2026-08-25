@@ -3,10 +3,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@/generated/prisma/client';
-import { PrismaService } from '@/prisma/prisma.service';
-import { RedisCacheService } from '@/cache/redis-cache.service';
-import { sanitizeHtml } from '@/common/utils/sanitize.util';
+import { Prisma } from '../generated/prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
+import { RedisCacheService } from '../cache/redis-cache.service';
+import { sanitizeHtml } from '../common/utils/sanitize.util';
 import { CreateBlogPostDto } from './dto/create-blog-post.dto';
 import { UpdateBlogPostDto } from './dto/update-blog-post.dto';
 

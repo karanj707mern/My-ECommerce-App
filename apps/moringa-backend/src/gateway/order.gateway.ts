@@ -9,13 +9,13 @@ import {
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
-import { Role } from '@/generated/prisma/client';
+import { Role } from '../generated/prisma/client';
 import type { Server, Socket } from 'socket.io';
-import { PrismaService } from '@/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import {
   OrderEventsService,
   OrderUpdateNotification,
-} from '@/order/order-events.service';
+} from '../order/order-events.service';
 
 interface AuthenticatedSocketData {
   userId?: number;

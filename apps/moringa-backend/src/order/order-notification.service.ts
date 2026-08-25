@@ -6,10 +6,10 @@ import {
   OrderStatus,
   Prisma,
   Role,
-} from '@/generated/prisma/client';
-import { NotificationService } from '@/notification/notification.service';
-import { PrismaService } from '@/prisma/prisma.service';
-import { sanitizeHtml } from '@/common/utils/sanitize.util';
+} from '../generated/prisma/client';
+import { NotificationService } from '../notification/notification.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { sanitizeHtml } from '../common/utils/sanitize.util';
 
 interface OrderNotificationOrder {
   id: number;

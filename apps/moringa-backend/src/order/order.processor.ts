@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { NotificationType, Prisma } from '@/generated/prisma/client';
-import { OrderJobData } from '@/infrastructure/bullmq.service';
-import { PrismaService } from '@/infrastructure/prisma.service';
-import { RabbitMQService } from '@/infrastructure/rabbitmq.service';
+import { NotificationType, Prisma } from '../generated/prisma/client';
+import { OrderJobData } from '../infrastructure/bullmq.service';
+import { PrismaService } from '../infrastructure/prisma.service';
+import { RabbitMQService } from '../infrastructure/rabbitmq.service';
 
 @Injectable()
 export class OrderProcessor {
@@ -49,7 +49,7 @@ export class OrderProcessor {
     this.logger.log(`Sending order confirmation email for order ${orderId}, user ${userId}`);
 
     const order = await this.prisma.order.findFirst({
-      where: { id: orderId, deletedAt: null },
+      where: { id: orderId },
       include: { user: { select: { name: true, email: true } } },
     });
 
@@ -66,7 +66,7 @@ export class OrderProcessor {
     this.logger.log(`Updating inventory for order ${orderId}`);
 
     const order = await this.prisma.order.findFirst({
-      where: { id: orderId, deletedAt: null },
+      where: { id: orderId },
       include: { items: true },
     });
 
@@ -109,7 +109,7 @@ export class OrderProcessor {
     this.logger.log(`Processing payment for order ${orderId}`);
 
     const order = await this.prisma.order.findFirst({
-      where: { id: orderId, deletedAt: null },
+      where: { id: orderId },
     });
 
     if (!order) {

@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { RedisCacheService } from '@/cache/redis-cache.service';
+import { RedisCacheService } from '../cache/redis-cache.service';
 import { SessionService } from './services/session.service';
 import { DeviceInfoService } from './services/device-info.service';
 import { EmailVerificationService } from './email-verification.service';
-import { NotificationService } from '@/notification/notification.service';
+import { NotificationService } from '../notification/notification.service';
 import { TokenRevocationService } from './services/token-revocation.service';
 import { UnauthorizedException } from '@nestjs/common';
 import * as crypto from 'crypto';

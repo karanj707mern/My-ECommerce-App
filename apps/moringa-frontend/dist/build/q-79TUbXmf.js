@@ -1,0 +1,1 @@
+import{_ as e}from"./q-BD-hIznX.js";import{y as r,L as l}from"./q-DbZgC2Xw.js";const s=[{key:"PENDING",label:"Order placed"},{key:"PAID",label:"Paid"},{key:"SHIPPED",label:"Shipped"},{key:"OUT_FOR_DELIVERY",label:"Out for delivery"},{key:"DELIVERED",label:"Delivered"}],t=r(l(()=>e(()=>import("./q-DZ-kSYre.js"),[]),"s_o6FYjl8K5tI"));export{t as O,s as S};

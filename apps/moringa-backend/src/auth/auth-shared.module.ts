@@ -5,8 +5,8 @@ import { JwtAuthGuard } from './jwt.guard';
 import { RolesGuard } from './rolesguard';
 import { AuthThrottlerGuard } from './guards/auth-throttler.guard';
 import { TokenRevocationService } from './services/token-revocation.service';
-import { PrismaModule } from '@/prisma/prisma.module';
-import { InfrastructureModule } from '@/infrastructure/infrastructure.module';
+import { PrismaModule } from '../prisma/prisma.module';
+import { InfrastructureModule } from '../infrastructure/infrastructure.module';
 
 /**
  * Shared auth primitives for feature modules.

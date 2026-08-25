@@ -1,5 +1,5 @@
 import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
-import { OrderStatus } from '@/generated/prisma/client';
+import { OrderStatus } from '../../generated/prisma/client';
 import { Type } from 'class-transformer';
 
 export class QueryOrderDto {

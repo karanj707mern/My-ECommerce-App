@@ -11,9 +11,9 @@ import {
   HttpCode,
   ParseIntPipe,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/auth/jwt.guard';
-import { RolesGuard } from '@/auth/rolesguard';
-import { Roles } from '@/auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { RolesGuard } from '../auth/rolesguard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { GiftCardService } from './gift-card.service';
 import { CreateGiftCardDto } from './dto/create-gift-card.dto';
 import { UpdateGiftCardDto } from './dto/update-gift-card.dto';
@@ -28,15 +28,15 @@ export class GiftCardController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Redeem a gift card' })
   @ApiResponse({ status: 200, description: 'Gift card redeemed' })
-  redeem(@Body('code') code: string) {
-    return this.giftCardService.redeem(code, 0);
+  redeem(@Body() dto: { code: string }): unknown {
+    return this.giftCardService.redeem(dto.code, 0);
   }
 
   @Get('balance')
   @ApiOperation({ summary: 'Check gift card balance' })
   @ApiResponse({ status: 200, description: 'Gift card balance retrieved' })
-  balance(@Query('code') code: string) {
-    return this.giftCardService.getBalance(code);
+  balance(@Query() query: { code: string }): unknown {
+    return this.giftCardService.getBalance(query.code);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -44,7 +44,7 @@ export class GiftCardController {
   @Get()
   @ApiOperation({ summary: 'Get all gift cards (admin)' })
   @ApiResponse({ status: 200, description: 'Gift cards retrieved' })
-  findAll() {
+  findAll(): unknown {
     return this.giftCardService.findAll();
   }
 
@@ -54,7 +54,7 @@ export class GiftCardController {
   @ApiOperation({ summary: 'Get gift card by ID (admin)' })
   @ApiResponse({ status: 200, description: 'Gift card retrieved' })
   @ApiResponse({ status: 404, description: 'Gift card not found' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIntPipe) id: number): unknown {
     return this.giftCardService.findOne(id);
   }
 
@@ -65,7 +65,7 @@ export class GiftCardController {
   @ApiOperation({ summary: 'Create gift card (admin)' })
   @ApiResponse({ status: 201, description: 'Gift card created' })
   @ApiBody({ type: CreateGiftCardDto })
-  create(@Body() dto: CreateGiftCardDto) {
+  create(@Body() dto: CreateGiftCardDto): unknown {
     return this.giftCardService.create(dto);
   }
 
@@ -78,7 +78,7 @@ export class GiftCardController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateGiftCardDto,
-  ) {
+  ): unknown {
     return this.giftCardService.update(id, dto);
   }
 
@@ -89,7 +89,7 @@ export class GiftCardController {
   @ApiOperation({ summary: 'Delete gift card (admin)' })
   @ApiResponse({ status: 204, description: 'Gift card deleted' })
   @ApiResponse({ status: 404, description: 'Gift card not found' })
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', ParseIntPipe) id: number): unknown {
     return this.giftCardService.remove(id);
   }
 }

@@ -10,7 +10,7 @@ export class HeroController {
   @Get()
   @ApiOperation({ summary: 'Get active hero images' })
   @ApiResponse({ status: 200, description: 'Hero images retrieved' })
-  findAll() {
+  findAll(): unknown {
     return this.heroService.findAll();
   }
 }

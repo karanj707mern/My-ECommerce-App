@@ -1,10 +1,10 @@
 import { Controller, Get, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/auth/jwt.guard';
-import { RolesGuard } from '@/auth/rolesguard';
-import { Roles } from '@/auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { RolesGuard } from '../auth/rolesguard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { AdminService, type AdminOverview } from './admin.service';
-import { AuditInterceptor } from '@/audit/audit.interceptor';
+import { AuditInterceptor } from '../audit/audit.interceptor';
 
 @ApiTags('admin')
 @Controller('admin')

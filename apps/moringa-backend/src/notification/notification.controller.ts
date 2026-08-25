@@ -16,12 +16,12 @@ import {
   NotificationChannel,
   NotificationStatus,
   NotificationType,
-} from '@/generated/prisma/client';
+} from '../generated/prisma/client';
 import { NotificationPreferenceDto } from './dto/notification-preference.dto';
 import { NotificationService } from './notification.service';
-import { JwtAuthGuard } from '@/auth/jwt.guard';
-import { RolesGuard } from '@/auth/rolesguard';
-import { Roles } from '@/auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { RolesGuard } from '../auth/rolesguard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 interface AuthedRequest {
   user: { id: number };
@@ -39,9 +39,10 @@ export class NotificationController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   getUserNotifications(
     @Req() req: AuthedRequest,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit = 20,
+    @Query() query: { page?: number; limit?: number },
   ) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
     if (page < 1) {
       throw new BadRequestException('page must be >= 1');
     }
@@ -116,25 +117,27 @@ export class NotificationController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   findAdminNotifications(
-    @Query('orderId') orderId?: string,
-    @Query('status') status?: NotificationStatus,
-    @Query('channel') channel?: NotificationChannel,
-    @Query('type') type?: NotificationType,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit = 20,
+    @Query() query: {
+      orderId?: string;
+      status?: NotificationStatus;
+      channel?: NotificationChannel;
+      type?: NotificationType;
+      page?: number;
+      limit?: number;
+    },
   ) {
-    const parsedOrderId = orderId ? parseInt(orderId, 10) : undefined;
-    if (orderId && isNaN(parsedOrderId!)) {
+    const orderId = query.orderId ? parseInt(query.orderId, 10) : undefined;
+    if (query.orderId && isNaN(orderId!)) {
       throw new BadRequestException('Invalid orderId');
     }
 
     return this.notificationService.findAdminNotifications({
-      orderId: parsedOrderId,
-      status,
-      channel,
-      type,
-      page,
-      limit,
+      orderId,
+      status: query.status,
+      channel: query.channel,
+      type: query.type,
+      page: query.page ?? 1,
+      limit: query.limit ?? 20,
     });
   }
 

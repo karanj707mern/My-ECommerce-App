@@ -11,11 +11,11 @@ import {
   HttpCode,
   ParseIntPipe,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/auth/jwt.guard';
-import { RolesGuard } from '@/auth/rolesguard';
-import { Roles } from '@/auth/decorators/roles.decorator';
-import { AuditInterceptor } from '@/audit/audit.interceptor';
-import { AuditLog } from '@/audit/audit-logger.decorator';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { RolesGuard } from '../auth/rolesguard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { AuditInterceptor } from '../audit/audit.interceptor';
+import { AuditLog } from '../audit/audit-logger.decorator';
 import { CouponService } from './coupon.service';
 import { CreateCouponDto } from './dto/create-coupon.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -34,7 +34,7 @@ export class CouponController {
       orderValue: number;
       userId?: number;
     },
-  ) {
+  ): unknown {
     return this.couponService.validateForUser(
       body.code,
       body.orderValue,
@@ -45,14 +45,14 @@ export class CouponController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Get()
-  findAll() {
+  findAll(): unknown {
     return this.couponService.findAll();
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Get('analytics')
-  getAnalytics() {
+  getAnalytics(): unknown {
     return this.couponService.getCouponAnalytics();
   }
 
@@ -63,7 +63,7 @@ export class CouponController {
   @AuditLog('CREATE', 'Coupon')
   @ApiOperation({ summary: 'Create coupon' })
   @ApiResponse({ status: 201, description: 'Coupon created' })
-  create(@Body() dto: CreateCouponDto) {
+  create(@Body() dto: CreateCouponDto): unknown {
     return this.couponService.create(dto);
   }
 
@@ -74,7 +74,7 @@ export class CouponController {
   @ApiOperation({ summary: 'Update coupon' })
   @ApiResponse({ status: 200, description: 'Coupon updated' })
   @ApiResponse({ status: 404, description: 'Coupon not found' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateCouponDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateCouponDto): unknown {
     return this.couponService.update(id, dto);
   }
 
@@ -86,7 +86,7 @@ export class CouponController {
   @ApiOperation({ summary: 'Delete coupon' })
   @ApiResponse({ status: 204, description: 'Coupon deleted' })
   @ApiResponse({ status: 404, description: 'Coupon not found' })
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', ParseIntPipe) id: number): unknown {
     return this.couponService.remove(id);
   }
 }

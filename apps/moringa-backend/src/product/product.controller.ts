@@ -14,11 +14,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
-import { JwtAuthGuard } from '@/auth/jwt.guard';
-import { Roles } from '@/auth/decorators/roles.decorator';
-import { RolesGuard } from '@/auth/rolesguard';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/rolesguard';
 import { UseInterceptors } from '@nestjs/common';
-import { AuditInterceptor } from '@/audit/audit.interceptor';
+import { AuditInterceptor } from '../audit/audit.interceptor';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductService } from './product.service';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -98,10 +98,9 @@ export class ProductController {
   @ApiOperation({ summary: 'Get all products' })
   @ApiResponse({ status: 200, description: 'Products retrieved' })
   getProducts(
-    @Query('skip', new ParseIntPipe({ optional: true })) skip?: number,
-    @Query('take', new ParseIntPipe({ optional: true })) take?: number,
+    @Query() query: { skip?: number; take?: number },
   ) {
-    return this.productService.getProducts(false, skip, take);
+    return this.productService.getProducts(false, query.skip, query.take);
   }
 
   @Get('admin/all')
@@ -110,10 +109,9 @@ export class ProductController {
   @ApiOperation({ summary: 'Get all products including hidden (admin)' })
   @ApiResponse({ status: 200, description: 'All products retrieved' })
   getAdminProducts(
-    @Query('skip', new ParseIntPipe({ optional: true })) skip?: number,
-    @Query('take', new ParseIntPipe({ optional: true })) take?: number,
+    @Query() query: { skip?: number; take?: number },
   ) {
-    return this.productService.getProducts(true, skip, take);
+    return this.productService.getProducts(true, query.skip, query.take);
   }
 
   @Get('new-arrivals')

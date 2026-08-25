@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { BullMqService } from './bullmq.service';
-import { PinoModule } from '@/common/logger/pino.module';
+import { PinoModule } from '../../common/logger/pino.module';
 
 @Module({
   imports: [PinoModule],

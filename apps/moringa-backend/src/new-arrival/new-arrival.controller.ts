@@ -10,7 +10,7 @@ export class NewArrivalController {
   @Get()
   @ApiOperation({ summary: 'Get new arrival products' })
   @ApiResponse({ status: 200, description: 'New arrivals retrieved' })
-  findAll() {
+  findAll(): unknown {
     return this.newArrivalService.findAll();
   }
 }

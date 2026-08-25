@@ -8,6 +8,7 @@
  */
 
 import { $ } from "@builder.io/qwik";
+import { env } from "./env";
 
 export type ToastSeverity = "success" | "error" | "warning" | "info";
 
@@ -38,7 +39,7 @@ export const showToast = $((options: ToastOptions = {}) => {
 
   const { severity = "info", summary = "", detail = "", life = 4000 } = options;
 
-  if (import.meta.env.DEV) {
+  if (env.isDev()) {
     console.log("[Toast] showToast called", {
       severity,
       summary,

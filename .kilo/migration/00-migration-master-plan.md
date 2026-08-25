@@ -1,7 +1,16 @@
 # Moringa E-Commerce Migration — Master Plan
 
 **Date**: 2026-08-21  
-**Status**: COMPLETE — All 8 phases done (Phase 6 SDK blocked & documented)  
+**Status**: COMPLETE — all 8 phases executed; Nestia SDK LIVE (regenerated 2026-08-25); full-stack E2E verified against live Postgres
+
+### Toolchain Decision Record (2026-08-25)
+- Anchor: **TypeScript ^5.9.3** (latest stable 5.x) — TS7 breaks ts-jest<7 & ttsc-host contracts
+- Transform host: plain `tsc`; typia/nestia plugin entries REMOVED from tsconfig.base (typia@14 transform requires TS7/ttsc host — crashes under 5.9). Zero source constructs depend on it today
+- Path aliases ELIMINATED from backend source via codemod (85 files -> relative imports): dist emits resolvable CJS natively; `scripts/fix-dist-aliases.cjs` retained as post-build safety net
+- Dead code removed: jwt.strategy.ts (+PassportModule wiring), @fastify/static root-pin replaced by platform-matched ^10.1.2 (also fixes 4 path-traversal advisories), libs/nestia-sdk retired in favour of libs/sdk (@moringa/sdk)
+- npm audit --omit=dev: 4 accepted-risk findings (uuid moderate = vulnerable v3 API unused; sharp/vite-imagetools highs = frontend build-time only, absent from runtime images)
+- Dev-mode smoke: use BUILT server (`node dist/main.js`) not `vite --mode ssr` — custom entry.server.tsx isn't a dev-SSR target
+- Live-verified (Postgres 18 native, throwaway): health 200 t=3s; register 201 -> Set-Cookie accessToken(Max-Age=3600000)/refreshToken(604800000) HttpOnly SameSite=Strict Path=/ [byte-identical to legacy]; authed /auth/profile 200 via cookie jar; unauthenticated profile 401; login email-verify gate 403 enforced  
 **Source**: `Moringa-Backend` (Express/NestJS) + `Moringa-Frontend` (Next.js/React)  
 **Target**: `apps/moringa-backend` (Fastify/NestJS) + `apps/moringa-frontend` (Qwik City)  
 **Constraint**: Feature-preserving migration. Same behavior, syntax/deps/adapter changes only.
@@ -15,7 +24,7 @@
 | Backend (Phases 1–3) | Full feature parity ported: orders, reviews, coupons, gift cards, admin, users, products, blog; `nest build` + `tsc --noEmit` exit 0; zero express imports | ~100% of planned scope |
 | Frontend foundation (Phase 4) | Build infra, storage/session/http-cache-CSRF-refresh, all 12 API modules, Qwik toast bus, SessionHydrator, SiteNav/Footer, hooks | ~100% |
 | Frontend pages (Phase 5) | ALL pages ported: info pages, gift-cards, wishlist, auth (login/register/Google/forgot/reset/verify), home, shop, product detail (reviews/socket/JSON-LD), blog list+post (JSON-LD), cart+checkout (Razorpay/COD/pricing preview), orders (tabs/socket/support/invoice), profile (avatar/addresses), admin panel (overview, orders, products, support, blog, settings, gift-cards, new-arrivals/hero). `typecheck`/`build` green; SSR smoke: all routes 200 with full nav/page/footer | ~100% |
-| Nestia SDK | Config updated for 2.x; generation produces empty output (controllers use `@Res()` passthrough + untyped returns — Nestia cannot analyze). Existing fetch-based `http.ts` retained | ~15% (config only; generation blocked) |
+| Nestia SDK | ✅ COMPLETE — @Res() passthrough removed from auth/order/payment controllers via CookieStateInterceptor pattern. SDK generated (50 functional client files), frontend `api/client.ts` wraps it. Backend boots, middleware + interceptor wired, health 200. Cookie flow verified structurally (DB-less env blocks full e2e). `fix-sdk.py` post-processor handles generator placeholders | ~100% |
 | Docker/CI | Backend Dockerfile (multi-stage, healthcheck) exists. Frontend Dockerfile created (Qwik City Node adapter, `entry.server.tsx`). docker-compose updated with backend + frontend + rabbitmq services. CI workflow (`.github/workflows/ci.yml`) created. init.sql + env validation exist. render.yaml exists. Security hardening (env validation, bcrypt, JWT expiry, rate limiting) in place | ~75% (build/deploy validation pending infra) |
 | Tests + Polish | Auth service: 8 real unit tests (verifyEmail, resendVerification, logout) passing. E2E scaffold created. Security audit verified (bcrypt-10, JWT 15m/7d, HttpOnly cookies, Helmet, CORS, rate limiting). Backend + frontend typecheck & build green | ~55% (frontend tests + full service coverage remaining) |
 

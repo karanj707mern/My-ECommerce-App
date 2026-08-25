@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /cart/
+Disallow: /orders/
+Disallow: /profile/
+Disallow: /wishlist/
+
+# Allow public pages
+Allow: /shop/
+Allow: /blog/
+Allow: /about-us/
+Allow: /contact/
+Allow: /shipping/
+Allow: /returns/
+Allow: /privacy-policy/
+Allow: /terms/
+Allow: /gift-cards/
+Allow: /wellness-journal/
+
+Sitemap: https://my-nest-project-pearl.vercel.app/sitemap.xml

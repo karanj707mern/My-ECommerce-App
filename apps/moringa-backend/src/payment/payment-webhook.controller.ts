@@ -1,7 +1,6 @@
-import { Controller, Post, Headers, Req, Res, Get } from '@nestjs/common';
-import type { FastifyReply } from 'fastify';
+import { Controller, Post, Headers, Req, Get, HttpCode } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
-import { OrderService } from '@/order/order.service';
+import { OrderService } from '../order/order.service';
 
 /**
  * Razorpay webhook endpoint. All verification (secret presence, HMAC
@@ -13,10 +12,10 @@ export class PaymentWebhookController {
   constructor(private readonly orderService: OrderService) {}
 
   @Post('razorpay')
+  @HttpCode(200)
   async handleRazorpayWebhook(
     @Headers('x-razorpay-signature') signature: string,
     @Req() req: FastifyRequest & { rawBody?: Buffer },
-    @Res() res: FastifyReply,
   ) {
     // Prefer the untouched payload bytes when available so the HMAC matches
     // Razorpay's signature exactly; fall back to the parsed body otherwise.
@@ -24,7 +23,7 @@ export class PaymentWebhookController {
 
     const result = await this.orderService.handleRazorpayWebhook(rawBody, signature);
 
-    return res.status(200).send(result ?? { status: 'ok' });
+    return result ?? { status: 'ok' };
   }
 
   @Get('razorpay')

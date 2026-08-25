@@ -13,13 +13,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
-import { JwtAuthGuard } from '@/auth/jwt.guard';
-import { Roles } from '@/auth/decorators/roles.decorator';
-import { RolesGuard } from '@/auth/rolesguard';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/rolesguard';
 import { BlogService } from './blog.service';
 import { CreateBlogPostDto } from './dto/create-blog-post.dto';
 import { UpdateBlogPostDto } from './dto/update-blog-post.dto';
-import { StorageService } from '@/storage/storage.service';
+import { StorageService } from '../storage/storage.service';
 import {
   ApiTags,
   ApiOperation,

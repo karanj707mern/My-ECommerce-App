@@ -1,13 +1,12 @@
 import { Controller, Get, Param, UseGuards, Req, Post, Body, Patch, Delete, HttpCode, BadRequestException, Query } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
-import { JwtAuthGuard } from '@/auth/jwt.guard';
-import { AuthThrottlerGuard } from '@/auth/guards/auth-throttler.guard';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { AuthThrottlerGuard } from '../auth/guards/auth-throttler.guard';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
-import { PrismaService } from '@/prisma/prisma.service';
-import { StorageService } from '@/storage/storage.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { StorageService } from '../storage/storage.service';
 import { AuthCookiesService } from './services/auth-cookies.service';
-import { CookieState } from '@/common/http/cookie-state';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiConsumes } from '@nestjs/swagger';
 
 @ApiTags('auth')
@@ -18,7 +17,6 @@ export class AuthController {
     private readonly storageService: StorageService,
     private readonly prisma: PrismaService,
     private readonly authCookiesService: AuthCookiesService,
-    private readonly cookieState: CookieState,
   ) {}
 
   @UseGuards(AuthThrottlerGuard)
@@ -73,11 +71,12 @@ export class AuthController {
   }
 
   @Get('session')
+  @HttpCode(200)
   @ApiOperation({ summary: 'Get current session' })
   @ApiResponse({ status: 200, description: 'Session status' })
-  async session(@Req() req: { cookies?: { accessToken?: string; refreshToken?: string } }, @Res() res: FastifyReply) {
-    const result = await this.authService.getSession(req.cookies?.accessToken, req.cookies?.refreshToken);
-    return res.send(result);
+  async session(@Req() req: FastifyRequest) {
+    const cookies = req.cookies as Record<string, string | undefined> | undefined;
+    return this.authService.getSession(cookies?.accessToken, cookies?.refreshToken);
   }
 
   @UseGuards(JwtAuthGuard)

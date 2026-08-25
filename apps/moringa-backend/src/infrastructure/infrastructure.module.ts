@@ -4,7 +4,7 @@ import { RedisService } from './redis.service';
 import { BullMQService } from './bullmq.service';
 import { RabbitMQService } from './rabbitmq.service';
 import { PrismaService } from './prisma.service';
-import { PinoModule } from '@/common/logger/pino.module';
+import { PinoModule } from '../common/logger/pino.module';
 
 @Module({
   imports: [ConfigModule, PinoModule],

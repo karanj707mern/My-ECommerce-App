@@ -2,9 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   NotificationChannel,
   NotificationType,
-} from '@/generated/prisma/client';
-import { NotificationService } from '@/notification/notification.service';
-import { sanitizeHtml } from '@/common/utils/sanitize.util';
+} from '../generated/prisma/client';
+import { NotificationService } from '../notification/notification.service';
+import { sanitizeHtml } from '../common/utils/sanitize.util';
 
 /**
  * Auth-related transactional emails, all dispatched through the notification

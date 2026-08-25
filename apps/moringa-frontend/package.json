@@ -23,7 +23,9 @@
     "@builder.io/qwik": "^1.20.0",
     "@builder.io/qwik-city": "^1.20.0",
     "@moringa/shared": "*",
-    "socket.io-client": "^4.8.3"
+    "@nestia/fetcher": "^13.0.1",
+    "socket.io-client": "^4.8.3",
+    "@moringa/sdk": "*"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.2",
@@ -40,7 +42,7 @@
     "postcss": "^8.5.19",
     "prettier": "^3.9.5",
     "tailwindcss": "^4.3.2",
-    "typescript": "^6.0.3",
+    "typescript": "^5.9.3",
     "undici": "^7.0.0",
     "vite": "^6.0.0"
   }

@@ -1,6 +1,6 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { RedisService } from '@/infrastructure/redis.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../infrastructure/redis.service';
 
 @Injectable()
 export class RedisCacheService implements OnModuleDestroy {

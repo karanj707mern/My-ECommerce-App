@@ -1,0 +1,1 @@
+import{_ as t}from"./q-BD-hIznX.js";import{y as o,L as r}from"./q-DbZgC2Xw.js";const s=o(r(()=>t(()=>import("./q-BwD4WHVG.js"),[]),"s_ZmCICuZntRQ")),_={title:"Admin · New Arrivals & Hero"};export{s as default,_ as head};

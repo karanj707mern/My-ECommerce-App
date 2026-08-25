@@ -1,0 +1,1 @@
+import{_ as t}from"./q-BD-hIznX.js";import{y as o,L as r}from"./q-DbZgC2Xw.js";const e=o(r(()=>t(()=>import("./q-Cu-Fp4kN.js"),[]),"s_PlvmD8nNzN0")),i={title:"Admin · Products"};export{e as default,i as head};

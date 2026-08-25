@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient, Prisma } from '@/generated/prisma/client';
+import { PrismaClient, Prisma } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PinoLogger } from '@/common/logger/pino.service';
+import { PinoLogger } from '../common/logger/pino.service';
 
 export interface QueryLog {
   query: string;

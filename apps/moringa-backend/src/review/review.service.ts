@@ -1,17 +1,17 @@
-import { RedisCacheService } from '@/cache/redis-cache.service';
-import { sanitizeHtml } from '@/common/utils/sanitize.util';
+import { RedisCacheService } from '../cache/redis-cache.service';
+import { sanitizeHtml } from '../common/utils/sanitize.util';
 import {
   BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { OrderStatus, Prisma, ReviewStatus } from '@/generated/prisma/client';
+import { OrderStatus, Prisma, ReviewStatus } from '../generated/prisma/client';
 import { CreateReviewCommentDto } from './dto/create-review-comment.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ModerateReviewDto } from './dto/moderate-review.dto';
-import { PrismaService } from '@/prisma/prisma.service';
-import { EmailVerificationService } from '@/auth/email-verification.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { EmailVerificationService } from '../auth/email-verification.service';
 
 @Injectable()
 export class ReviewService {

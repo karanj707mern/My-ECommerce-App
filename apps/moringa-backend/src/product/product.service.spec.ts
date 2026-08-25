@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProductService } from './product.service';
-import { PrismaService } from '@/prisma/prisma.service';
-import { RedisCacheService } from '@/cache/redis-cache.service';
-import { StorageService } from '@/storage/storage.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { RedisCacheService } from '../cache/redis-cache.service';
+import { StorageService } from '../storage/storage.service';
 
 describe('ProductService', () => {
   let service: ProductService;

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { OrderStatus } from '@/generated/prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
+import { OrderStatus } from '../generated/prisma/client';
 
 interface AdminOrderItem {
   id: number;

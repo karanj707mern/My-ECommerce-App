@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { OrderStatus, Prisma } from '@/generated/prisma/client';
+import { OrderStatus, Prisma } from '../generated/prisma/client';
 import { Observable } from 'rxjs';
 import * as crypto from 'crypto';
 import Razorpay from 'razorpay';
@@ -21,8 +21,8 @@ import {
   OrderIssueStatusValue,
   UpdateOrderIssueDto,
 } from './dto/update-order-issue.dto';
-import { CouponService } from '@/coupon/coupon.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import { CouponService } from '../coupon/coupon.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { QueryOrderDto } from './dto/query-order.dto';
 
 type OrderTx =

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { RedisCacheService } from '@/cache/redis-cache.service';
-import { AbandonedCartService } from '@/analytics/abandoned-cart.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { RedisCacheService } from '../cache/redis-cache.service';
+import { AbandonedCartService } from '../analytics/abandoned-cart.service';
 
 @Injectable()
 export class CartService {

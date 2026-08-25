@@ -1,0 +1,1 @@
+import{v as o}from"./q-DbZgC2Xw.js";import{x as n}from"./q-DbZgC2Xw.js";const s=()=>{const[t]=o();t.value=document.documentElement.classList.contains("dark")?"dark":"light"};export{n as _hW,s as s_h6H0G6xUOzo};

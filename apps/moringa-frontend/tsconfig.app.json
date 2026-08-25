@@ -1,18 +1,13 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "outDir": "../../dist/out-tsc",
-    "declaration": true,
-    "types": ["node", "jest"],
-    "tsBuildInfoFile": "../../dist/tsconfig.app.tsbuildinfo",
-    "module": "ES2022",
-    "target": "ES2022",
-    "lib": ["ES2022", "dom"],
-    "strict": true,
-    "noEmit": false,
-    "jsx": "react-jsx",
-    "jsxImportSource": "@builder.io/qwik"
-  },
+  /**
+   * Compatibility shim.
+   *
+   * The canonical configuration now lives in `./tsconfig.json` (NodeNext).
+   * Tooling that still references `tsconfig.app.json` (Nx inference caches,
+   * editor plugins, historical scripts) resolves through this file, which
+   * simply re-exposes the app sources under the canonical compiler options.
+   */
+  "extends": "./tsconfig.json",
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules", "dist", "src/**/*.spec.ts", "src/**/*.test.ts"]
+  "exclude": ["node_modules", "dist", "server", "tmp"]
 }

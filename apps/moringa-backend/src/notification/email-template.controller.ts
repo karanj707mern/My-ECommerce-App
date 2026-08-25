@@ -11,11 +11,11 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/auth/jwt.guard';
-import { RolesGuard } from '@/auth/rolesguard';
-import { Roles } from '@/auth/decorators/roles.decorator';
-import { AuditInterceptor } from '@/audit/audit.interceptor';
-import { AuditLog } from '@/audit/audit-logger.decorator';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { RolesGuard } from '../auth/rolesguard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { AuditInterceptor } from '../audit/audit.interceptor';
+import { AuditLog } from '../audit/audit-logger.decorator';
 import { CreateEmailTemplateDto } from './dto/create-email-template.dto';
 import { UpdateEmailTemplateDto } from './dto/update-email-template.dto';
 import { EmailTemplateService } from './email-template.service';

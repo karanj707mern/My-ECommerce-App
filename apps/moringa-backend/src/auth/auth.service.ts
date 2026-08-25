@@ -8,13 +8,13 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '@/prisma/prisma.service';
-import { RedisCacheService } from '@/cache/redis-cache.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { RedisCacheService } from '../cache/redis-cache.service';
 import { SessionService } from './services/session.service';
 import { DeviceInfoService, DeviceInfo } from './services/device-info.service';
 import { EmailVerificationService } from './email-verification.service';
-import { NotificationService } from '@/notification/notification.service';
-import { AuthProvider, Prisma } from '@/generated/prisma/client';
+import { NotificationService } from '../notification/notification.service';
+import { AuthProvider, Prisma } from '../generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { randomBytes } from 'crypto';

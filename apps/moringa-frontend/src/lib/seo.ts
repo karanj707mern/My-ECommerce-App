@@ -3,6 +3,7 @@
  * Ported from legacy Next.js `generateMetadata` conventions.
  */
 import type { DocumentHeadValue } from "@builder.io/qwik-city";
+import { env } from "./env";
 
 export const SITE_NAME = "Moringa Store Online";
 export const DEFAULT_SITE_URL = "https://my-nest-project-pearl.vercel.app";
@@ -10,8 +11,7 @@ export const DEFAULT_OG_IMAGE =
   "https://my-nest-project-pearl.vercel.app/images/home-hero-1.webp";
 
 export function getSiteUrl(): string {
-  const explicit = import.meta.env.VITE_SITE_URL?.trim().replace(/\/$/, "");
-  return explicit || DEFAULT_SITE_URL;
+  return env.siteUrl() || DEFAULT_SITE_URL;
 }
 
 interface SeoOptions {
@@ -53,6 +53,12 @@ export function buildHead({
       { name: "twitter:description", content: description },
       { name: "twitter:image", content: imageUrl },
     ],
-    links: [{ rel: "canonical", href: `${siteUrl}${path}` }],
+    links: [
+      { rel: "canonical", href: `${siteUrl}${path}` },
+      // Store targets India (en_IN locale); declare the regional variant
+      // explicitly plus a default for all other locales.
+      { rel: "alternate", hreflang: "en-in", href: `${siteUrl}${path}` },
+      { rel: "alternate", hreflang: "x-default", href: `${siteUrl}${path}` },
+    ],
   };
 }

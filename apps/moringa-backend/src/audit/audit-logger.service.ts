@@ -1,4 +1,4 @@
-import { PrismaService } from '@/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { Injectable, Scope } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 

@@ -1,5 +1,5 @@
 import { IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
-import { Prisma } from '@/generated/prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 
 export class UpdateEmailTemplateDto {
   @IsOptional()

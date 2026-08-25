@@ -1,0 +1,1 @@
+import{a as t}from"./q-BdAFxX1c.js";const i=8e3;async function n(){return t("/wishlist",{timeout:i})}async function o(s){return t(`/wishlist/${s}`,{method:"POST"})}async function r(s){return t(`/wishlist/${s}`,{method:"DELETE"})}export{o as a,n as g,r};

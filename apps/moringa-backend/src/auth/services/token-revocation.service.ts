@@ -1,5 +1,5 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { RedisService } from '@/infrastructure/redis.service';
+import { RedisService } from '../../infrastructure/redis.service';
 
 @Injectable()
 export class TokenRevocationService implements OnModuleDestroy {

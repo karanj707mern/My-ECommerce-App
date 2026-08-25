@@ -7,7 +7,7 @@ export class AppController {
   @Get()
   @ApiOperation({ summary: 'Root endpoint' })
   @ApiResponse({ status: 200, description: 'Application is running' })
-  root() {
+  root(): { status: string; app: string; version: string } {
     return { status: 'ok', app: 'Moringa Backend', version: '1.0.0' };
   }
 }

@@ -1,29 +1,32 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "rootDir": ".",
-    "sourceMap": true,
-    "declaration": false,
-    "moduleResolution": "node",
+    "target": "ES2022",
+    "lib": [
+      "ES2022"
+    ],
+    "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "ignoreDeprecations": "6.0",
-    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": false,
     "experimentalDecorators": true,
-    "importHelpers": true,
-    "target": "ES2022",
-    "module": "ES2022",
-    "lib": ["ES2022", "dom"],
+    "emitDecoratorMetadata": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
-    "strict": true,
-    "noEmit": false,
-    "baseUrl": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "declarationMap": false,
+    "incremental": false,
     "paths": {
-      "@/*": ["apps/moringa-backend/src/*"],
-      "@moringa/backend/*": ["apps/moringa-backend/src/*"],
-      "@moringa/frontend/*": ["libs/frontend/*"],
-      "@moringa/shared/*": ["libs/shared/*"]
+      "@moringa/shared/*": [
+        "./libs/shared/src/*"
+      ]
     }
   },
-  "exclude": ["node_modules", "tmp"]
+  "exclude": [
+    "node_modules",
+    "tmp",
+    "dist"
+  ]
 }

@@ -1,8 +1,8 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { Subscription, Subject } from 'rxjs';
-import { RedisService } from '@/infrastructure/redis.service';
-import { BullMQService } from '@/infrastructure/bullmq.service';
-import { RabbitMQService } from '@/infrastructure/rabbitmq.service';
+import { RedisService } from '../infrastructure/redis.service';
+import { BullMQService } from '../infrastructure/bullmq.service';
+import { RabbitMQService } from '../infrastructure/rabbitmq.service';
 
 export interface OrderEventMessage {
   type: 'order.created' | 'order.updated' | 'order.cancelled' | 'order.paid';

@@ -1,5 +1,5 @@
 import { IsBoolean, IsEnum, IsNotEmpty } from 'class-validator';
-import { NotificationChannel, NotificationType } from '@/generated/prisma/client';
+import { NotificationChannel, NotificationType } from '../../generated/prisma/client';
 
 export class NotificationPreferenceDto {
   @IsEnum(NotificationType)

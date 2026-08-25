@@ -1,0 +1,16 @@
+{
+  "name": "@moringa/sdk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Auto-generated Nestia SDK for the Moringa backend. src/api is generated — regenerate via `npm run sdk:generate`.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@nestia/fetcher": "^13.0.1",
+    "typia": "^14.0.2"
+  }
+}

@@ -17,11 +17,11 @@ import type { FastifyRequest } from 'fastify';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtAuthGuard } from '@/auth/jwt.guard';
-import { RolesGuard } from '@/auth/rolesguard';
-import { Roles } from '@/auth/decorators/roles.decorator';
-import { Role } from '@/generated/prisma/client';
-import { DeviceInfoService } from '@/auth/services/device-info.service';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { RolesGuard } from '../auth/rolesguard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../generated/prisma/client';
+import { DeviceInfoService } from '../auth/services/device-info.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 
 @ApiTags('users')
@@ -74,9 +74,7 @@ export class UserController {
   async update(
     @Req() req: FastifyRequest & { user: { id: number; role: Role } },
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserDto: UpdateUserDto,
-    @Body('captchaId') captchaId?: string,
-    @Body('captchaInput') captchaInput?: string,
+    @Body() dto: UpdateUserDto & { captchaId?: string; captchaInput?: string },
   ) {
     if (req.user.role !== Role.ADMIN && req.user.id !== id) {
       throw new ForbiddenException('You can only update your own account.');
@@ -86,9 +84,9 @@ export class UserController {
 
     return this.userService.update(
       id,
-      updateUserDto,
-      captchaId,
-      captchaInput,
+      dto,
+      dto.captchaId,
+      dto.captchaInput,
       deviceInfo,
     );
   }

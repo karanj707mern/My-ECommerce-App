@@ -14,6 +14,7 @@ import { clearToken, setCurrentUser } from "../../../lib/storage";
 import { useToast } from "../../../hooks/useToast";
 import { useAuthState } from "../../../hooks/useAuthState";
 import { buildHead } from "../../../lib/seo";
+import { env } from "../../../lib/env";
 
 /* ------------------------------------------------------------------ */
 /* Google Identity script loader (module-level single-flight cache)    */
@@ -77,9 +78,18 @@ function loadGoogleIdentityScript(): Promise<void> {
   return googleScriptPromise;
 }
 
-let initializedGoogleClientId = "";
-let googleCredentialHandler:
-  ((response: { credential: string }) => void) | null = null;
+/**
+ * Mutable Google-SignIn state lives in a holder OBJECT, never in bare
+ * module-level `let` bindings: the Qwik optimizer extracts $()-wrapped tasks
+ * into separate QRL chunks and shares module state with them via imports —
+ * reassigning an imported binding is illegal ESM (Rollup
+ * "ImportReassignment" build failure), while mutating a property of an
+ * imported object is fine. Same idiom as `toastCounter` in lib/toast.ts.
+ */
+const googleAuthState = {
+  initializedClientId: "",
+  credentialHandler: null as ((response: { credential: string }) => void) | null,
+};
 
 const inputClassName = "input-field-dark";
 
@@ -203,7 +213,7 @@ export default component$(() => {
 
   /* Google button rendering (client only). */
   useVisibleTask$(async ({ track }) => {
-    const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim();
+    const googleClientId = env.googleClientId();
     const loginMode = track(isLogin);
     if (!googleClientId || !googleButtonRef.value || resetTokenFromUrl) {
       return;
@@ -216,10 +226,10 @@ export default component$(() => {
         if (!el || !googleId) return;
 
         if (
-          !googleCredentialHandler ||
-          initializedGoogleClientId !== googleClientId
+          !googleAuthState.credentialHandler ||
+          googleAuthState.initializedClientId !== googleClientId
         ) {
-          googleCredentialHandler = async (response: { credential: string }) => {
+          googleAuthState.credentialHandler = async (response: { credential: string }) => {
             if (!response.credential) {
               void toast.showToast({
                 severity: "error",
@@ -257,9 +267,9 @@ export default component$(() => {
           googleId.initialize({
             client_id: googleClientId,
             callback: (response: { credential: string }) =>
-              googleCredentialHandler?.(response),
+              googleAuthState.credentialHandler?.(response),
           });
-          initializedGoogleClientId = googleClientId;
+          googleAuthState.initializedClientId = googleClientId;
         }
 
         el.innerHTML = "";
@@ -436,7 +446,7 @@ export default component$(() => {
     </svg>
   );
 
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim();
+  const googleClientId = env.googleClientId();
 
   return (
     <div class="relative flex min-h-screen items-center justify-center px-4 py-8 theme-transition sm:px-6">

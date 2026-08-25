@@ -1,0 +1,1 @@
+import{_ as l}from"./q-BD-hIznX.js";import{I as o,L as s,R as i}from"./q-DbZgC2Xw.js";const r=a=>o("img",null,{src:i(t=>t.src,[a]),alt:i(t=>t.alt,[a]),width:i(t=>t.width??400,[a]),height:i(t=>t.height??300,[a]),loading:"lazy",decoding:"async",class:i(t=>t.class,[a]),onError$:s(()=>l(()=>import("./q-BiM65rFY.js"),[]),"s_1woObP4XLhE")},null,3,"0P_0");export{r as s_0fELo9VEG3A};

@@ -8,7 +8,6 @@ import { PinoLogger } from './common/logger/pino.service';
 import { GlobalExceptionFilter } from './global-exception/global-exception.filter';
 import { PinoInterceptor } from './common/logger/pino.interceptor';
 import { CookieInterceptor } from './common/http/cookie-interceptor';
-import { CookieStateMiddleware } from './common/http/cookie-middleware';
 import { RequestContextService } from './common/request-context/request-context.service';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
@@ -120,7 +119,6 @@ async function bootstrap(): Promise<void> {
   app.useGlobalInterceptors(new PinoInterceptor(customLogger));
   app.useGlobalInterceptors(new CookieInterceptor());
 
-  const cookieStateMiddleware = new CookieStateMiddleware();
 
   void requestContextService;
 
@@ -150,7 +148,20 @@ async function bootstrap(): Promise<void> {
   });
 
   if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-    const { DocumentBuilder, SwaggerModule } = await import('@nestjs/swagger');
+    // Race the module load: a wedged optional dependency must never block
+    // server listen. Timeout degrades to API-without-UI, logged loudly.
+    const swaggerModule = await Promise.race([
+      import('@nestjs/swagger'),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 15000)),
+    ]);
+
+    if (!swaggerModule) {
+      customLogger.warn(
+        'Swagger UI skipped: @nestjs/swagger did not load within 15s',
+        'Bootstrap',
+      );
+    } else {
+    const { DocumentBuilder, SwaggerModule } = swaggerModule;
     const swaggerConfig = new DocumentBuilder()
       .setTitle('Moringa Backend API')
       .setDescription('Production-grade e-commerce backend API')
@@ -165,6 +176,7 @@ async function bootstrap(): Promise<void> {
       customSiteTitle: 'Moringa API Docs',
       customCss: '.swagger-ui .topbar { display: none }',
     });
+    }
   }
 
   // Ensure upload directory exists
@@ -172,9 +184,6 @@ async function bootstrap(): Promise<void> {
   if (!existsSync(uploadsDir)) {
     mkdirSync(uploadsDir, { recursive: true });
   }
-
-  // Attach request-scoped cookie state before route handlers run
-  app.use(cookieStateMiddleware);
 
   const port = configService.get<number>('app.port', 5000);
 

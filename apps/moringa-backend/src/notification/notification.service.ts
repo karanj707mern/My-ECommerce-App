@@ -12,12 +12,12 @@ import {
   NotificationStatus,
   NotificationType,
   Prisma,
-} from '@/generated/prisma/client';
+} from '../generated/prisma/client';
 import * as nodemailer from 'nodemailer';
 import * as amqp from 'amqplib';
-import { PrismaService } from '@/prisma/prisma.service';
-import { EmailTemplateService as HandlebarsEmailTemplateService } from '@/common/email-templates/email-template.service';
-import { sanitizeHtml } from '@/common/utils/sanitize.util';
+import { PrismaService } from '../prisma/prisma.service';
+import { EmailTemplateService as HandlebarsEmailTemplateService } from '../common/email-templates/email-template.service';
+import { sanitizeHtml } from '../common/utils/sanitize.util';
 import { RabbitMqService } from './rabbitmq/rabbitmq.service';
 import { BullMqService } from './bullmq/bullmq.service';
 import { NotificationPreferenceDto } from './dto/notification-preference.dto';

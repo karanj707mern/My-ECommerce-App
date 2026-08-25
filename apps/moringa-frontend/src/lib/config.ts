@@ -2,17 +2,21 @@
  * Environment-aware URL resolution for the API, assets and the socket server.
  * Ported from legacy `lib/config.ts`; Next.js `NEXT_PUBLIC_*` variables became
  * Vite `VITE_*` variables.
+ *
+ * All compile-time env access is routed through `lib/env.ts`, the single
+ * quarantined `import.meta` seam required by the NodeNext module contract.
  */
+import { env } from "./env";
 
 function trimTrailingSlash(value: string | undefined): string | undefined {
   return value ? value.replace(/\/$/, "") : undefined;
 }
 
 function getServerApiBaseUrl(): string {
-  const explicit = import.meta.env.VITE_API_BASE_URL?.trim();
+  const explicit = env.apiBaseUrl();
   if (explicit) return explicit;
 
-  const siteUrl = trimTrailingSlash(import.meta.env.VITE_SITE_URL?.trim());
+  const siteUrl = trimTrailingSlash(env.siteUrl());
   if (siteUrl) {
     return `${siteUrl}/api/v1`;
   }
@@ -21,11 +25,11 @@ function getServerApiBaseUrl(): string {
 }
 
 function getClientApiBaseUrl(): string {
-  const explicit = import.meta.env.VITE_API_BASE_URL?.trim();
+  const explicit = env.apiBaseUrl();
   if (explicit) return explicit;
 
   if (
-    import.meta.env.DEV ||
+    env.isDev() ||
     (typeof window !== "undefined" && window.location.hostname === "localhost")
   ) {
     return "http://localhost:5000/api/v1";
@@ -41,14 +45,13 @@ function getClientApiBaseUrl(): string {
 export const API_BASE_URL: string =
   typeof window !== "undefined" ? getClientApiBaseUrl() : getServerApiBaseUrl();
 
-const CLOUDINARY_CLOUD_NAME =
-  import.meta.env.VITE_CLOUDINARY_CLOUD_NAME?.trim() ?? "";
+const CLOUDINARY_CLOUD_NAME = env.cloudinaryCloudName() ?? "";
 
 export const ASSET_BASE_URL: string =
   CLOUDINARY_CLOUD_NAME && CLOUDINARY_CLOUD_NAME !== "your-cloud-name"
     ? `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}`
     : API_BASE_URL.replace(/\/api\/v\d+\/?$/, "") ||
-      import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/v\d+\/?$/, "") ||
+      env.apiBaseUrl()?.replace(/\/api\/v\d+\/?$/, "") ||
       "http://localhost:5000";
 
 export const SOCKET_BASE_URL = ASSET_BASE_URL;

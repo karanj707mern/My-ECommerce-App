@@ -2,17 +2,32 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "module": "commonjs",
+    "moduleResolution": "node10",
+    "target": "ES2022",
+    "useDefineForClassFields": false,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "types": ["node", "jest"],
-    "tsBuildInfoFile": "./dist/tsconfig.app.tsbuildinfo",
+    "baseUrl": ".",
+    "types": [
+      "node"
+    ],
     "paths": {
-      "@/*": ["apps/moringa-backend/src/*"],
-      "@moringa/backend/*": ["libs/backend/*"],
-      "@moringa/frontend/*": ["libs/frontend/*"],
-      "@moringa/shared/*": ["libs/shared/*"]
+      "@/*": [
+        "src/*"
+      ]
     }
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "test"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "**/*.spec.ts"
+  ]
 }

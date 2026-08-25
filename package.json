@@ -2,37 +2,53 @@
   "name": "moringa-ecommerce-monorepo",
   "version": "1.0.0",
   "private": true,
-  "description": "Moringa E-Commerce Monorepo - Qwik City frontend + NestJS backend with Nestia and Fastify",
+  "description": "Moringa E-Commerce Monorepo — Qwik City frontend + NestJS/Nestia backend",
   "workspaces": [
     "apps/*",
     "libs/*"
   ],
   "scripts": {
     "dev": "nx run-many --target=dev --all --parallel",
-    "dev:frontend": "nx run moringa-frontend:dev",
+    "dev:frontend": "nx run @moringa/frontend:dev",
     "dev:backend": "nx run moringa-backend:dev",
     "build": "nx run-many --target=build --all",
+    "build:frontend": "nx run @moringa/frontend:build",
+    "build:backend": "nx run moringa-backend:build",
+    "build:sdk": "nx run @moringa/sdk:typecheck",
     "test": "nx run-many --target=test --all",
     "lint": "nx run-many --target=lint --all",
+    "typecheck": "nx run-many --target=typecheck --all",
     "format": "nx run-many --target=format --all",
     "affected:build": "nx affected --target=build",
     "affected:test": "nx affected --target=test",
-    "affected:lint": "nx affected --target=lint"
+    "affected:lint": "nx affected --target=lint",
+    "prepare": "ts-patch install -s",
+    "postinstall": "ts-patch install -s"
   },
   "devDependencies": {
+    "@nestia/core": "^13.0.1",
+    "@nestia/sdk": "^13.0.1",
     "@nx/eslint": "23.1.1",
     "@nx/jest": "23.1.1",
     "@nx/workspace": "23.1.1",
     "eslint": "^9.39.5",
+    "nestia": "^13.0.1",
     "nx": "23.1.1",
     "prettier": "^3.9.5",
-    "typescript": "^6.0.3"
+    "ts-patch": "^3.3.0",
+    "typescript": "^5.9.3",
+    "typescript-transform-paths": "^4.0.0",
+    "typia": "^14.0.2"
   },
   "engines": {
     "node": "24.x"
   },
   "packageManager": "npm@11.15.0",
   "dependencies": {
-    "@fastify/static": "^8.3.0"
+    "@fastify/static": "^10.1.3",
+    "@nestia/fetcher": "^13.0.1"
+  },
+  "overrides": {
+    "deepmerge-ts": "^8.0.0"
   }
 }

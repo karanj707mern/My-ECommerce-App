@@ -1,15 +1,15 @@
 import { Module, OnModuleInit } from '@nestjs/common';
-import { AuthSharedModule } from '@/auth/auth-shared.module';
+import { AuthSharedModule } from '../auth/auth-shared.module';
 import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
 import { OrderProcessor } from './order.processor';
 import { OrderEventsService } from './order-events.service';
 import { OrderNotificationService } from './order-notification.service';
-import { PrismaModule } from '@/prisma/prisma.module';
-import { InfrastructureModule } from '@/infrastructure/infrastructure.module';
-import { BullMQService } from '@/infrastructure/bullmq.service';
-import { CouponModule } from '@/coupon/coupon.module';
-import { NotificationModule } from '@/notification/notification.module';
+import { PrismaModule } from '../prisma/prisma.module';
+import { InfrastructureModule } from '../infrastructure/infrastructure.module';
+import { BullMQService } from '../infrastructure/bullmq.service';
+import { CouponModule } from '../coupon/coupon.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [

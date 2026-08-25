@@ -12,15 +12,15 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/auth/jwt.guard';
-import { RolesGuard } from '@/auth/rolesguard';
-import { Roles } from '@/auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { RolesGuard } from '../auth/rolesguard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { CreateReviewCommentDto } from './dto/create-review-comment.dto';
 import { ModerateReviewDto } from './dto/moderate-review.dto';
-import { AuditInterceptor } from '@/audit/audit.interceptor';
-import { AuditLog } from '@/audit/audit-logger.decorator';
+import { AuditInterceptor } from '../audit/audit.interceptor';
+import { AuditLog } from '../audit/audit-logger.decorator';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('reviews')
@@ -89,9 +89,8 @@ export class ReviewController {
   @Roles('ADMIN')
   @Get('pending')
   getPendingReviews(
-    @Query('page', ParseIntPipe) page: number,
-    @Query('limit', ParseIntPipe) limit: number,
+    @Query() query: { page: number; limit: number },
   ) {
-    return this.reviewService.getPendingReviews(page, limit);
+    return this.reviewService.getPendingReviews(query.page, query.limit);
   }
 }
