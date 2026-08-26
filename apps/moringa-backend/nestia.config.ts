@@ -25,6 +25,9 @@ const config: INestiaConfig = {
       "src/review/review.controller.ts",
       "src/admin/admin.controller.ts",
       "src/analytics/analytics.controller.ts",
+      // Returns raw generated-Prisma Product models — deep intersections the
+      // static analyzer cannot name; served by the frontend http.ts plane.
+      "src/analytics/recently-viewed.controller.ts",
       "src/audit/audit.controller.ts",
       "src/payment/payment-webhook.controller.ts",
       "src/storage/storage.controller.ts",

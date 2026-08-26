@@ -47,7 +47,13 @@ module.exports = [
     // connection construction, cookie forwarding and error normalization stay
     // auditable in one place.
     files: ["src/**/*.ts", "src/**/*.tsx"],
-    ignores: ["src/lib/env.ts", "src/lib/api/**"],
+    ignores: [
+      "src/lib/env.ts",
+      "src/lib/api/**",
+      // env.test.ts asserts against the real Vite-injected import.meta.env,
+      // which is the whole point of the test — it verifies the seam itself.
+      "src/lib/env.test.ts",
+    ],
     rules: {
       "no-restricted-syntax": [
         "error",

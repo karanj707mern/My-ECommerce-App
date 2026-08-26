@@ -5,13 +5,13 @@ import { RabbitMqService } from '../notification/rabbitmq/rabbitmq.service';
 import { PrismaService } from '../prisma/prisma.service';
 import Redis from 'ioredis';
 
-interface CheckResult {
+export interface CheckResult {
   database: { status: string; latencyMs?: number };
   redis: { status: string; latencyMs?: number };
   rabbitmq: { status: string; latencyMs?: number };
 }
 
-interface HealthResponse {
+export interface HealthResponse {
   status: 'ok' | 'degraded';
   timestamp: string;
   checks: CheckResult;
@@ -22,7 +22,7 @@ interface HealthResponse {
 export class HealthController {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly rabbitMqService: RabbitMqService,
+    private readonly rabbitMqService: RabbitMqService
   ) {}
 
   @Get()
@@ -80,9 +80,7 @@ export class HealthController {
         const start = Date.now();
         const isConnected = await Promise.race([
           Promise.resolve(this.rabbitMqService.isConnected),
-          new Promise<boolean>((_, reject) =>
-            setTimeout(() => reject(new Error('timeout')), 2000),
-          ),
+          new Promise<boolean>((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000)),
         ]);
         checks.rabbitmq = {
           status: isConnected ? 'ok' : 'degraded',
@@ -97,10 +95,8 @@ export class HealthController {
 
     const allHealthy =
       checks.database.status === 'ok' &&
-      (checks.redis.status === 'ok' ||
-        checks.redis.status === 'not_configured') &&
-      (checks.rabbitmq.status === 'ok' ||
-        checks.rabbitmq.status === 'not_configured');
+      (checks.redis.status === 'ok' || checks.redis.status === 'not_configured') &&
+      (checks.rabbitmq.status === 'ok' || checks.rabbitmq.status === 'not_configured');
 
     const status: HealthResponse['status'] = allHealthy ? 'ok' : 'degraded';
 
@@ -115,19 +111,20 @@ export class HealthController {
   @ApiOperation({ summary: 'Readiness probe' })
   @ApiResponse({ status: 200, description: 'Service is ready' })
   @ApiResponse({ status: 503, description: 'Service is not ready' })
-  async ready(@Res() reply: FastifyReply): Promise<FastifyReply> {
+  async ready(@Res() reply: FastifyReply): Promise<void> {
     const health = await this.check();
 
     if (health.status === 'ok') {
-      return reply.status(200).send({ status: 'ready' });
+      reply.status(200).send({ status: 'ready' });
+      return;
     }
-    return reply.status(503).send({ status: 'not_ready' });
+    reply.status(503).send({ status: 'not_ready' });
   }
 
   @Get('live')
   @ApiOperation({ summary: 'Liveness probe' })
   @ApiResponse({ status: 200, description: 'Service is alive' })
-  live(@Res() reply: FastifyReply): FastifyReply {
-    return reply.status(200).send({ status: 'alive' });
+  live(@Res() reply: FastifyReply): void {
+    reply.status(200).send({ status: 'alive' });
   }
 }

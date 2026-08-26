@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, NotFoundException } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisCacheService } from '../cache/redis-cache.service';
@@ -79,7 +78,12 @@ describe('CartService', () => {
     });
 
     it('increments quantity when the user already has the same product in cart', async () => {
-      prisma.cartItem.findUnique.mockResolvedValue({ id: 5, userId: 1, productId: 42, quantity: 2 });
+      prisma.cartItem.findUnique.mockResolvedValue({
+        id: 5,
+        userId: 1,
+        productId: 42,
+        quantity: 2,
+      });
       prisma.cartItem.update.mockResolvedValue({ id: 5, quantity: 4 });
 
       const result = await service.create(1, { productId: 42, quantity: 2 });
@@ -99,9 +103,10 @@ describe('CartService', () => {
 
       await service.create(1, { productId: 7 });
 
-      expect(prisma.cartItem.create).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ quantity: 1 }) }),
-      );
+      const [createArg] = (
+        prisma.cartItem.create.mock.calls as Array<[{ data: Record<string, unknown> }]>
+      )[0];
+      expect(createArg.data).toMatchObject({ quantity: 1 });
     });
   });
 

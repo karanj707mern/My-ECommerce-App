@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -97,7 +97,7 @@ export class UserService {
         throw new BadRequestException('CAPTCHA verification is required for security changes');
       }
 
-      const isValid = await this.captchaService.verifyCaptcha(captchaId, captchaInput);
+      const isValid = this.captchaService.verifyCaptcha(captchaId, captchaInput);
       if (!isValid) {
         throw new BadRequestException('Invalid or expired CAPTCHA');
       }

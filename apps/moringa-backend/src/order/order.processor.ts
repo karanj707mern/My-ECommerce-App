@@ -21,35 +21,31 @@ export class OrderProcessor {
 
     switch (action) {
       case 'send_confirmation':
-        await this.handleSendConfirmation(orderId, userId, payload);
+        await this.handleSendConfirmation(orderId, userId);
         break;
       case 'update_inventory':
-        await this.handleUpdateInventory(orderId, payload);
+        await this.handleUpdateInventory(orderId);
         break;
       case 'send_notification':
         await this.handleSendNotification(orderId, userId, payload);
         break;
       case 'process_payment':
-        await this.handleProcessPayment(orderId, payload);
+        await this.handleProcessPayment(orderId);
         break;
       default:
-        this.logger.warn(`Unknown action type: ${action}`);
+        this.logger.warn(`Unknown action type: ${String(action)}`);
     }
 
     // Publish completion event to RabbitMQ for cross-service awareness
     await this.rabbitMQService.publish({
-      type: `order.${action}`,
+      type: `order.${String(action)}`,
       data: { orderId, userId, ...payload },
       timestamp: Date.now(),
       idempotencyKey,
     });
   }
 
-  private async handleSendConfirmation(
-    orderId: number,
-    userId: number,
-    payload: Record<string, unknown>
-  ) {
+  private async handleSendConfirmation(orderId: number, userId: number) {
     this.logger.log(`Sending order confirmation email for order ${orderId}, user ${userId}`);
 
     const order = await this.prisma.order.findFirst({
@@ -66,7 +62,7 @@ export class OrderProcessor {
     this.logger.log(`Confirmation email queued for order ${orderId}`);
   }
 
-  private async handleUpdateInventory(orderId: number, payload: Record<string, unknown>) {
+  private async handleUpdateInventory(orderId: number) {
     this.logger.log(`Updating inventory for order ${orderId}`);
 
     const order = await this.prisma.order.findFirst({
@@ -113,7 +109,7 @@ export class OrderProcessor {
     this.logger.log(`Notification record created for order ${orderId}`);
   }
 
-  private async handleProcessPayment(orderId: number, payload: Record<string, unknown>) {
+  private async handleProcessPayment(orderId: number) {
     this.logger.log(`Processing payment for order ${orderId}`);
 
     const order = await this.prisma.order.findFirst({

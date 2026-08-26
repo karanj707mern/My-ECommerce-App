@@ -1,1 +1,0 @@
-import{_ as e}from"./q-BD-hIznX.js";import{y as r,a as o}from"./q-93TgTwg6.js";import{b as a}from"./q-BKuFWqdD.js";const d=r(o(()=>e(()=>import("./q-CLT4LLrY.js"),[]),"s_NjRLdDTLBuQ")),c=()=>a({title:"Your Orders",description:"Track active orders, review delivered purchases, manage cancellations, and follow support tickets.",path:"/orders"});export{d as default,c as head};

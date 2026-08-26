@@ -1,6 +1,7 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UserService } from './user.service';
+import { CaptchaService } from '@/auth/services/captcha.service';
 
 describe('UserService', () => {
   let service: UserService;
@@ -15,6 +16,11 @@ describe('UserService', () => {
     },
   };
 
+  const captchaServiceMock = {
+    generateCaptcha: jest.fn(),
+    verifyCaptcha: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -22,6 +28,10 @@ describe('UserService', () => {
         {
           provide: PrismaService,
           useValue: prismaServiceMock,
+        },
+        {
+          provide: CaptchaService,
+          useValue: captchaServiceMock,
         },
       ],
     }).compile();

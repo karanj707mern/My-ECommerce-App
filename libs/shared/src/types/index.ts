@@ -24,7 +24,7 @@ export interface User {
   updatedAt: string;
 }
 
-export interface SafeUser extends Omit<User, 'password'> {}
+export type SafeUser = Omit<User, 'password'>;
 
 export interface LoginDto {
   email: string;
@@ -88,7 +88,7 @@ export interface CreateProductDto {
   isNewArrival?: boolean;
 }
 
-export interface UpdateProductDto extends Partial<CreateProductDto> {}
+export type UpdateProductDto = Partial<CreateProductDto>;
 
 // ============== CART TYPES ==============
 export interface CartItem {
@@ -279,7 +279,7 @@ export interface CreateUserAddressDto {
   isDefault?: boolean;
 }
 
-export interface UpdateUserAddressDto extends Partial<CreateUserAddressDto> {}
+export type UpdateUserAddressDto = Partial<CreateUserAddressDto>;
 
 // ============== SETTINGS TYPES ==============
 export interface StoreSettings {

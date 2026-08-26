@@ -2,7 +2,6 @@ import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nes
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import type { CookieSerializeOptions } from '@fastify/cookie';
 import { CookieState } from './cookie-state';
 import './cookie-types';
 

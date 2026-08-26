@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Logger, OnModuleDestroy } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -22,7 +22,7 @@ interface ProductViewerMessage {
   cors: {
     origin: (
       _origin: string | undefined,
-      callback: (err: Error | null, allow: boolean) => void,
+      callback: (err: Error | null, allow: boolean) => void
     ) => {
       callback(null, true);
     },
@@ -30,17 +30,12 @@ interface ProductViewerMessage {
   },
 })
 export class ProductGateway
-  implements
-    OnGatewayConnection,
-    OnGatewayDisconnect,
-    OnGatewayInit,
-    OnModuleDestroy
+  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleDestroy
 {
   private readonly logger = new Logger(ProductGateway.name);
   private readonly viewers = new Map<number, Set<string>>();
   private productViewersServer!: Server;
-  private readonly productViewersKey = (productId: number) =>
-    `products:viewers:${productId}`;
+  private readonly productViewersKey = (productId: number) => `products:viewers:${productId}`;
   private healthCheckInterval?: NodeJS.Timeout;
 
   constructor(private readonly redisCacheService: RedisCacheService) {
@@ -52,7 +47,7 @@ export class ProductGateway
     this.productViewersServer = server;
   }
 
-  async handleConnection(client: Socket) {
+  handleConnection(client: Socket) {
     this.logger.log(`Product socket client connected: ${client.id}`);
   }
 
@@ -77,7 +72,7 @@ export class ProductGateway
   @SubscribeMessage('product:view')
   async handleProductView(
     @ConnectedSocket() client: Socket,
-    @MessageBody() body: { productId: number },
+    @MessageBody() body: { productId: number }
   ) {
     const productId = Number(body.productId);
 
@@ -103,7 +98,7 @@ export class ProductGateway
       .setJson(
         this.productViewersKey(productId),
         { count, timestamp: new Date().toISOString() },
-        60,
+        60
       )
       .catch(() => undefined);
 
@@ -111,7 +106,7 @@ export class ProductGateway
       type: 'product:viewers',
       productId,
       viewers: count,
-    });
+    } satisfies ProductViewerMessage);
 
     this.logger.log(`Product ${productId} has ${count} live viewer(s)`);
   }

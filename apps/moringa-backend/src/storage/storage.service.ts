@@ -101,9 +101,6 @@ export class StorageService {
       return key;
     }
 
-    const deliveredUrl =
-      this.publicUrl || `https://res.cloudinary.com/${this.cloudName}/image/upload`;
-
     if (this.isCloudinaryUrl(key)) {
       return key;
     }

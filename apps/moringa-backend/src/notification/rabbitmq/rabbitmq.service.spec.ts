@@ -66,7 +66,7 @@ describe('RabbitMqService', () => {
   });
 
   it('should build connection URL from parts', () => {
-    const connectionUrl = (service as any).buildConnectionUrl();
+    const connectionUrl = service.buildConnectionUrl();
     expect(connectionUrl).toBe('amqp://admin:admin123@localhost:5672');
   });
 

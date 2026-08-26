@@ -27,7 +27,7 @@ export class PaymentWebhookController {
   }
 
   @Get('razorpay')
-  async handleRazorpayWebhookGet() {
+  handleRazorpayWebhookGet() {
     return { status: 'ok' };
   }
 }

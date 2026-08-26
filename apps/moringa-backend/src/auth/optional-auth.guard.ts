@@ -1,12 +1,16 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Injectable, ExecutionContext } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt.guard';
-import { PrismaService } from '../prisma/prisma.service';
 
+/**
+ * Guard variant for endpoints usable both anonymously and authenticated
+ * (e.g. guest carts): verification failures degrade to anonymous instead of
+ * rejecting the request.
+ */
 @Injectable()
 export class OptionalAuthGuard extends JwtAuthGuard {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
-      return super.canActivate(context);
+      return await super.canActivate(context);
     } catch {
       return true;
     }

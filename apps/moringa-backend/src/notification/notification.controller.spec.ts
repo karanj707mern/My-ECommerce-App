@@ -1,4 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing';
+import { ForbiddenException, type ExecutionContext } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { JwtAuthGuard } from '@/auth/jwt.guard';
 import { RolesGuard } from '@/auth/rolesguard';
 import { NotificationController } from './notification.controller';
@@ -39,15 +41,19 @@ describe('NotificationController', () => {
 
   describe('admin endpoints', () => {
     it('requires ADMIN role for findAdminNotifications', () => {
+      // Metadata lives on the exact function the decorator touched — binding
+      // would create an undecorated copy.
       expect(
-        Reflect.getMetadata('roles', controller.findAdminNotifications),
+        // eslint-disable-next-line @typescript-eslint/unbound-method -- see above
+        Reflect.getMetadata('roles', controller.findAdminNotifications)
       ).toEqual(['ADMIN']);
     });
 
     it('requires ADMIN role for getHealth', () => {
-      expect(Reflect.getMetadata('roles', controller.getHealth)).toEqual([
-        'ADMIN',
-      ]);
+      expect(
+        // eslint-disable-next-line @typescript-eslint/unbound-method -- see above
+        Reflect.getMetadata('roles', controller.getHealth)
+      ).toEqual(['ADMIN']);
     });
   });
 
@@ -61,37 +67,33 @@ describe('NotificationController', () => {
       getAll: jest.fn(),
       getAllAndMerge: jest.fn(),
       getAllAndOverride: jest.fn().mockReturnValue(['ADMIN']),
-    };
+    } as unknown as Reflector;
 
-    const userContext = {
-      switchToHttp: () => ({
-        getRequest: () => ({ user: { role: 'USER' } }),
-      }),
-      getHandler: () => {},
-      getClass: () => {},
-    } as any;
+    /** Minimal ExecutionContext carrying only the authenticated role. */
+    const makeContext = (role: string): ExecutionContext =>
+      ({
+        switchToHttp: () => ({
+          getRequest: () => ({ user: { role } }),
+        }),
+        getHandler: () => undefined,
+        getClass: () => undefined,
+      }) as unknown as ExecutionContext;
 
     it('denies USER role access to findAdminNotifications', () => {
       const guard = new RolesGuard(mockReflector);
-      expect(guard.canActivate(userContext)).toBe(false);
+      // RolesGuard signals denial with a 403 ForbiddenException (Nest's
+      // canonical authorization failure) rather than a bare false return.
+      expect(() => guard.canActivate(makeContext('USER'))).toThrow(ForbiddenException);
     });
 
     it('denies USER role access to getHealth', () => {
       const guard = new RolesGuard(mockReflector);
-      expect(guard.canActivate(userContext)).toBe(false);
+      expect(() => guard.canActivate(makeContext('USER'))).toThrow(ForbiddenException);
     });
 
     it('allows ADMIN role access to admin endpoints', () => {
-      const adminContext = {
-        switchToHttp: () => ({
-          getRequest: () => ({ user: { role: 'ADMIN' } }),
-        }),
-        getHandler: () => {},
-        getClass: () => {},
-      } as any;
-
       const guard = new RolesGuard(mockReflector);
-      expect(guard.canActivate(adminContext)).toBe(true);
+      expect(guard.canActivate(makeContext('ADMIN'))).toBe(true);
     });
   });
 });

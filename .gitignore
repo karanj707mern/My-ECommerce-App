@@ -1,12 +1,37 @@
+# =============================================================================
+# Moringa E-Commerce monorepo — git hygiene
+# =============================================================================
 
-.nx/installation
-.nx/cache
-.nx/workspace-data
-.nx/self-healing
-.nx/migrate-runs
-.nx/polygraph
-.claude/worktrees
-.claude/settings.local.json
-Moringa-Frontend
-Moringa-Backend
-node_modules
+# Dependencies
+node_modules/
+
+# Build outputs (never commit generated bundles)
+dist/
+build/
+.nestia/
+*.tsbuildinfo
+
+# Environment & secrets — real configuration lives only on machines/CI
+.env
+.env.*
+!.env.example
+
+# Logs & OS noise
+*.log
+npm-debug.log*
+.DS_Store
+
+# Nx local runtime state (cache, daemon data, isolated installs).
+# Keep .nx/nxw.js tracked — it bootstraps the correct Nx version.
+.nx/cache/
+.nx/workspace-data/
+.nx/installation/
+
+# Editor state
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Legacy read-only migration sources stay local-only
+Moringa-Frontend/
+Moringa-Backend/

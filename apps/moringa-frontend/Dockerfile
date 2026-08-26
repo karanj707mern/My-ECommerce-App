@@ -43,8 +43,14 @@ RUN addgroup -g 1001 -S nodejs && \
     adduser -S qwik -u 1001
 
 # Production dependencies
+# npm ci resolves the full workspace graph — every workspace manifest must
+# exist even though only the frontend's production deps are installed.
 COPY package.json package-lock.json ./
 COPY apps/moringa-frontend/package.json ./apps/moringa-frontend/
+COPY apps/moringa-backend/package.json ./apps/moringa-backend/
+COPY libs/sdk/package.json ./libs/sdk/
+COPY libs/shared/package.json ./libs/shared/
+COPY libs/ui/package.json ./libs/ui/
 RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
 
 # Built assets (client + server)

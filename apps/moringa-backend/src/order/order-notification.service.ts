@@ -4,7 +4,6 @@ import {
   NotificationChannel,
   NotificationType,
   OrderStatus,
-  Prisma,
   Role,
 } from '../generated/prisma/client';
 import { NotificationService } from '../notification/notification.service';

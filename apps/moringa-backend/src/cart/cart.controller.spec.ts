@@ -1,9 +1,12 @@
 import { Test, type TestingModule } from '@nestjs/testing';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CartController } from './cart.controller';
 import { CartService } from './cart.service';
 import { AbandonedCartService } from '@/analytics/abandoned-cart.service';
 import { RedisCacheService } from '@/cache/redis-cache.service';
+import { TokenRevocationService } from '@/auth/services/token-revocation.service';
 
 describe('CartController', () => {
   let controller: CartController;
@@ -46,6 +49,20 @@ describe('CartController', () => {
             del: jest.fn(),
             isEnabled: false,
           },
+        },
+        // Method-level @UseGuards(JwtAuthGuard) enhancers are resolved during
+        // module compilation — the guard's full dependency set must be present.
+        {
+          provide: JwtService,
+          useValue: { verifyAsync: jest.fn() },
+        },
+        {
+          provide: ConfigService,
+          useValue: { get: jest.fn() },
+        },
+        {
+          provide: TokenRevocationService,
+          useValue: { revoke: jest.fn(), isRevoked: jest.fn().mockResolvedValue(false) },
         },
       ],
     }).compile();

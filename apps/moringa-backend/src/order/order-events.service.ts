@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import { Subscription, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { RedisService } from '../infrastructure/redis.service';
 import { BullMQService } from '../infrastructure/bullmq.service';
 import { RabbitMQService } from '../infrastructure/rabbitmq.service';
@@ -48,7 +48,7 @@ export class OrderEventsService implements OnModuleDestroy {
     }
 
     void this.rabbitMQService
-      .consume('orderEvents', async (payload) => {
+      .consume(this.rabbitMQService.queues.orderEvents, (payload) => {
         const data = payload.data as {
           userId?: number;
           orderId?: number;

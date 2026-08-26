@@ -144,7 +144,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       try {
         return await this.$transaction(fn);
       } catch (error) {
-        lastError = error as Error;
+        lastError = error instanceof Error ? error : new Error(String(error));
 
         if (attempt === maxRetries - 1) {
           break;
@@ -154,6 +154,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       }
     }
 
-    throw lastError;
+    throw lastError ?? new Error('Transaction failed after retries');
   }
 }

@@ -25,6 +25,8 @@ export class RabbitMQService implements OnModuleDestroy {
   private channel: amqp.Channel | null = null;
   private readonly config: RabbitMQConfig;
   private reconnectTimeout: NodeJS.Timeout | null = null;
+  /** Set once onModuleDestroy runs — permanently disables (re)connection. */
+  private destroyed = false;
 
   constructor(@Inject('RABBITMQ_CONFIG') config: RabbitMQConfig) {
     this.config = config;
@@ -35,7 +37,7 @@ export class RabbitMQService implements OnModuleDestroy {
       return;
     }
 
-    this.connect();
+    void this.connect();
   }
 
   /** True when a broker URL was provided at construction time. */
@@ -43,14 +45,45 @@ export class RabbitMQService implements OnModuleDestroy {
     return Boolean(this.config.url);
   }
 
+  /**
+   * Canonical queue names resolved from configuration. Consumers MUST use
+   * these instead of string literals — a literal that drifts from the
+   * declared topology makes the broker close the channel with 404
+   * NOT_FOUND on consume.
+   */
+  get queues(): RabbitMQConfig['queues'] {
+    return this.config.queues;
+  }
+
   private async connect() {
-    if (!this.config.url) {
+    if (!this.config.url || this.destroyed) {
       return;
     }
 
     try {
       this.connection = await amqp.connect(this.config.url);
+
+      // amqplib emits 'error' on connection/channel for broker-side failures
+      // (topology mismatch, vhost loss, heartbeat timeout). An unhandled
+      // 'error' event CRASHES the Node process — handlers must exist even if
+      // they only log and mark the link down.
+      this.connection.on('error', (err) => {
+        console.error('RabbitMQ connection error:', err);
+        this.connected = false;
+        this.scheduleReconnect();
+      });
+      this.connection.on('close', () => {
+        this.connected = false;
+      });
+
       this.channel = await this.connection.createChannel();
+      this.channel.on('error', (err) => {
+        console.error('RabbitMQ channel error:', err);
+        this.connected = false;
+      });
+      this.channel.on('close', () => {
+        this.connected = false;
+      });
 
       // Declare exchange as durable
       await this.channel.assertExchange(this.config.exchangeName, 'topic', { durable: true });
@@ -86,22 +119,31 @@ export class RabbitMQService implements OnModuleDestroy {
   }
 
   private scheduleReconnect() {
+    // A pending reconnect timer must never fire after shutdown — it would
+    // reopen sockets during app.close() and pin the event loop open.
+    if (this.destroyed) {
+      return;
+    }
+
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
     }
 
     this.reconnectTimeout = setTimeout(() => {
+      if (this.destroyed) {
+        return;
+      }
       console.log('Attempting to reconnect to RabbitMQ...');
-      this.connect();
+      void this.connect();
     }, 5000);
   }
 
-  async publish(payload: MessagePayload): Promise<void> {
+  publish(payload: MessagePayload): Promise<void> {
     // Graceful no-op when RabbitMQ is not provisioned (or the channel is down):
     // event-driven fan-out is an enhancement, never a hard dependency. Callers
     // (order events, notifications) must not crash on a missing broker.
     if (!this.config.url || !this.channel || !this.connected) {
-      return;
+      return Promise.resolve();
     }
 
     const routingKey = payload.type.replace(/\./g, '_');
@@ -115,36 +157,47 @@ export class RabbitMQService implements OnModuleDestroy {
     });
 
     if (!published) {
-      throw new Error('Failed to publish message to RabbitMQ');
+      return Promise.reject(new Error('Failed to publish message to RabbitMQ'));
     }
+    return Promise.resolve();
   }
 
   async consume(
     queueName: string,
-    onMessage: (payload: MessagePayload) => Promise<void>
+    onMessage: (payload: MessagePayload) => void | Promise<void>
   ): Promise<void> {
     // No broker → no consumer; callers already degrade gracefully.
     if (!this.config.url || !this.channel) {
       return;
     }
 
-    await this.channel.consume(queueName, async (msg) => {
+    // Idempotent re-declaration: guarantees the consumer's queue exists with
+    // matching durability, so a name drift can never 404-close the channel
+    // and take the process down at boot.
+    await this.channel.assertQueue(queueName, { durable: true });
+
+    await this.channel.consume(queueName, (msg) => {
       if (!msg) return;
 
-      try {
-        const payload: MessagePayload = JSON.parse(msg.content.toString());
-        await onMessage(payload);
-        this.channel!.ack(msg);
-      } catch (error) {
-        console.error('Error processing RabbitMQ message:', error);
-        this.channel!.nack(msg, false, false);
-      }
+      void (async () => {
+        try {
+          const payload = JSON.parse(msg.content.toString()) as MessagePayload;
+          await onMessage(payload);
+          this.channel!.ack(msg);
+        } catch (error) {
+          console.error('Error processing RabbitMQ message:', error);
+          this.channel!.nack(msg, false, false);
+        }
+      })();
     });
   }
 
   async onModuleDestroy() {
+    this.destroyed = true;
+
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
     }
 
     try {
@@ -152,6 +205,8 @@ export class RabbitMQService implements OnModuleDestroy {
         await this.connection.close();
       }
     } catch (error) {
+      // Closing an already-closed broker link is expected during shutdown
+      // races; the socket teardown below still completes.
       console.error('Error closing RabbitMQ connection:', error);
     }
   }

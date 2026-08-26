@@ -1,5 +1,5 @@
 import { Injectable, PipeTransform } from '@nestjs/common';
-import xss = require('xss');
+import xss from 'xss';
 
 @Injectable()
 export class XssSanitizationPipe implements PipeTransform {

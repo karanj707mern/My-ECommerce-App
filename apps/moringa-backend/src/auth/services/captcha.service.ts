@@ -2,7 +2,12 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class CaptchaService {
-  async generateCaptcha() {
+  /**
+   * Generates a numeric challenge rendered as an inline SVG data URL.
+   * NOTE: the challenge text doubles as its identifier — adequate for the
+   * current UX friction goal, NOT a bot-proof mechanism.
+   */
+  generateCaptcha() {
     const text = Math.floor(1000 + Math.random() * 9000).toString();
     return {
       text,
@@ -10,7 +15,7 @@ export class CaptchaService {
     };
   }
 
-  async verifyCaptcha(captchaId: string, captchaInput: string): Promise<boolean> {
+  verifyCaptcha(captchaId: string, captchaInput: string): boolean {
     return captchaInput === captchaId;
   }
 }

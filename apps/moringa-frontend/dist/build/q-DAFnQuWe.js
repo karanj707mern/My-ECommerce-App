@@ -1,1 +1,0 @@
-import{_ as t}from"./q-BD-hIznX.js";import{y as i,a as o}from"./q-93TgTwg6.js";const s=20;function a(){if(typeof window>"u")return 3;const r=window.innerWidth;return r<640?1:r<1024?2:3}const _=i(o(()=>t(()=>import("./q-Ds542jip.js"),[]),"s_DWZTqq5EJwM"));export{s as C,_ as N,a as g};

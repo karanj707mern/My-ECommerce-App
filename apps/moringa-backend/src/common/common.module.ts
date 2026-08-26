@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { PinoModule } from './logger/pino.module';
 import { RequestContextModule } from './request-context/request-context.module';
 

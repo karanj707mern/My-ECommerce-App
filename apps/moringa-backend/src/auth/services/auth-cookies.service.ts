@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import type { CookieSerializeOptions } from '@fastify/cookie';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { CookieState } from '../../common/http/cookie-state';
 import '@/common/http/cookie-types';

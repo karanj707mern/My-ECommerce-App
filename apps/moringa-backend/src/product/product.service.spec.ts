@@ -5,8 +5,18 @@ import { ProductService } from './product.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisCacheService } from '../cache/redis-cache.service';
 import { StorageService } from '../storage/storage.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+
+/** Typed accessor for recorded mock-call arguments — keeps assertions lint-clean. */
+function callArg<T>(fn: jest.Mock, callIndex = 0, argIndex = 0): T | undefined {
+  const calls = fn.mock.calls as unknown as unknown[][];
+  return calls[callIndex]?.[argIndex] as T | undefined;
+}
+
+interface UploadedFileLike {
+  originalname: string;
+  mimetype: string;
+  buffer: Buffer;
+}
 
 /**
  * Unit tests for ProductService.
@@ -72,8 +82,8 @@ describe('ProductService', () => {
         stock: 10,
       });
 
-      const created = prisma.product.create.mock.calls[0][0];
-      expect(created.data).toMatchObject({
+      const created = callArg<{ data: { tags?: string[] } }>(prisma.product.create);
+      expect(created?.data).toMatchObject({
         name: 'Moringa Powder',
         slug: 'moringa-powder',
         sku: 'MRK-001',
@@ -96,7 +106,7 @@ describe('ProductService', () => {
         tags: ['  Wellness ', 'wellness', '  ', 'ORGANIC', 'organic'],
       });
 
-      const tags = prisma.product.create.mock.calls[0][0].data.tags;
+      const tags = callArg<{ data: { tags?: string[] } }>(prisma.product.create)?.data.tags;
       expect(tags).toEqual(['wellness', 'organic']);
     });
 
@@ -113,13 +123,15 @@ describe('ProductService', () => {
         stock: 10,
       });
 
-      expect(prisma.product.create.mock.calls[0][0].data).toMatchObject({
-        isActive: true,
-        isNewArrival: false,
-        brand: null,
-        weightGrams: null,
-        compareAtPrice: null,
-      });
+      expect(callArg<{ data: Record<string, unknown> }>(prisma.product.create)?.data).toMatchObject(
+        {
+          isActive: true,
+          isNewArrival: false,
+          brand: null,
+          weightGrams: null,
+          compareAtPrice: null,
+        }
+      );
     });
   });
 
@@ -155,7 +167,15 @@ describe('ProductService', () => {
       prisma.product.create.mockRejectedValue(prismaError);
 
       await expect(
-        service.createProduct({ name: 'X', slug: 'x', sku: 'x', description: 'd', image: 'i', price: 100, stock: 10 }),
+        service.createProduct({
+          name: 'X',
+          slug: 'x',
+          sku: 'x',
+          description: 'd',
+          image: 'i',
+          price: 100,
+          stock: 10,
+        })
       ).rejects.toBeInstanceOf(ConflictException);
     });
 
@@ -164,7 +184,15 @@ describe('ProductService', () => {
       prisma.product.create.mockRejectedValue(generic);
 
       await expect(
-        service.createProduct({ name: 'X', slug: 'x', sku: 'x', description: 'd', image: 'i', price: 100, stock: 10 }),
+        service.createProduct({
+          name: 'X',
+          slug: 'x',
+          sku: 'x',
+          description: 'd',
+          image: 'i',
+          price: 100,
+          stock: 10,
+        })
       ).rejects.toBe(generic);
     });
   });
@@ -204,7 +232,7 @@ describe('ProductService', () => {
       await service.getProducts(true);
 
       expect(prisma.product.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: undefined }),
+        expect.objectContaining({ where: undefined })
       );
     });
   });
@@ -276,7 +304,7 @@ describe('ProductService', () => {
 
       expect(prisma.product.update).toHaveBeenCalledWith({
         where: { id: 4 },
-        data: expect.objectContaining({ name: 'Updated' }),
+        data: { name: 'Updated' },
       });
       expect(cache.del).toHaveBeenCalledWith('products:active');
       expect(result).toMatchObject({ id: 4, name: 'Updated' });
@@ -285,7 +313,9 @@ describe('ProductService', () => {
     it('throws NotFoundException when updating a missing product', async () => {
       prisma.product.findUnique.mockResolvedValue(null);
 
-      await expect(service.updateProduct(4, { name: 'X' })).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.updateProduct(4, { name: 'X' })).rejects.toBeInstanceOf(
+        NotFoundException
+      );
       expect(prisma.product.update).not.toHaveBeenCalled();
     });
 
@@ -295,10 +325,12 @@ describe('ProductService', () => {
         new Prisma.PrismaClientKnownRequestError('Unique constraint', {
           code: 'P2002',
           clientVersion: 'test',
-        }),
+        })
       );
 
-      await expect(service.updateProduct(4, { slug: 'dup' })).rejects.toBeInstanceOf(ConflictException);
+      await expect(service.updateProduct(4, { slug: 'dup' })).rejects.toBeInstanceOf(
+        ConflictException
+      );
     });
   });
 
@@ -326,13 +358,13 @@ describe('ProductService', () => {
       });
 
       expect(storage.uploadFile).toHaveBeenCalledTimes(1);
-      expect(storage.uploadFile.mock.calls[0][1]).toBe('products');
-      expect(storage.uploadFile.mock.calls[0][2]).toBe('product');
-      expect(storage.uploadFile.mock.calls[0][0]).toMatchObject({
+      expect(callArg<string>(storage.uploadFile, 0, 1)).toBe('products');
+      expect(callArg<string>(storage.uploadFile, 0, 2)).toBe('product');
+      expect(callArg<UploadedFileLike>(storage.uploadFile, 0, 0)).toMatchObject({
         originalname: 'p.jpg',
         mimetype: 'image/jpeg',
       });
-      expect(storage.uploadFile.mock.calls[0][0].buffer).toBeInstanceOf(Buffer);
+      expect(callArg<UploadedFileLike>(storage.uploadFile, 0, 0)?.buffer).toBeInstanceOf(Buffer);
       expect(result).toEqual({ url: 'https://cdn.example.com/p.jpg' });
     });
   });

@@ -28,7 +28,12 @@ export class RabbitMqService implements OnModuleInit, OnModuleDestroy {
     this.connectionUrl = this.buildConnectionUrl();
   }
 
-  private buildConnectionUrl(): string {
+  /**
+   * Assembles the broker connection string from explicit URL or discrete
+   * parts. Public because it is a pure, side-effect-free mapping used by
+   * diagnostics and covered directly by unit tests.
+   */
+  buildConnectionUrl(): string {
     const explicitUrl = this.configService.get<string>('rabbitmq.url', '');
 
     if (explicitUrl.trim()) {

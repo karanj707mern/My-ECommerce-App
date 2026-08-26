@@ -3,6 +3,7 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['src'],
   testMatch: ['**/*.spec.ts'],
+  setupFiles: ['<rootDir>/test/jest.setup.ts'],
   moduleFileExtensions: ['js', 'json', 'ts'],
   transform: {
     '^.+\\.(t|j)s$': [

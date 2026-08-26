@@ -2,9 +2,20 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import type { FastifyRequest } from 'fastify';
 import { PrismaService } from '../prisma/prisma.service';
 import { IS_PUBLIC_KEY } from './decorators/public.decorator';
 import { TokenRevocationService } from './services/token-revocation.service';
+
+/** Claims carried by every token this backend issues. */
+interface TokenClaims {
+  id: number;
+  email: string;
+  role: string;
+  jti?: string;
+  /** Legacy claim fallback retained for tokens issued before jti rollout. */
+  sub?: string;
+}
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -28,23 +39,25 @@ export class JwtAuthGuard implements CanActivate {
     ]);
     if (isPublic) return true;
 
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<FastifyRequest>();
     // Cookie-first: HttpOnly accessToken is the primary browser credential;
     // Bearer remains for non-browser clients (SDK scripts, integrations).
-    const token =
-      request.cookies?.accessToken || request.headers?.authorization?.replace('Bearer ', '');
+    const bearer = request.headers.authorization?.replace('Bearer ', '');
+    const token = request.cookies?.accessToken || bearer;
 
     if (!token) {
       throw new UnauthorizedException('Missing token');
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      const payload = await this.jwtService.verifyAsync<TokenClaims>(token, {
         secret: this.configService.get<string>('app.jwtSecret'),
       });
 
-      const isRevoked = await this.tokenRevocationService.isRevoked(payload.jti ?? payload.sub);
-      if (isRevoked) {
+      // Tokens issued before jti rollout carry no revocable identifier —
+      // revocation cannot apply, so the live-session check below governs.
+      const jti = payload.jti ?? payload.sub;
+      if (jti && (await this.tokenRevocationService.isRevoked(jti))) {
         throw new UnauthorizedException('Token has been revoked');
       }
 

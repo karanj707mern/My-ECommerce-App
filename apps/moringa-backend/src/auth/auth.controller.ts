@@ -10,7 +10,6 @@ import {
   Delete,
   HttpCode,
   BadRequestException,
-  Query,
 } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import { JwtAuthGuard } from '../auth/jwt.guard';
@@ -20,6 +19,8 @@ import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { AuthCookiesService } from './services/auth-cookies.service';
+import { DeviceInfoService } from './services/device-info.service';
+import { GoogleAuthDto } from './dto/auth.dtos';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiConsumes } from '@nestjs/swagger';
 
 @ApiTags('auth')
@@ -29,7 +30,8 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly storageService: StorageService,
     private readonly prisma: PrismaService,
-    private readonly authCookiesService: AuthCookiesService
+    private readonly authCookiesService: AuthCookiesService,
+    private readonly deviceInfoService: DeviceInfoService
   ) {}
 
   @UseGuards(AuthThrottlerGuard)
@@ -64,6 +66,26 @@ export class AuthController {
     }
   ) {
     const result = await this.authService.register(dto);
+    this.authCookiesService.queueAuthCookies(req, result.accessToken, result.refreshToken);
+    return { message: result.message, user: result.user };
+  }
+
+  /**
+   * Google ID-token sign-in. Same throttle envelope as password login
+   * (10/min) — OAuth endpoints are equally brute-force attractive. Device
+   * metadata is captured for the session record; auth cookies ride the same
+   * queued Set-Cookie path as every other credential flow.
+   */
+  @UseGuards(AuthThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 60 } })
+  @Post('google')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Authenticate with Google ID token' })
+  @ApiResponse({ status: 200, description: 'Google authentication successful' })
+  @ApiBody({ type: GoogleAuthDto })
+  async googleAuth(@Req() req: FastifyRequest, @Body() dto: GoogleAuthDto) {
+    const deviceInfo = this.deviceInfoService.extractDeviceInfo(req);
+    const result = await this.authService.googleAuth(dto, deviceInfo);
     this.authCookiesService.queueAuthCookies(req, result.accessToken, result.refreshToken);
     return { message: result.message, user: result.user };
   }

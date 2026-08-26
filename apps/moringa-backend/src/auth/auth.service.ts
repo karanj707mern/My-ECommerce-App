@@ -49,6 +49,16 @@ interface AuthResponse {
   user: SafeUser;
 }
 
+/** Shape of Google's tokeninfo endpoint response for ID tokens. */
+interface GoogleTokenInfo {
+  sub?: string;
+  email?: string;
+  email_verified?: string;
+  aud?: string;
+  iss?: string;
+  name?: string;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -513,6 +523,142 @@ export class AuthService {
     return result;
   }
 
+  // ---------------- GOOGLE AUTH ----------------
+
+  /**
+   * Verifies a Google ID token against Google's tokeninfo endpoint.
+   *
+   * Security checks preserved from the legacy implementation: audience
+   * binding to the configured client ID, verified-email enforcement, and a
+   * 10s abort timeout so a hung Google endpoint cannot pin the event loop's
+   * outbound socket budget.
+   */
+  private async verifyGoogleCredential(credential: string) {
+    const clientId = this.configService.get<string>('app.googleClientId');
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    try {
+      const res = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`,
+        { signal: controller.signal }
+      );
+
+      if (!res.ok) {
+        const errorText = await res.text().catch(() => 'Google token verification failed');
+        throw new UnauthorizedException(`Invalid Google token: ${errorText}`);
+      }
+
+      const data = (await res.json()) as GoogleTokenInfo;
+
+      if (!data.sub) {
+        throw new UnauthorizedException('Invalid Google token');
+      }
+      if (!data.email) {
+        throw new UnauthorizedException('Missing email');
+      }
+      if (data.email_verified !== 'true') {
+        throw new UnauthorizedException('Email not verified');
+      }
+      if (data.aud !== clientId) {
+        throw new UnauthorizedException('Invalid audience');
+      }
+
+      return {
+        googleId: data.sub,
+        email: this.normalizeEmail(data.email),
+        name: data.name || 'Google User',
+      };
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  /**
+   * Authenticates via Google ID token. Existing Google-linked users and
+   * Google-provider accounts log in directly; password accounts with the
+   * same email are rejected (no silent account takeover); otherwise a new
+   * verified USER is provisioned with an unguessable random password so the
+   * credential can never be used for password login.
+   */
+  async googleAuth(dto: { credential: string }, deviceInfo?: DeviceInfo): Promise<AuthResponse> {
+    const profile = await this.verifyGoogleCredential(dto.credential);
+
+    const googleUser = await this.prisma.user.findUnique({
+      where: { googleId: profile.googleId },
+    });
+
+    if (googleUser) {
+      return this.completeGoogleLogin(
+        googleUser.id,
+        googleUser.email,
+        'Google login success',
+        deviceInfo
+      );
+    }
+
+    const emailUser = await this.prisma.user.findUnique({
+      where: { email: profile.email },
+    });
+
+    if (emailUser) {
+      if (emailUser.authProvider === AuthProvider.GOOGLE) {
+        return this.completeGoogleLogin(
+          emailUser.id,
+          emailUser.email,
+          'Google login success',
+          deviceInfo
+        );
+      }
+
+      throw new UnauthorizedException(
+        'This email is already registered with password login. Please sign in with your password, or use the account linking option to connect Google sign-in.'
+      );
+    }
+
+    const user = await this.prisma.user.create({
+      data: {
+        name: profile.name,
+        email: profile.email,
+        googleId: profile.googleId,
+        authProvider: AuthProvider.GOOGLE,
+        password: await bcrypt.hash(this.generateRandomPassword(), 10),
+        role: 'USER',
+        isEmailVerified: true,
+      },
+    });
+
+    return this.buildAuthResponse(user.id, 'Google account created', deviceInfo);
+  }
+
+  /** Builds the auth response and raises the same LOGIN_ALERT as password login. */
+  private async completeGoogleLogin(
+    userId: number,
+    email: string,
+    message: string,
+    deviceInfo?: DeviceInfo
+  ): Promise<AuthResponse> {
+    const result = await this.buildAuthResponse(userId, message, deviceInfo);
+    await this.notificationService.create({
+      userId,
+      type: 'LOGIN_ALERT',
+      channel: 'EMAIL',
+      recipient: email,
+      subject: 'New login detected',
+      body: 'Your account was just logged in via Google. If this was not you, please secure your account.',
+      status: 'PENDING',
+      scheduledAt: new Date(),
+      maxAttempts: 3,
+    });
+    return result;
+  }
+
+  /** Unknowable random password for OAuth-provisioned accounts (never used for login). */
+  private generateRandomPassword() {
+    return randomBytes(32).toString('hex');
+  }
+
   async register(dto: {
     name: string;
     email: string;
@@ -561,7 +707,7 @@ export class AuthService {
       if (!token) {
         return { authenticated: false, user: null };
       }
-      const payload = await this.jwt.verifyAsync(token, {
+      const payload = await this.jwt.verifyAsync<{ id: number }>(token, {
         secret: this.configService.get<string>('app.jwtSecret'),
       });
 
@@ -585,9 +731,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const payload = await this.jwt.verifyAsync(refreshToken, {
-      secret: this.configService.get<string>('app.jwtSecret'),
-    });
+    const payload = await this.jwt.verifyAsync<{ id: number; email: string; role: string }>(
+      refreshToken,
+      {
+        secret: this.configService.get<string>('app.jwtSecret'),
+      }
+    );
 
     const { accessToken, refreshToken: newRefreshToken } = await this.generateTokens({
       id: payload.id,

@@ -29,5 +29,11 @@ export default defineConfig({
   },
   rules: {
     'prettier/prettier': 'error',
+    // Standard convention: leading-underscore marks intentionally-unused
+    // parameters/variables (e.g. decorator callbacks, mock signatures).
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+    ],
   },
 });

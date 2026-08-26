@@ -7,11 +7,6 @@ declare module 'xss' {
     css?: boolean | Record<string, unknown>;
   }
 
-  class FilterXSS {
-    constructor(options?: IFilterXSSOptions);
-    process(value: string): string;
-  }
-
   function xss(value: string, options?: IFilterXSSOptions): string;
 
   export = xss;

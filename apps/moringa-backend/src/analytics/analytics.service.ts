@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getSalesStats() {
+  getSalesStats() {
     return {
       totalSales: 0,
       totalOrders: 0,

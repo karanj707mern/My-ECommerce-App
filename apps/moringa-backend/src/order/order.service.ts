@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { OrderStatus, Prisma } from '../generated/prisma/client';
+import { OrderStatus } from '../generated/prisma/client';
 import { Observable } from 'rxjs';
 import * as crypto from 'crypto';
 import Razorpay from 'razorpay';
@@ -777,7 +777,8 @@ export class OrderService {
   }
 
   private emitOrderUpdated(order: { userId: number; id: number }) {
-    this.orderEventsService.emitOrderUpdated({
+    // Fire-and-forget fan-out; failures are logged inside the event service.
+    void this.orderEventsService.emitOrderUpdated({
       type: 'order.updated',
       orderId: order.id,
       userId: order.userId,

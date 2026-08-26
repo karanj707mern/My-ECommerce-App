@@ -7,10 +7,10 @@ import { Product } from '../generated/prisma/client';
 export class RecentlyViewedService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly cache: RedisCacheService,
+    private readonly cache: RedisCacheService
   ) {}
 
-  async addView(userId: number, productId: number) {
+  async addView(userId: number, productId: number): Promise<void> {
     await this.prisma.recentlyViewed.create({
       data: { userId, productId },
     });
@@ -69,7 +69,7 @@ export class RecentlyViewedService {
     return result;
   }
 
-  async clearHistory(userId: number) {
+  async clearHistory(userId: number): Promise<void> {
     await this.prisma.recentlyViewed.deleteMany({
       where: { userId },
     });

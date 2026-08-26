@@ -11,7 +11,6 @@ import {
   Req,
   ForbiddenException,
   HttpCode,
-  BadRequestException,
 } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import { UserService } from './user.service';

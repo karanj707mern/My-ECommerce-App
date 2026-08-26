@@ -1,18 +1,56 @@
-import { NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import type { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { AuthService } from './auth.service';
-import { AuthProvider } from '@prisma/client';
+import { AuthProvider } from '../generated/prisma/client';
 import type { ConfigService } from '@nestjs/config';
 import type { NotificationService } from '@/notification/notification.service';
+import type { RedisCacheService } from '@/cache/redis-cache.service';
+import type { PrismaService } from '@/prisma/prisma.service';
+import type { EmailVerificationService } from './email-verification.service';
 import { SessionService } from './services/session.service';
-import { DeviceInfoService } from './services/device-info.service';
+import type { TokenRevocationService } from './services/token-revocation.service';
 
 describe('AuthService', () => {
   let service: AuthService;
 
-  const prisma = {
+  /** Explicit mock contract — every delegate the service touches, as jest.Mocks. */
+  interface PrismaMock {
+    $transaction: jest.Mock;
+    user: {
+      findUnique: jest.Mock;
+      findFirst: jest.Mock;
+      create: jest.Mock;
+      update: jest.Mock;
+      updateMany: jest.Mock;
+    };
+    session: {
+      create: jest.Mock;
+      deleteMany: jest.Mock;
+      update: jest.Mock;
+      updateMany: jest.Mock;
+      findMany: jest.Mock;
+      findFirst: jest.Mock;
+    };
+    notification: { create: jest.Mock };
+    notificationPreference: { findFirst: jest.Mock; create: jest.Mock };
+    userAddress: { findFirst: jest.Mock; update: jest.Mock; delete: jest.Mock };
+    recentlyViewed: {
+      create: jest.Mock;
+      count: jest.Mock;
+      findMany: jest.Mock;
+      deleteMany: jest.Mock;
+    };
+    abandonedCart: {
+      createMany: jest.Mock;
+      findMany: jest.Mock;
+      updateMany: jest.Mock;
+      deleteMany: jest.Mock;
+    };
+  }
+
+  const prisma: PrismaMock = {
     $transaction: jest.fn(),
     user: {
       findUnique: jest.fn(),
@@ -53,14 +91,14 @@ describe('AuthService', () => {
       updateMany: jest.fn(),
       deleteMany: jest.fn(),
     },
-  } as any;
+  };
 
   const jwtServiceMock = {
     signAsync: jest.fn().mockResolvedValue('signed-token'),
     verifyAsync: jest.fn(),
   };
 
-  const emailVerificationService = {
+  const emailVerificationService: Record<string, jest.Mock> = {
     buildVerificationUrl: jest.fn(),
     buildPasswordResetUrl: jest.fn(),
     sendVerificationEmail: jest.fn(),
@@ -81,7 +119,7 @@ describe('AuthService', () => {
     sendLowStock: jest.fn(),
     sendSupportIssueCreated: jest.fn(),
     sendSupportIssueUpdated: jest.fn(),
-  } as any;
+  };
 
   const configServiceMock = {
     get: jest.fn(),
@@ -90,6 +128,7 @@ describe('AuthService', () => {
   const notificationServiceMock: Partial<NotificationService> = {
     isEmailConfigured: false,
     queue: jest.fn(),
+    create: jest.fn().mockResolvedValue({}),
   };
 
   const redisCacheServiceMock = {
@@ -110,18 +149,24 @@ describe('AuthService', () => {
     extractDeviceInfo: jest.fn(),
   };
 
+  const tokenRevocationServiceMock: Partial<TokenRevocationService> = {
+    revoke: jest.fn().mockResolvedValue(undefined),
+    isRevoked: jest.fn().mockResolvedValue(false),
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
     service = new AuthService(
-      prisma,
+      prisma as unknown as PrismaService,
       jwtServiceMock as unknown as JwtService,
-      emailVerificationService,
+      emailVerificationService as unknown as EmailVerificationService,
       configServiceMock,
       notificationServiceMock as NotificationService,
-      redisCacheServiceMock as any,
+      redisCacheServiceMock as unknown as RedisCacheService,
       sessionServiceMock as unknown as SessionService,
-      deviceInfoServiceMock as unknown as DeviceInfoService,
+      deviceInfoServiceMock,
+      tokenRevocationServiceMock as TokenRevocationService
     );
   });
 
@@ -129,17 +174,25 @@ describe('AuthService', () => {
   // REGISTER
   // ---------------------------------------------------------------------------
 
-  it('registers local users as unverified', async () => {
-    prisma.user.findUnique.mockResolvedValue(null);
-
-    prisma.user.create.mockResolvedValue({
+  it('registers local users as unverified and returns an auth session', async () => {
+    const createdUser = {
       id: 1,
       name: 'New User',
       email: 'new@example.com',
-    });
+      role: 'USER',
+      isEmailVerified: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      addresses: [],
+    };
+
+    // First call: duplicate-email guard. Second: buildAuthResponse re-fetch.
+    prisma.user.findUnique.mockResolvedValueOnce(null).mockResolvedValue(createdUser);
+
+    prisma.user.create.mockResolvedValue(createdUser);
 
     emailVerificationService.sendVerificationEmail.mockResolvedValue(
-      'http://localhost:5173/auth?mode=verify-email&token=test',
+      'http://localhost:5173/auth?mode=verify-email&token=test'
     );
 
     const result = await service.register({
@@ -150,13 +203,12 @@ describe('AuthService', () => {
       captchaInput: 'test-captcha-input',
     });
 
-    expect(result).toEqual({
-      message:
-        'User registered successfully. Verify your email before logging in.',
-      requiresEmailVerification: true,
-      verificationUrl:
-        'http://localhost:5173/auth?mode=verify-email&token=test',
-    });
+    // Migrated contract: registration provisions the session immediately,
+    // but login() still refuses access until the address is verified.
+    expect(result.message).toBe('Registration successful');
+    expect(result.accessToken).toBe('signed-token');
+    expect(result.refreshToken).toBe('signed-token');
+    expect(result.user.email).toBe('new@example.com');
 
     expect(prisma.user.create).toHaveBeenCalled();
   });
@@ -217,9 +269,7 @@ describe('AuthService', () => {
 
     prisma.user.update.mockResolvedValue({});
 
-    emailVerificationService.sendVerificationEmail.mockResolvedValue(
-      'verification-link',
-    );
+    emailVerificationService.sendVerificationEmail.mockResolvedValue('verification-link');
 
     await expect(
       service.login({
@@ -227,8 +277,8 @@ describe('AuthService', () => {
         password: 'password123',
         captchaId: 'test-captcha-id',
         captchaInput: 'test-captcha-input',
-      }),
-    ).rejects.toBeInstanceOf(UnauthorizedException);
+      })
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   // ---------------------------------------------------------------------------
@@ -249,7 +299,7 @@ describe('AuthService', () => {
     });
 
     configServiceMock.get.mockImplementation((key: string) =>
-      key === 'app.googleClientId' ? 'google-client-id' : undefined,
+      key === 'app.googleClientId' ? 'google-client-id' : undefined
     );
 
     prisma.user.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce({
@@ -264,14 +314,12 @@ describe('AuthService', () => {
       id: 1,
     });
 
-    emailVerificationService.sendVerificationEmail.mockResolvedValue(
-      'verification-link',
-    );
+    emailVerificationService.sendVerificationEmail.mockResolvedValue('verification-link');
 
     await expect(
       service.googleAuth({
         credential: 'token',
-      }),
+      })
     ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
@@ -289,7 +337,7 @@ describe('AuthService', () => {
     });
 
     configServiceMock.get.mockImplementation((key: string) =>
-      key === 'app.googleClientId' ? 'google-client-id' : undefined,
+      key === 'app.googleClientId' ? 'google-client-id' : undefined
     );
 
     prisma.user.findUnique
@@ -335,10 +383,7 @@ describe('AuthService', () => {
       id: 1,
       email: 'test@example.com',
       role: 'USER',
-      refreshToken: crypto
-        .createHash('sha256')
-        .update('refresh-token')
-        .digest('hex'),
+      refreshToken: crypto.createHash('sha256').update('refresh-token').digest('hex'),
       refreshTokenExpiresAt: new Date(Date.now() + 100000),
     });
     sessionServiceMock.findSessionByRefreshToken.mockResolvedValue({
@@ -363,13 +408,13 @@ describe('AuthService', () => {
 
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
-    prisma.user.findFirst!.mockResolvedValue({
+    prisma.user.findFirst.mockResolvedValue({
       id: 1,
       emailVerifyToken: hashedToken,
       emailVerifyTokenExpiresAt: new Date(Date.now() + 100000),
     });
 
-    prisma.user.update!.mockResolvedValue({});
+    prisma.user.update.mockResolvedValue({});
     prisma.session.deleteMany.mockResolvedValue({ count: 1 });
 
     const result = await service.verifyEmail({
@@ -392,9 +437,7 @@ describe('AuthService', () => {
 
     prisma.user.update.mockResolvedValue({});
 
-    emailVerificationService.sendPasswordResetEmail.mockResolvedValue(
-      'reset-link',
-    );
+    emailVerificationService.sendPasswordResetEmail.mockResolvedValue('reset-link');
 
     const result = await service.forgotPassword({
       email: 'test@example.com',
@@ -412,13 +455,13 @@ describe('AuthService', () => {
 
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
-    prisma.user.findFirst!.mockResolvedValue({
+    prisma.user.findFirst.mockResolvedValue({
       id: 1,
       passwordResetToken: hashedToken,
       passwordResetTokenExpiresAt: new Date(Date.now() + 100000),
     });
 
-    prisma.user.update!.mockResolvedValue({});
+    prisma.user.update.mockResolvedValue({});
 
     const result = await service.resetPassword({
       token,
@@ -439,19 +482,16 @@ describe('AuthService', () => {
       id: 1,
       email: 'test@example.com',
       role: 'USER',
-      refreshToken: crypto
-        .createHash('sha256')
-        .update('refresh-token')
-        .digest('hex'),
+      refreshToken: crypto.createHash('sha256').update('refresh-token').digest('hex'),
       refreshTokenExpiresAt: new Date(Date.now() + 100000),
     });
     sessionServiceMock.findSessionByRefreshToken.mockResolvedValue(null);
     prisma.session.update.mockResolvedValue({});
     prisma.user.update.mockResolvedValue({});
 
-    await expect(
-      service.refreshAccessToken('refresh-token'),
-    ).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(service.refreshAccessToken('refresh-token')).rejects.toBeInstanceOf(
+      UnauthorizedException
+    );
   });
 
   // ---------------------------------------------------------------------------
@@ -478,7 +518,7 @@ describe('AuthService', () => {
       role: 'USER',
     });
 
-    prisma.$transaction.mockImplementation(async (callback) => {
+    prisma.$transaction.mockImplementation((callback: (tx: unknown) => unknown) => {
       const tx = {
         session: { deleteMany: prisma.session.deleteMany },
         user: { update: prisma.user.update },
@@ -495,15 +535,18 @@ describe('AuthService', () => {
     expect(prisma.session.deleteMany).toHaveBeenCalledWith({
       where: { userId: 1 },
     });
-    expect(prisma.user.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: 1 },
-        data: expect.objectContaining({
-          refreshToken: null,
-          refreshTokenExpiresAt: null,
-        }),
-      }),
-    );
+
+    // jest records one entry per CALL, each holding that call's argument list.
+    const updateCall = (
+      prisma.user.update.mock.calls as unknown as Array<
+        [{ where: { id: number }; data: Record<string, unknown> }]
+      >
+    )[0]?.[0];
+    expect(updateCall?.where).toEqual({ id: 1 });
+    expect(updateCall?.data).toMatchObject({
+      refreshToken: null,
+      refreshTokenExpiresAt: null,
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -529,12 +572,12 @@ describe('AuthService', () => {
           };
         }
         return null;
-      },
+      }
     );
 
-    await expect(
-      service.updateAddress(2, 1, { label: 'Work' }),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.updateAddress(2, 1, { label: 'Work' })).rejects.toBeInstanceOf(
+      NotFoundException
+    );
   });
 
   it('prevents USER from removing another user address (IDOR)', async () => {
@@ -556,11 +599,9 @@ describe('AuthService', () => {
           };
         }
         return null;
-      },
+      }
     );
 
-    await expect(service.removeAddress(2, 1)).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(service.removeAddress(2, 1)).rejects.toBeInstanceOf(NotFoundException);
   });
 });

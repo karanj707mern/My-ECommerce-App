@@ -13,6 +13,7 @@ import { AuthCookiesService } from './services/auth-cookies.service';
 import { DeviceInfoService } from './services/device-info.service';
 import { SessionService } from './services/session.service';
 import { CaptchaService } from './services/captcha.service';
+import { TokenRevocationService } from './services/token-revocation.service';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -79,6 +80,11 @@ describe('AuthController', () => {
     findSessionByRefreshToken: jest.fn(),
   };
 
+  const tokenRevocationServiceMock = {
+    revoke: jest.fn().mockResolvedValue(undefined),
+    isRevoked: jest.fn().mockResolvedValue(false),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
@@ -127,6 +133,10 @@ describe('AuthController', () => {
         {
           provide: SessionService,
           useValue: sessionServiceMock,
+        },
+        {
+          provide: TokenRevocationService,
+          useValue: tokenRevocationServiceMock,
         },
       ],
     })

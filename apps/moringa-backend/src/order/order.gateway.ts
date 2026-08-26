@@ -33,14 +33,12 @@ const defaultSocketCorsOrigins = [
 const socketCorsOrigins = Array.from(
   new Set(
     [
-      ...(process.env.CORS_ORIGINS ?? process.env.FRONTEND_URL ?? '').split(
-        ',',
-      ),
+      ...(process.env.CORS_ORIGINS ?? process.env.FRONTEND_URL ?? '').split(','),
       ...defaultSocketCorsOrigins,
     ]
       .map((origin) => origin.trim())
-      .filter(Boolean),
-  ),
+      .filter(Boolean)
+  )
 );
 
 const isAllowedSocketOrigin = (origin: string | undefined) => {
@@ -61,9 +59,7 @@ const isAllowedSocketOrigin = (origin: string | undefined) => {
       return false;
     }
 
-    const pattern = normalizedAllowed
-      .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-      .replace(/\\\*/g, '.*');
+    const pattern = normalizedAllowed.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '.*');
 
     return new RegExp(`^${pattern}$`).test(normalizedOrigin);
   });
@@ -84,11 +80,7 @@ const isAllowedSocketOrigin = (origin: string | undefined) => {
   },
 })
 export class OrderGateway
-  implements
-    OnGatewayInit,
-    OnGatewayConnection,
-    OnGatewayDisconnect,
-    OnModuleDestroy
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, OnModuleDestroy
 {
   private readonly logger = new Logger(OrderGateway.name);
   private orderUpdatesSubscription?: Subscription;
@@ -96,7 +88,7 @@ export class OrderGateway
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
-    private readonly orderEventsService: OrderEventsService,
+    private readonly orderEventsService: OrderEventsService
   ) {}
 
   afterInit(server: Server) {
@@ -148,7 +140,7 @@ export class OrderGateway
       this.logger.warn(
         `Rejected websocket client ${client.id}: ${
           error instanceof Error ? error.message : 'Authentication failed'
-        }`,
+        }`
       );
       client.emit('error', { message: 'Unauthorized websocket connection.' });
       client.disconnect();
@@ -174,9 +166,7 @@ export class OrderGateway
   }
 
   private async emitCachedUserEvent(client: Socket, userId: number) {
-    const cachedEvent = await this.orderEventsService
-      .getLastOrderEvent(userId)
-      .catch(() => null);
+    const cachedEvent = await this.orderEventsService.getLastOrderEvent(userId).catch(() => null);
 
     if (cachedEvent?.type === 'order.updated') {
       client.emit(cachedEvent.type, cachedEvent);
@@ -184,9 +174,7 @@ export class OrderGateway
   }
 
   private async emitCachedAdminEvent(client: Socket) {
-    const cachedEvent = await this.orderEventsService
-      .getLastAdminOrderEvent()
-      .catch(() => null);
+    const cachedEvent = await this.orderEventsService.getLastAdminOrderEvent().catch(() => null);
 
     if (cachedEvent?.type === 'order.updated') {
       client.emit(cachedEvent.type, cachedEvent);
@@ -206,23 +194,14 @@ export class OrderGateway
       return queryToken.trim();
     }
 
-    const authorization = client.handshake.headers.authorization as
-      string | string[] | undefined;
-    const authorizationHeader = Array.isArray(authorization)
-      ? authorization[0]
-      : authorization;
+    const authorization = client.handshake.headers.authorization as string | string[] | undefined;
+    const authorizationHeader = Array.isArray(authorization) ? authorization[0] : authorization;
 
-    if (
-      typeof authorizationHeader === 'string' &&
-      authorizationHeader.startsWith('Bearer ')
-    ) {
+    if (typeof authorizationHeader === 'string' && authorizationHeader.startsWith('Bearer ')) {
       return authorizationHeader.slice('Bearer '.length).trim();
     }
 
-    const cookieToken = this.getCookieValue(
-      client.handshake.headers.cookie,
-      'accessToken',
-    );
+    const cookieToken = this.getCookieValue(client.handshake.headers.cookie, 'accessToken');
 
     if (cookieToken) {
       return cookieToken;
@@ -237,9 +216,7 @@ export class OrderGateway
     }
 
     const cookies = cookieHeader.split(';').map((cookie) => cookie.trim());
-    const targetCookie = cookies.find((cookie) =>
-      cookie.startsWith(`${name}=`),
-    );
+    const targetCookie = cookies.find((cookie) => cookie.startsWith(`${name}=`));
 
     if (!targetCookie) {
       return undefined;

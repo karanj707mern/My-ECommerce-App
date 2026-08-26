@@ -1,5 +1,4 @@
-import { Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt.guard';
+import { Controller, Get } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
